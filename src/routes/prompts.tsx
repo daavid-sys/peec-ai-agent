@@ -28,6 +28,11 @@ import {
   type PromptQfo,
 } from "@/lib/server/get-prompt-qfos";
 import { QfosTable } from "@/components/qfos-table";
+import { PromptsTable } from "@/components/prompts-table";
+import {
+  getPromptTable,
+  type PromptTableRow,
+} from "@/lib/server/get-prompt-table";
 
 export const Route = createFileRoute("/prompts")({
   head: () => ({ meta: [{ title: "Recommended Prompt — Peec AI Openings" }] }),
