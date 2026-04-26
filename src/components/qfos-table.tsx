@@ -103,9 +103,8 @@ export function QfosTable({
             tells you the real searches you need to win.
           </p>
           <p className="mt-2 text-muted-foreground">
-            We list the top fanouts captured for this prompt — the list is
-            trimmed to keep this card aligned with &ldquo;Why this prompt&rdquo;
-            on the left. The full set is available on the prompt detail page.
+            We show the top 6 fanouts captured for this prompt. The full set is
+            available on the prompt detail page.
           </p>
         </InfoPopover>
       </div>
