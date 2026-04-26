@@ -280,7 +280,7 @@ export const enqueueOpeningDrafts = createServerFn({ method: "POST" })
     const openingsRes = await supabaseAdmin
       .from("action_openings")
       .select(
-        "id, title, action_type, rationale, recommended_engagement, competitor, prompt_id, source_id",
+        "id, title, action_type, rationale, recommended_engagement, competitor, prompt_id, source_id, impact_score",
       )
       .eq("prompt_id", promptId)
       .order("impact_score", { ascending: false });
@@ -297,6 +297,16 @@ export const enqueueOpeningDrafts = createServerFn({ method: "POST" })
       };
     }
 
+    // Collapse duplicates: one draft per (source, action_type), targeting many.
+    const merged = dedupeOpenings(
+      openings.map((o) => ({ ...o, impact_score: o.impact_score ?? 0 })),
+    );
+    const allJobs: DraftJob[] = merged.map((m) => ({
+      opening: m.canonical,
+      competitors: m.competitors,
+      groupIds: m.groupIds,
+    }));
+
     const draftsRes = await supabaseAdmin
       .from("opening_drafts")
       .select("opening_id, status")
@@ -309,10 +319,14 @@ export const enqueueOpeningDrafts = createServerFn({ method: "POST" })
       haveDraft.set(d.opening_id, d.status ?? "pending");
     }
 
-    // We re-try failed drafts but skip ready / drafting (someone else is on it).
-    const todo = openings.filter((o) => {
-      const s = haveDraft.get(o.id);
-      return !s || s === "pending" || s === "failed";
+    // A merged job is "done" if ANY row in the group is ready/drafting.
+    // Re-try only when every row is missing/pending/failed.
+    const todo = allJobs.filter((job) => {
+      const groupStatuses = job.groupIds.map((id) => haveDraft.get(id));
+      const anyDone = groupStatuses.some(
+        (s) => s === "ready" || s === "drafting",
+      );
+      return !anyDone;
     });
 
     if (todo.length === 0) {
@@ -327,20 +341,25 @@ export const enqueueOpeningDrafts = createServerFn({ method: "POST" })
 
     const batch = todo.slice(0, MAX_PER_CALL);
 
-    // Mark all of them pending immediately so concurrent callers don't double-do work.
+    // Mark every row in every group's batch as pending so concurrent callers
+    // don't double-do work.
+    const pendingRows = batch.flatMap((job) =>
+      job.groupIds.map((id) => ({
+        opening_id: id,
+        platform: "other",
+        status: "pending",
+      })),
+    );
     await supabaseAdmin
       .from("opening_drafts")
-      .upsert(
-        batch.map((o) => ({
-          opening_id: o.id,
-          platform: "other",
-          status: "pending",
-        })),
-        { onConflict: "opening_id" },
-      );
+      .upsert(pendingRows, { onConflict: "opening_id" });
 
     const sourceIds = Array.from(
-      new Set(batch.map((o) => o.source_id).filter((x): x is string => !!x)),
+      new Set(
+        batch
+          .map((job) => job.opening.source_id)
+          .filter((x): x is string => !!x),
+      ),
     );
     const [sourcesRes, scrapesRes] = await Promise.all([
       sourceIds.length
@@ -364,8 +383,8 @@ export const enqueueOpeningDrafts = createServerFn({ method: "POST" })
     }
 
     await Promise.all(
-      batch.map((o) =>
-        generateDraftFor(o, {
+      batch.map((job) =>
+        generateDraftFor(job, {
           promptText,
           ownBrand,
           ownDomain,
