@@ -59,8 +59,25 @@ function ResultsPage() {
 
   const [response, setResponse] = useState<StudioDraftsResponse | null>(null);
   const [metrics, setMetrics] = useState<ResultsMetrics | null>(null);
+  const [promptRow, setPromptRow] = useState<PromptTableRow | null>(null);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [completedRestored, setCompletedRestored] = useState(false);
+
+  // Prompt-row metrics (visibility + competitor mention logos) — same source
+  // the openings page header uses.
+  useEffect(() => {
+    let cancelled = false;
+    setPromptRow(null);
+    getPromptTable()
+      .then((rows) => {
+        if (cancelled) return;
+        setPromptRow(rows.find((r) => r.id === promptId) ?? null);
+      })
+      .catch(() => !cancelled && setPromptRow(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [promptId]);
 
   // Restore queue progress
   useEffect(() => {
