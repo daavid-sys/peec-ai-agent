@@ -208,8 +208,8 @@ function ResultsPage() {
           <div>
             <div className="text-sm font-semibold">The Peec loop is closed.</div>
             <p className="mt-1 text-sm text-foreground">
-              Peec measures AI visibility. Openings helps you act on it. New
-              mentions land in Peec, and the next-best opening surfaces
+              Peec measures AI visibility. Our Agent helps you act on it. New
+              mentions land in Peec, and the next-best actions surfaces
               automatically.
             </p>
           </div>
