@@ -249,6 +249,10 @@ function StudioPage() {
                   draft={current}
                   cps={260}
                   onDone={markDone}
+                  ownBrand={{
+                    name: project?.ownBrand.name ?? "Attio",
+                    domain: project?.ownBrand.domain ?? "attio.com",
+                  }}
                 />
               </motion.div>
             </AnimatePresence>

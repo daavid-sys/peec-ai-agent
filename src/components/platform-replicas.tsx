@@ -1,38 +1,61 @@
-import { ArrowBigUp, ArrowBigDown, MessageSquare, Share2, Bookmark, MoreHorizontal, ThumbsUp, Repeat2, Send, Globe, ExternalLink } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import {
+  ArrowBigUp,
+  ArrowBigDown,
+  MessageSquare,
+  Share2,
+  Bookmark,
+  MoreHorizontal,
+  ThumbsUp,
+  Repeat2,
+  Send,
+  Globe,
+  ExternalLink,
+} from "lucide-react";
 import { Favicon } from "@/components/favicon";
 import { useTypewriter } from "@/hooks/use-typewriter";
+import { cn } from "@/lib/utils";
 import type { Channel } from "@/lib/channel";
 import type { StudioDraft } from "@/lib/server/get-studio-drafts";
 
-type Props = { draft: StudioDraft; cps?: number; onDone?: () => void };
+export type OwnBrandInfo = {
+  name: string;
+  domain?: string | null;
+};
 
-export function PlatformReplica({ draft, cps = 240, onDone }: Props) {
-  switch (draft.channel) {
+type Props = {
+  draft: StudioDraft;
+  cps?: number;
+  onDone?: () => void;
+  ownBrand: OwnBrandInfo;
+};
+
+export function PlatformReplica(props: Props) {
+  switch (props.draft.channel) {
     case "reddit":
-      return <RedditReplica draft={draft} cps={cps} onDone={onDone} />;
+      return <RedditReplica {...props} />;
     case "linkedin":
-      return <LinkedInReplica draft={draft} cps={cps} onDone={onDone} />;
+      return <LinkedInReplica {...props} />;
     case "medium":
     case "editorial":
-      return <EditorialReplica draft={draft} cps={cps} onDone={onDone} />;
+      return <EditorialReplica {...props} />;
     case "twitter":
-      return <TwitterReplica draft={draft} cps={cps} onDone={onDone} />;
+      return <TwitterReplica {...props} />;
     case "youtube":
-      return <YouTubeReplica draft={draft} cps={cps} onDone={onDone} />;
+      return <YouTubeReplica {...props} />;
     case "listicle":
-      return <ListicleReplica draft={draft} cps={cps} onDone={onDone} />;
+      return <ListicleReplica {...props} />;
     case "comparison":
-      return <ComparisonReplica draft={draft} cps={cps} onDone={onDone} />;
+      return <ComparisonReplica {...props} />;
     case "owned":
-      return <OwnedReplica draft={draft} cps={cps} onDone={onDone} />;
+      return <OwnedReplica {...props} />;
     default:
-      return <GenericReplica draft={draft} cps={cps} onDone={onDone} />;
+      return <GenericReplica {...props} />;
   }
 }
 
 function useTyped(draft: StudioDraft, cps: number, onDone?: () => void) {
   const { text, done } = useTypewriter(draft.fullDraft, { cps });
-  // Fire onDone exactly once when the typing completes.
   if (done && onDone) {
     queueMicrotask(onDone);
   }
@@ -52,6 +75,109 @@ const channelHints: Record<Channel, string> = {
   forum: "Forum reply",
   other: "Draft",
 };
+
+/* --------------------------- shared building blocks --------------------------- */
+
+function brandHandle(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function BrandAvatar({
+  brand,
+  size = 40,
+  rounded = "full",
+  className,
+}: {
+  brand: OwnBrandInfo;
+  size?: number;
+  rounded?: "full" | "md";
+  className?: string;
+}) {
+  // Use the brand domain when present so the favicon resolver hits the real host.
+  const target = brand.domain || brand.name;
+  return (
+    <div
+      className={cn(
+        "flex flex-shrink-0 items-center justify-center overflow-hidden bg-white ring-1 ring-zinc-200",
+        rounded === "full" ? "rounded-full" : "rounded-md",
+        className,
+      )}
+      style={{ width: size, height: size }}
+    >
+      <Favicon
+        name={target}
+        kind="brand"
+        size={Math.round(size * 0.7)}
+        className="rounded-none"
+      />
+    </div>
+  );
+}
+
+const Caret = () => (
+  <span className="ml-0.5 inline-block h-[1em] w-[2px] -translate-y-[1px] animate-pulse bg-current align-middle" />
+);
+
+/**
+ * Live-rendered Markdown stream. Re-parses on every keystroke so the user
+ * sees headings, bold, links, lists materialise as the agent types. We append
+ * an invisible character to keep partially-written links/headings rendering
+ * usefully, and overlay a caret outside the markdown root.
+ */
+function TypedMarkdown({
+  text,
+  className,
+  showCaret = true,
+}: {
+  text: string;
+  className?: string;
+  showCaret?: boolean;
+}) {
+  return (
+    <div className={cn("prose prose-zinc max-w-none", className)}>
+      <ReactMarkdown
+        components={{
+          // Open links in new tab; render inline-style so they read naturally
+          a: (props) => (
+            <a {...props} target="_blank" rel="noreferrer" />
+          ),
+          // Tighten paragraph spacing inside chat-style replicas
+          p: ({ children }) => <p className="my-2 first:mt-0 last:mb-0">{children}</p>,
+          ul: ({ children }) => <ul className="my-2 list-disc pl-5">{children}</ul>,
+          ol: ({ children }) => <ol className="my-2 list-decimal pl-5">{children}</ol>,
+          h1: ({ children }) => (
+            <h1 className="mb-2 mt-4 text-[22px] font-bold leading-tight first:mt-0">
+              {children}
+            </h1>
+          ),
+          h2: ({ children }) => (
+            <h2 className="mb-2 mt-4 text-[18px] font-semibold leading-snug first:mt-0">
+              {children}
+            </h2>
+          ),
+          h3: ({ children }) => (
+            <h3 className="mb-1.5 mt-3 text-[15px] font-semibold first:mt-0">
+              {children}
+            </h3>
+          ),
+          code: ({ children }) => (
+            <code className="rounded bg-zinc-100 px-1 py-0.5 font-mono text-[0.9em]">
+              {children}
+            </code>
+          ),
+          blockquote: ({ children }) => (
+            <blockquote className="my-2 border-l-2 border-zinc-300 pl-3 italic text-zinc-700">
+              {children}
+            </blockquote>
+          ),
+        }}
+      >
+        {text}
+      </ReactMarkdown>
+      {showCaret && <Caret />}
+    </div>
+  );
+}
 
 function ReplicaShell({
   children,
@@ -87,14 +213,11 @@ function ReplicaShell({
   );
 }
 
-const Caret = () => (
-  <span className="ml-0.5 inline-block h-[1em] w-[2px] -translate-y-[1px] animate-pulse bg-current align-middle" />
-);
-
 /* ------------------------------- REDDIT ------------------------------- */
-function RedditReplica({ draft, cps, onDone }: Props) {
+function RedditReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 240, onDone);
   const subreddit = guessSubreddit(draft);
+  const handle = `u/${brandHandle(ownBrand.name)}`;
   return (
     <ReplicaShell chromeColor="#FF4500" channel="reddit" domain={draft.source.domain}>
       <div className="bg-[#DAE0E6] p-4 text-zinc-900">
@@ -138,17 +261,18 @@ function RedditReplica({ draft, cps, onDone }: Props) {
               <ArrowBigDown className="h-4 w-4" />
             </div>
             <div className="flex-1 p-3">
-              <div className="flex items-center gap-1 text-[11px]">
-                <span className="font-semibold text-[#FF4500]">u/peec_team</span>
+              <div className="flex items-center gap-2 text-[11px]">
+                <BrandAvatar brand={ownBrand} size={20} />
+                <span className="font-semibold text-[#FF4500]">{handle}</span>
                 <span className="text-zinc-500">· OP · just now</span>
                 <span className="ml-1 rounded bg-[#FF4500]/10 px-1 py-px text-[9px] font-semibold uppercase text-[#FF4500]">
                   Drafting
                 </span>
               </div>
-              <div className="prose prose-sm mt-2 whitespace-pre-wrap text-[13.5px] leading-relaxed text-zinc-900">
-                {typed}
-                <Caret />
-              </div>
+              <TypedMarkdown
+                text={typed}
+                className="mt-2 text-[13.5px] leading-relaxed text-zinc-900"
+              />
               <div className="mt-2 flex items-center gap-3 text-[11px] text-zinc-500">
                 <span>Reply</span>
                 <span>Share</span>
@@ -169,30 +293,27 @@ function guessSubreddit(d: StudioDraft) {
 }
 
 /* ------------------------------ LINKEDIN ------------------------------ */
-function LinkedInReplica({ draft, cps, onDone }: Props) {
+function LinkedInReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 240, onDone);
   return (
     <ReplicaShell chromeColor="#0A66C2" channel="linkedin" domain={draft.source.domain ?? "linkedin.com"}>
       <div className="bg-[#F4F2EE] p-5 text-zinc-900">
         <div className="mx-auto max-w-[560px] rounded-lg border border-zinc-200 bg-white">
           <div className="flex items-start gap-3 p-4">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-[#0A66C2] text-white font-semibold">
-              P
-            </div>
+            <BrandAvatar brand={ownBrand} size={48} />
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold text-zinc-900">Peec AI · Following</div>
+              <div className="text-sm font-semibold text-zinc-900">
+                {ownBrand.name} · Following
+              </div>
               <div className="text-[11px] text-zinc-500">
-                Generative-engine optimization · Just now · 🌐
+                {ownBrand.domain ?? "Company page"} · Just now · 🌐
               </div>
             </div>
             <MoreHorizontal className="h-5 w-5 text-zinc-400" />
           </div>
 
           <div className="px-4 pb-3 text-[14px] leading-[1.55] text-zinc-900">
-            <div className="whitespace-pre-wrap">
-              {typed}
-              <Caret />
-            </div>
+            <TypedMarkdown text={typed} />
           </div>
 
           {draft.source.url && (
@@ -236,7 +357,7 @@ function LinkedInReplica({ draft, cps, onDone }: Props) {
 }
 
 /* ----------------------------- EDITORIAL ----------------------------- */
-function EditorialReplica({ draft, cps, onDone }: Props) {
+function EditorialReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 260, onDone);
   return (
     <ReplicaShell chromeColor="#7c3aed" channel={draft.channel} domain={draft.source.domain}>
@@ -252,13 +373,13 @@ function EditorialReplica({ draft, cps, onDone }: Props) {
             {draft.title}
           </h1>
           <div className="mt-3 flex items-center gap-2 text-[12px] text-zinc-500">
-            <div className="h-7 w-7 rounded-full bg-zinc-200" />
-            <span>By Peec AI editorial · 6 min read</span>
+            <BrandAvatar brand={ownBrand} size={28} />
+            <span>By {ownBrand.name} · 6 min read</span>
           </div>
-          <article className="prose prose-zinc mt-6 max-w-none whitespace-pre-wrap font-serif text-[16.5px] leading-[1.7] text-zinc-800">
-            {typed}
-            <Caret />
-          </article>
+          <TypedMarkdown
+            text={typed}
+            className="mt-6 font-serif text-[16.5px] leading-[1.7] text-zinc-800"
+          />
         </div>
       </div>
     </ReplicaShell>
@@ -266,8 +387,9 @@ function EditorialReplica({ draft, cps, onDone }: Props) {
 }
 
 /* ------------------------------- TWITTER ------------------------------- */
-function TwitterReplica({ draft, cps, onDone }: Props) {
+function TwitterReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 220, onDone);
+  const handle = `@${brandHandle(ownBrand.name)}`;
   return (
     <ReplicaShell chromeColor="#000000" channel="twitter" domain={draft.source.domain ?? "x.com"}>
       <div className="bg-white p-4 text-zinc-900">
@@ -288,18 +410,13 @@ function TwitterReplica({ draft, cps, onDone }: Props) {
           </div>
           <div className="bg-zinc-50 p-4">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-black text-white font-bold">
-                P
-              </div>
+              <BrandAvatar brand={ownBrand} size={40} />
               <div className="min-w-0 flex-1">
                 <div className="text-[14px]">
-                  <span className="font-bold">Peec AI</span>{" "}
-                  <span className="text-zinc-500">@peec · drafting…</span>
+                  <span className="font-bold">{ownBrand.name}</span>{" "}
+                  <span className="text-zinc-500">{handle} · drafting…</span>
                 </div>
-                <p className="mt-1 whitespace-pre-wrap text-[15px] leading-snug">
-                  {typed}
-                  <Caret />
-                </p>
+                <TypedMarkdown text={typed} className="mt-1 text-[15px] leading-snug" />
               </div>
             </div>
           </div>
@@ -310,8 +427,9 @@ function TwitterReplica({ draft, cps, onDone }: Props) {
 }
 
 /* ------------------------------- YOUTUBE ------------------------------- */
-function YouTubeReplica({ draft, cps, onDone }: Props) {
+function YouTubeReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 240, onDone);
+  const handle = `@${brandHandle(ownBrand.name)}`;
   return (
     <ReplicaShell chromeColor="#FF0000" channel="youtube" domain={draft.source.domain ?? "youtube.com"}>
       <div className="bg-white p-4 text-zinc-900">
@@ -326,18 +444,13 @@ function YouTubeReplica({ draft, cps, onDone }: Props) {
           <div className="mt-4 border-t border-zinc-200 pt-4">
             <div className="text-sm font-semibold">847 Comments</div>
             <div className="mt-3 flex items-start gap-3">
-              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#FF0000] text-white text-xs font-bold">
-                P
-              </div>
+              <BrandAvatar brand={ownBrand} size={36} />
               <div className="min-w-0 flex-1">
                 <div className="text-[12px]">
-                  <span className="font-semibold">@peec_ai</span>
+                  <span className="font-semibold">{handle}</span>
                   <span className="ml-1 text-zinc-500">· now · drafting</span>
                 </div>
-                <p className="mt-1 whitespace-pre-wrap text-[14px] leading-snug">
-                  {typed}
-                  <Caret />
-                </p>
+                <TypedMarkdown text={typed} className="mt-1 text-[14px] leading-snug" />
               </div>
             </div>
           </div>
@@ -348,7 +461,7 @@ function YouTubeReplica({ draft, cps, onDone }: Props) {
 }
 
 /* ------------------------------ LISTICLE ------------------------------ */
-function ListicleReplica({ draft, cps, onDone }: Props) {
+function ListicleReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 260, onDone);
   return (
     <ReplicaShell chromeColor="#0891b2" channel="listicle" domain={draft.source.domain}>
@@ -371,15 +484,18 @@ function ListicleReplica({ draft, cps, onDone }: Props) {
             </li>
             <li className="rounded-md border-2 border-[#0891b2] bg-[#0891b2]/5 p-3 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="font-bold">3. Our proposed insertion</span>
+                <span className="flex items-center gap-2 font-bold">
+                  <BrandAvatar brand={ownBrand} size={20} rounded="md" />
+                  3. {ownBrand.name} ← proposed insertion
+                </span>
                 <span className="rounded bg-[#0891b2] px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">
                   drafting
                 </span>
               </div>
-              <p className="mt-1 whitespace-pre-wrap text-[14px] leading-relaxed text-zinc-800">
-                {typed}
-                <Caret />
-              </p>
+              <TypedMarkdown
+                text={typed}
+                className="mt-1 text-[14px] leading-relaxed text-zinc-800"
+              />
             </li>
           </ol>
         </div>
@@ -389,7 +505,7 @@ function ListicleReplica({ draft, cps, onDone }: Props) {
 }
 
 /* ----------------------------- COMPARISON ----------------------------- */
-function ComparisonReplica({ draft, cps, onDone }: Props) {
+function ComparisonReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 240, onDone);
   return (
     <ReplicaShell chromeColor="#0d9488" channel="comparison" domain={draft.source.domain}>
@@ -419,12 +535,17 @@ function ComparisonReplica({ draft, cps, onDone }: Props) {
                   </tr>
                 )}
                 <tr className="bg-[#0d9488]/5">
-                  <td className="px-3 py-2 font-semibold text-[#0d9488]">Peec AI ← new row</td>
+                  <td className="px-3 py-2 align-top font-semibold text-[#0d9488]">
+                    <span className="inline-flex items-center gap-2">
+                      <BrandAvatar brand={ownBrand} size={18} rounded="md" />
+                      {ownBrand.name} ← new row
+                    </span>
+                  </td>
                   <td className="px-3 py-2 align-top" colSpan={2}>
-                    <div className="whitespace-pre-wrap text-[13.5px] text-zinc-800">
-                      {typed}
-                      <Caret />
-                    </div>
+                    <TypedMarkdown
+                      text={typed}
+                      className="text-[13.5px] text-zinc-800"
+                    />
                   </td>
                 </tr>
               </tbody>
@@ -437,20 +558,25 @@ function ComparisonReplica({ draft, cps, onDone }: Props) {
 }
 
 /* ------------------------------- OWNED -------------------------------- */
-function OwnedReplica({ draft, cps, onDone }: Props) {
+function OwnedReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 260, onDone);
   return (
-    <ReplicaShell chromeColor="#16a34a" channel="owned" domain={draft.source.domain ?? "your-site.com"}>
+    <ReplicaShell
+      chromeColor="#16a34a"
+      channel="owned"
+      domain={draft.source.domain ?? ownBrand.domain ?? "your-site.com"}
+    >
       <div className="bg-white p-8 text-zinc-900">
         <div className="mx-auto max-w-[720px]">
-          <div className="text-[11px] uppercase tracking-[0.18em] text-[#16a34a]">
-            New page · owned content
+          <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-[#16a34a]">
+            <BrandAvatar brand={ownBrand} size={18} rounded="md" />
+            <span>New page · {ownBrand.name} owned content</span>
           </div>
           <h1 className="mt-2 text-[32px] font-bold tracking-tight">{draft.title}</h1>
-          <article className="prose prose-zinc mt-5 max-w-none whitespace-pre-wrap text-[15.5px] leading-[1.65]">
-            {typed}
-            <Caret />
-          </article>
+          <TypedMarkdown
+            text={typed}
+            className="mt-5 text-[15.5px] leading-[1.65]"
+          />
         </div>
       </div>
     </ReplicaShell>
@@ -458,7 +584,7 @@ function OwnedReplica({ draft, cps, onDone }: Props) {
 }
 
 /* ------------------------------- GENERIC ------------------------------- */
-function GenericReplica({ draft, cps, onDone }: Props) {
+function GenericReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 240, onDone);
   return (
     <ReplicaShell chromeColor="#64748b" channel={draft.channel} domain={draft.source.domain}>
@@ -475,10 +601,11 @@ function GenericReplica({ draft, cps, onDone }: Props) {
             </a>
           )}
           <h1 className="mt-2 text-2xl font-bold">{draft.title}</h1>
-          <div className="mt-4 whitespace-pre-wrap text-[14.5px] leading-relaxed">
-            {typed}
-            <Caret />
+          <div className="mt-3 flex items-center gap-2 text-[12px] text-zinc-500">
+            <BrandAvatar brand={ownBrand} size={20} />
+            <span>From {ownBrand.name}</span>
           </div>
+          <TypedMarkdown text={typed} className="mt-4 text-[14.5px] leading-relaxed" />
         </div>
       </div>
     </ReplicaShell>
