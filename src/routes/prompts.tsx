@@ -12,6 +12,12 @@ import {
   type PromptBrandMetric,
 } from "@/lib/server/get-prompt-brand-metrics";
 import { PromptsTable, computePromptAggregates } from "@/components/prompts-table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Search as SearchIcon } from "lucide-react";
 import { ModelLogo } from "@/components/qfos-table";
@@ -232,9 +238,23 @@ function PromptsPage() {
                 <Skeleton className="h-7 w-2/3" />
               </div>
             ) : (
-              <h2 className="text-2xl font-semibold leading-snug tracking-tight text-balance">
-                &ldquo;{selected.text}&rdquo;
-              </h2>
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <h2
+                      role="link"
+                      tabIndex={0}
+                      onClick={(e) => e.preventDefault()}
+                      className="cursor-pointer text-2xl font-semibold leading-snug tracking-tight text-balance underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                    >
+                      &ldquo;{selected.text}&rdquo;
+                    </h2>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs text-xs">
+                    This <em>would</em> lead to the prompt detail page…
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             <ArrowUpRight className="h-5 w-5 shrink-0 text-muted-foreground" />
           </div>
