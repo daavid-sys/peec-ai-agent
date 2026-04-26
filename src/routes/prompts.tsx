@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
+  ArrowUpRight,
   Check,
   Sparkles,
   TrendingDown,
@@ -369,9 +370,16 @@ function PromptsPage() {
             <div className="flex items-center gap-2 text-xs font-medium text-primary">
               <Sparkles className="h-3.5 w-3.5" /> Recommended prompt
             </div>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-              &ldquo;{selected.text}&rdquo;
-            </h2>
+            <a
+              href="#"
+              onClick={(e) => e.preventDefault()}
+              className="group mt-3 -mx-2 inline-flex items-start gap-2 rounded-md px-2 py-1 text-2xl font-semibold tracking-tight text-foreground transition-colors hover:bg-muted/60 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="underline-offset-4 group-hover:underline decoration-primary/40">
+                &ldquo;{selected.text}&rdquo;
+              </span>
+              <ArrowUpRight className="mt-1.5 h-5 w-5 shrink-0 text-muted-foreground transition-all group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
 
             <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
               <Stat
