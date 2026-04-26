@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   Check,
@@ -13,11 +13,16 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScoreBar } from "@/components/score-bar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Favicon } from "@/components/favicon";
 import { store, useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { demoOpenings } from "@/lib/demo-data";
 import type { Opening, PromptOpportunity } from "@/lib/types";
+import {
+  getPromptBrandMetrics,
+  type PromptBrandMetric,
+} from "@/lib/server/get-prompt-brand-metrics";
 
 export const Route = createFileRoute("/prompts")({
   head: () => ({ meta: [{ title: "Recommended Prompt — Peec AI Openings" }] }),
@@ -48,6 +53,33 @@ function PromptsPage() {
   const previewOpenings: Opening[] = useMemo(() => {
     const matched = demoOpenings.filter((o) => o.promptId === selected.id);
     return (matched.length ? matched : demoOpenings).slice(0, 3);
+  }, [selected.id]);
+
+  // Brand metrics for the currently selected prompt (real Peec data)
+  const [brandMetrics, setBrandMetrics] = useState<PromptBrandMetric[] | null>(
+    null,
+  );
+  const [brandMetricsLoading, setBrandMetricsLoading] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    setBrandMetricsLoading(true);
+    setBrandMetrics(null);
+    getPromptBrandMetrics({ data: { promptId: selected.id } })
+      .then((rows) => {
+        if (cancelled) return;
+        setBrandMetrics(rows);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setBrandMetrics([]);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setBrandMetricsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [selected.id]);
 
   const filteredPrompts = useMemo(() => {
@@ -159,37 +191,11 @@ function PromptsPage() {
           </div>
 
           <div className="bg-secondary/40 p-7">
-            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Visibility breakdown
-            </div>
-            <div className="mt-4 space-y-3">
-              {selected.competitorBreakdown?.map((c) => (
-                <div key={c.brand}>
-                  <div className="mb-1 flex items-center justify-between text-xs">
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1.5",
-                        c.brand === project.ownBrand.name
-                          ? "font-semibold text-primary"
-                          : "text-foreground",
-                      )}
-                    >
-                      <Favicon name={c.brand} kind="brand" size={12} />
-                      {c.brand}
-                    </span>
-                    <span className="font-mono text-muted-foreground">
-                      {c.visibility}%
-                    </span>
-                  </div>
-                  <ScoreBar
-                    value={c.visibility}
-                    tone={
-                      c.brand === project.ownBrand.name ? "primary" : "destructive"
-                    }
-                  />
-                </div>
-              ))}
-            </div>
+            <BrandsTable
+              metrics={brandMetrics}
+              loading={brandMetricsLoading}
+              ownBrandName={project.ownBrand.name}
+            />
 
             {selected.hiddenQuestions && selected.hiddenQuestions.length > 0 && (
               <>
@@ -441,6 +447,141 @@ function Mini({ label, value }: { label: string; value: number }) {
     <div className="rounded-md border border-border bg-background px-3 py-2">
       <div className="text-[11px] text-muted-foreground">{label}</div>
       <div className="font-mono text-base font-medium">{value}</div>
+    </div>
+  );
+}
+
+function BrandsTable({
+  metrics,
+  loading,
+  ownBrandName,
+}: {
+  metrics: PromptBrandMetric[] | null;
+  loading: boolean;
+  ownBrandName: string;
+}) {
+  const sorted = useMemo(() => {
+    if (!metrics) return [];
+    return [...metrics].sort((a, b) => b.visibility - a.visibility);
+  }, [metrics]);
+
+  return (
+    <div>
+      <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+        Top {sorted.length || 5} Brands
+        <span
+          className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-muted-foreground/40 text-[9px] text-muted-foreground"
+          title="Brand visibility, share of voice, sentiment, and average position from AI engine answers"
+        >
+          i
+        </span>
+      </div>
+
+      <div className="mt-3 overflow-hidden rounded-lg border border-border bg-background">
+        {/* Header row */}
+        <div className="grid grid-cols-[28px_1fr_90px_70px_90px_70px] items-center gap-3 bg-secondary/40 px-4 py-2.5 text-[11px] font-medium text-muted-foreground">
+          <div>#</div>
+          <div>Brand</div>
+          <div className="text-right">Visibility</div>
+          <div className="text-right">SOV</div>
+          <div className="text-right">Sentiment</div>
+          <div className="text-right">Position</div>
+        </div>
+
+        {loading ? (
+          <ul className="divide-y divide-border">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <li
+                key={i}
+                className="grid grid-cols-[28px_1fr_90px_70px_90px_70px] items-center gap-3 px-4 py-3"
+              >
+                <Skeleton className="h-3 w-4" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-5 w-5 rounded" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+                <Skeleton className="ml-auto h-3 w-12" />
+                <Skeleton className="ml-auto h-3 w-10" />
+                <Skeleton className="ml-auto h-3 w-12" />
+                <Skeleton className="ml-auto h-3 w-12" />
+              </li>
+            ))}
+          </ul>
+        ) : sorted.length === 0 ? (
+          <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+            No brand data for this prompt yet.
+          </div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {sorted.map((m, i) => {
+              const isOwn = m.is_own || m.brand_name === ownBrandName;
+              return (
+                <li
+                  key={m.brand_id}
+                  className={cn(
+                    "grid grid-cols-[28px_1fr_90px_70px_90px_70px] items-center gap-3 px-4 py-3 text-sm",
+                    isOwn && "bg-primary-soft/40",
+                  )}
+                >
+                  <div className="text-muted-foreground tabular-nums">
+                    {i + 1}
+                  </div>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Favicon name={m.brand_name} kind="brand" size={18} />
+                    <span
+                      className={cn(
+                        "truncate",
+                        isOwn ? "font-semibold text-primary" : "text-foreground",
+                      )}
+                    >
+                      {m.brand_name}
+                    </span>
+                  </div>
+                  <BrandStat
+                    text={`${Math.round(m.visibility * 100)}%`}
+                  />
+                  <BrandStat
+                    text={`${Math.round(m.share_of_voice * 100)}%`}
+                  />
+                  <BrandStat
+                    text={
+                      m.sentiment === null
+                        ? "—"
+                        : String(Math.round(m.sentiment))
+                    }
+                    leadingDot={m.sentiment !== null}
+                  />
+                  <BrandStat
+                    text={
+                      m.position === null
+                        ? "—"
+                        : `# ${m.position.toFixed(1)}`
+                    }
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BrandStat({
+  text,
+  leadingDot = false,
+}: {
+  text: string;
+  leadingDot?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-end gap-1.5 tabular-nums text-foreground">
+      {leadingDot && (
+        <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
+      )}
+      <span>{text}</span>
+      <span className="text-muted-foreground">–</span>
     </div>
   );
 }

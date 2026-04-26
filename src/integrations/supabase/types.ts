@@ -129,6 +129,59 @@ export type Database = {
           },
         ]
       }
+      prompt_brand_metrics: {
+        Row: {
+          brand_id: string
+          brand_name: string
+          created_at: string
+          id: string
+          is_own: boolean
+          mention_count: number
+          position: number | null
+          prompt_id: string
+          sentiment: number | null
+          share_of_voice: number
+          updated_at: string
+          visibility: number
+        }
+        Insert: {
+          brand_id: string
+          brand_name: string
+          created_at?: string
+          id?: string
+          is_own?: boolean
+          mention_count?: number
+          position?: number | null
+          prompt_id: string
+          sentiment?: number | null
+          share_of_voice?: number
+          updated_at?: string
+          visibility?: number
+        }
+        Update: {
+          brand_id?: string
+          brand_name?: string
+          created_at?: string
+          id?: string
+          is_own?: boolean
+          mention_count?: number
+          position?: number | null
+          prompt_id?: string
+          sentiment?: number | null
+          share_of_voice?: number
+          updated_at?: string
+          visibility?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_brand_metrics_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prompt_qfos: {
         Row: {
           chat_id: string | null
