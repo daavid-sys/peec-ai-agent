@@ -373,7 +373,7 @@ function PromptsPage() {
         </div>
       )}
       <h1 className="text-3xl font-semibold tracking-tight">
-        Start with the prompt where you can win the most
+        Let's increase your visibility
       </h1>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         We ranked all {prompts.length} prompts by Opportunity Score. Here&rsquo;s
