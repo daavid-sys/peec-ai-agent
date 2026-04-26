@@ -245,16 +245,16 @@ function QueuePage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1500px] px-6 py-8 2xl:px-10">
+    <div className="mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 sm:py-8 2xl:px-10">
       {/* Top nav */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           to="/studio"
           className="text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           ← Back to Agent Working
         </Link>
-        <Button size="lg" onClick={handlePrimary}>
+        <Button size="lg" onClick={handlePrimary} className="w-full sm:w-auto">
           {primaryLabel} <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
