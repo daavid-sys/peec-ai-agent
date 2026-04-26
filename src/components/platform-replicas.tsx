@@ -376,8 +376,22 @@ function editorialEyebrow(actionType: string) {
   );
 }
 
+function realisticHeadline(draft: StudioDraft) {
+  // Prefer the actual cited source headline when available — that's the real
+  // article the agent is being inserted into / pitched against.
+  if (draft.source.title) return draft.source.title;
+  // Strip wrapper phrases like "Get Attio added to '…'" or "Pitch Attio for '…'".
+  const m = draft.title.match(/['"“”‘’](.+?)['"“”‘’]/);
+  if (m && m[1]) return m[1];
+  return draft.title
+    .replace(/^Get\s+\w+\s+added\s+to\s+/i, "")
+    .replace(/^Pitch\s+\w+\s+for\s+/i, "")
+    .trim();
+}
+
 function EditorialReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 260, onDone);
+  const headline = realisticHeadline(draft);
   return (
     <ReplicaShell chromeColor="#7c3aed" channel={draft.channel} domain={draft.source.domain}>
       <div className="bg-white p-8 text-zinc-900">
