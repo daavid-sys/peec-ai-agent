@@ -177,8 +177,18 @@ function QueuePage() {
                         ))}
                       </div>
 
+                      {col.key === "ready_to_submit" && opening && (
+                        <div className="mt-3 rounded-md border border-dashed border-border bg-muted/30 p-2 text-[11px] text-muted-foreground">
+                          Submit to{" "}
+                          <span className="font-mono text-foreground">
+                            {new URL(opening.sourceUrl).hostname.replace(/^www\./, "")}
+                          </span>{" "}
+                          editorial team — we don&rsquo;t own this domain.
+                        </div>
+                      )}
+
                       <div className="mt-4 flex flex-wrap gap-1.5">
-                        {col.key !== "blocked" && (
+                        {col.key === "ready" && (
                           <>
                             <Button
                               size="sm"
@@ -201,6 +211,83 @@ function QueuePage() {
                             </Button>
                           </>
                         )}
+                        {col.key === "ready_to_submit" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => {
+                                const slug = e.title
+                                  .toLowerCase()
+                                  .replace(/[^a-z0-9]+/g, "-")
+                                  .replace(/^-|-$/g, "")
+                                  .slice(0, 60) || "draft";
+                                const blob = new Blob([`# ${e.title}\n\n${e.draft}\n`], {
+                                  type: "text/markdown",
+                                });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = `${slug}.md`;
+                                a.click();
+                                URL.revokeObjectURL(url);
+                                toast.success("File exported");
+                              }}
+                            >
+                              <Download className="h-3 w-3" /> Export file
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => {
+                                const host = opening
+                                  ? new URL(opening.sourceUrl).hostname.replace(/^www\./, "")
+                                  : "your site";
+                                const subject = `Contributed piece for ${host}: ${e.title}`;
+                                const body = [
+                                  `Hi ${host} editorial team,`,
+                                  ``,
+                                  `I've put together a piece I think would be a strong fit for your readers: "${e.title}".`,
+                                  ``,
+                                  `It addresses: ${e.targetQuestions.slice(0, 3).join("; ")}.`,
+                                  ``,
+                                  `The full draft is attached as a Markdown file, ready for your review and any edits before publishing.`,
+                                  ``,
+                                  `Happy to revise based on your house style.`,
+                                  ``,
+                                  `Thanks,`,
+                                  `The Attio team`,
+                                ].join("\n");
+                                window.location.href = `mailto:?subject=${encodeURIComponent(
+                                  subject,
+                                )}&body=${encodeURIComponent(body)}`;
+                              }}
+                            >
+                              <Mail className="h-3 w-3" /> Draft email
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                store.updateEngagementStatus(e.id, "sent");
+                                toast.success("Marked as submitted");
+                              }}
+                            >
+                              <Send className="h-3 w-3" /> Mark submitted
+                            </Button>
+                          </>
+                        )}
+                        {col.key === "needs_input" && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => {
+                              navigator.clipboard.writeText(e.draft);
+                              toast.success("Copied");
+                            }}
+                          >
+                            <Copy className="h-3 w-3" /> Copy
+                          </Button>
+                        )}
                         {col.key === "blocked" && (
                           <Badge
                             variant="outline"
@@ -215,7 +302,8 @@ function QueuePage() {
                         )}
                         {e.status === "sent" && (
                           <Badge variant="outline" className="gap-1">
-                            <Check className="h-3 w-3" /> Sent
+                            <Check className="h-3 w-3" />{" "}
+                            {col.key === "ready_to_submit" ? "Submitted" : "Sent"}
                           </Badge>
                         )}
                       </div>
