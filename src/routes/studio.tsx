@@ -47,8 +47,11 @@ function StudioPage() {
   // direction: 1 = forward (swipe left), -1 = backward
   const [direction, setDirection] = useState<1 | -1>(1);
   const [completed, setCompleted] = useState<Set<string>>(new Set());
+  const restoredRef = useRef(false);
 
   const enqueuingRef = useRef(false);
+
+  const storageKey = `studio:progress:${promptId}`;
 
   async function load(opts: { silent?: boolean } = {}) {
     if (!opts.silent) setLoading(true);
@@ -67,9 +70,57 @@ function StudioPage() {
     setResponse(null);
     setIndex(0);
     setCompleted(new Set());
+    restoredRef.current = false;
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promptId]);
+
+  // Restore index + completed from localStorage once drafts are available.
+  useEffect(() => {
+    if (restoredRef.current) return;
+    if (!response || response.drafts.length === 0) return;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const saved = JSON.parse(raw) as {
+          currentDraftId?: string;
+          completed?: string[];
+        };
+        if (saved.completed?.length) {
+          setCompleted(new Set(saved.completed));
+        }
+        if (saved.currentDraftId) {
+          const idx = response.drafts.findIndex(
+            (d) => d.id === saved.currentDraftId,
+          );
+          if (idx >= 0) setIndex(idx);
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    restoredRef.current = true;
+  }, [response, storageKey]);
+
+  // Persist progress whenever index or completed changes.
+  useEffect(() => {
+    if (!restoredRef.current) return;
+    const drafts = response?.drafts ?? [];
+    const currentDraftId = drafts[index]?.id;
+    if (!currentDraftId) return;
+    try {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          currentDraftId,
+          completed: Array.from(completed),
+        }),
+      );
+    } catch {
+      /* ignore */
+    }
+  }, [index, completed, response, storageKey]);
+
 
   // Keep enqueuing pending drafts in the background while we're on the page,
   // so the next 3 tiles always have content waiting.
