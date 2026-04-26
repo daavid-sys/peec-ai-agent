@@ -1,4 +1,6 @@
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { InfoPopover } from "@/components/info-popover";
 import type { PromptQfo } from "@/lib/server/get-prompt-qfos";
 
 export function ModelLogo({ modelId }: { modelId: string | null }) {
@@ -73,24 +75,98 @@ function modelLabel(modelId: string | null): string {
 export function QfosTable({
   qfos,
   loading,
+  matchHeightRef,
 }: {
   qfos: PromptQfo[] | null;
   loading: boolean;
+  /** Optional element whose height this table tries to match by limiting rows. */
+  matchHeightRef?: React.RefObject<HTMLElement | null>;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLLIElement>(null);
+  const [maxRows, setMaxRows] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    if (!matchHeightRef?.current || !containerRef.current) return;
+    const compute = () => {
+      const target = matchHeightRef.current;
+      const container = containerRef.current;
+      if (!target || !container) return;
+      // Available height = sibling column height − space above the table inside our column
+      const containerTop = container.getBoundingClientRect().top;
+      const parent = container.parentElement;
+      if (!parent) return;
+      const parentTop = parent.getBoundingClientRect().top;
+      const offsetWithinColumn = containerTop - parentTop;
+      const available = target.getBoundingClientRect().height - offsetWithinColumn;
+      const headerH = headerRef.current?.getBoundingClientRect().height ?? 36;
+      const rowH = rowRef.current?.getBoundingClientRect().height ?? 44;
+      if (rowH <= 0) return;
+      const fit = Math.floor((available - headerH) / rowH);
+      setMaxRows(Math.max(1, fit));
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(matchHeightRef.current);
+    ro.observe(containerRef.current);
+    window.addEventListener("resize", compute);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", compute);
+    };
+  }, [matchHeightRef, qfos, loading]);
+
+  // Recompute again once data renders (row height becomes accurate)
+  useEffect(() => {
+    if (!matchHeightRef?.current || !rowRef.current) return;
+    const rowH = rowRef.current.getBoundingClientRect().height;
+    const headerH = headerRef.current?.getBoundingClientRect().height ?? 36;
+    const container = containerRef.current;
+    const parent = container?.parentElement;
+    const target = matchHeightRef.current;
+    if (!container || !parent || !target || rowH <= 0) return;
+    const offsetWithinColumn =
+      container.getBoundingClientRect().top - parent.getBoundingClientRect().top;
+    const available = target.getBoundingClientRect().height - offsetWithinColumn;
+    const fit = Math.floor((available - headerH) / rowH);
+    setMaxRows(Math.max(1, fit));
+  }, [qfos, matchHeightRef]);
+
+  const visibleQfos =
+    qfos && maxRows !== null ? qfos.slice(0, maxRows) : qfos ?? [];
+  const hiddenCount = qfos ? Math.max(0, qfos.length - visibleQfos.length) : 0;
+
   return (
-    <div>
+    <div ref={containerRef}>
       <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
         Query fanouts
-        <span
-          className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-muted-foreground/40 text-[9px] text-muted-foreground"
-          title="Sub-queries AI engines fan out to while answering this prompt"
-        >
-          i
-        </span>
+        <InfoPopover ariaLabel="What are query fanouts?">
+          <p className="font-semibold text-foreground">Query fanouts (QFOs)</p>
+          <p className="mt-1.5 text-muted-foreground">
+            When you ask an AI engine a question, it doesn&rsquo;t just answer
+            once — it silently rewrites your prompt into several related
+            sub-queries, runs them in parallel, and blends the results. Each of
+            those sub-queries is a <strong>query fanout</strong>.
+          </p>
+          <p className="mt-2 text-muted-foreground">
+            They matter because your brand can only show up in the final answer
+            if it ranks for the fanouts the engine actually runs. Tracking them
+            tells you the real searches you need to win.
+          </p>
+          <p className="mt-2 text-muted-foreground">
+            We list the top fanouts captured for this prompt — the list is
+            trimmed to keep this card aligned with &ldquo;Why this prompt&rdquo;
+            on the left. The full set is available on the prompt detail page.
+          </p>
+        </InfoPopover>
       </div>
 
       <div className="mt-3 overflow-hidden rounded-lg border border-border bg-background">
-        <div className="grid grid-cols-[110px_minmax(0,1fr)_48px] items-center gap-2 bg-secondary/40 px-4 py-2.5 text-[11px] font-medium text-muted-foreground">
+        <div
+          ref={headerRef}
+          className="grid grid-cols-[110px_minmax(0,1fr)_48px] items-center gap-2 bg-secondary/40 px-4 py-2.5 text-[11px] font-medium text-muted-foreground"
+        >
           <div>Engine</div>
           <div>Query</div>
           <div className="text-right">Runs</div>
@@ -117,25 +193,39 @@ export function QfosTable({
             No query fanouts captured yet.
           </div>
         ) : (
-          <ul className="divide-y divide-border">
-            {qfos.map((q) => (
-              <li
-                key={q.id}
-                className="grid grid-cols-[110px_minmax(0,1fr)_48px] items-center gap-2 px-4 py-3 text-sm"
-              >
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <ModelLogo modelId={q.model_id} />
-                  <span className="truncate text-xs">{modelLabel(q.model_id)}</span>
-                </div>
-                <div className="truncate text-foreground" title={q.query_text}>
-                  {q.query_text}
-                </div>
-                <div className="text-right text-xs tabular-nums text-muted-foreground">
-                  {q.occurrence_count}
-                </div>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="divide-y divide-border">
+              {visibleQfos.map((q, idx) => (
+                <li
+                  key={q.id}
+                  ref={idx === 0 ? rowRef : undefined}
+                  className="grid grid-cols-[110px_minmax(0,1fr)_48px] items-center gap-2 px-4 py-3 text-sm"
+                >
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <ModelLogo modelId={q.model_id} />
+                    <span className="truncate text-xs">
+                      {modelLabel(q.model_id)}
+                    </span>
+                  </div>
+                  <div
+                    className="truncate text-foreground"
+                    title={q.query_text}
+                  >
+                    {q.query_text}
+                  </div>
+                  <div className="text-right text-xs tabular-nums text-muted-foreground">
+                    {q.occurrence_count}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {hiddenCount > 0 && (
+              <div className="border-t border-border bg-secondary/20 px-4 py-2 text-[11px] text-muted-foreground">
+                +{hiddenCount} more fanout{hiddenCount === 1 ? "" : "s"} on the
+                prompt detail page
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

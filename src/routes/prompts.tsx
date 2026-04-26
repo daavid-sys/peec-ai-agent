@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   Check,
@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { ScoreBar } from "@/components/score-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Favicon } from "@/components/favicon";
+import { InfoPopover } from "@/components/info-popover";
 import { store, useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import {
@@ -42,7 +43,7 @@ function PromptsPage() {
   const project = useAppStore((s) => s.project);
   const selectedId = useAppStore((s) => s.selectedPromptId);
   const navigate = useNavigate();
-  
+  const leftColumnRef = useRef<HTMLDivElement>(null);
 
   if (!project || prompts.length === 0) {
     return (
@@ -201,7 +202,7 @@ function PromptsPage() {
       {/* Hero recommended-prompt card */}
       <Card className="mt-8 overflow-hidden border-border p-0">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-          <div className="border-b border-border p-7 lg:border-b-0 lg:border-r">
+          <div ref={leftColumnRef} className="border-b border-border p-7 lg:border-b-0 lg:border-r">
             <div className="flex items-center gap-2 text-xs font-medium text-primary">
               <Sparkles className="h-3.5 w-3.5" /> Recommended prompt
             </div>
@@ -299,7 +300,11 @@ function PromptsPage() {
             />
 
             <div className="mt-7">
-              <QfosTable qfos={qfos} loading={qfosLoading} />
+              <QfosTable
+                qfos={qfos}
+                loading={qfosLoading}
+                matchHeightRef={leftColumnRef}
+              />
             </div>
           </div>
         </div>
@@ -504,12 +509,38 @@ function BrandsTable({
     <div>
       <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
         Top {sorted.length || 5} Brands
-        <span
-          className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-muted-foreground/40 text-[9px] text-muted-foreground"
-          title="Brand visibility, share of voice, sentiment, and average position from AI engine answers"
-        >
-          i
-        </span>
+        <InfoPopover ariaLabel="About the top brands table">
+          <p className="font-semibold text-foreground">Top brands for this prompt</p>
+          <p className="mt-1.5 text-muted-foreground">
+            How brands stack up in real AI engine answers to this prompt,
+            aggregated across the engines we monitor.
+          </p>
+          <ul className="mt-2 space-y-1.5 text-muted-foreground">
+            <li>
+              <strong className="text-foreground">Visibility</strong> — how
+              often the brand appears in answers (higher = more mindshare with
+              the AI).
+            </li>
+            <li>
+              <strong className="text-foreground">SOV</strong> (Share of Voice)
+              — of all brand mentions in answers, what percent belong to this
+              brand.
+            </li>
+            <li>
+              <strong className="text-foreground">Sentiment</strong> — average
+              tone (0–100) of how the brand is described.
+            </li>
+            <li>
+              <strong className="text-foreground">Position</strong> — average
+              rank when the brand is mentioned (lower is better).
+            </li>
+          </ul>
+          <p className="mt-2 text-muted-foreground">
+            For full breakdowns by engine and over time, see your{" "}
+            <strong className="text-foreground">Overview</strong> or{" "}
+            <strong className="text-foreground">Prompts</strong> page.
+          </p>
+        </InfoPopover>
       </div>
 
       <div className="mt-3 overflow-hidden rounded-lg border border-border bg-background">
