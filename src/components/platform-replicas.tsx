@@ -359,8 +359,39 @@ function LinkedInReplica({ draft, cps, onDone, ownBrand }: Props) {
 }
 
 /* ----------------------------- EDITORIAL ----------------------------- */
+const EDITORIAL_EYEBROW: Record<string, string> = {
+  blog_pitch: "Pitched guest article",
+  guest_post: "Guest article",
+  owned_listicle: "Editorial feature",
+  listicle_addition: "Inclusion in roundup",
+  comparison_pitch: "Comparison feature",
+  alternative_page: "Alternatives explainer",
+  faq_schema: "FAQ explainer",
+  outreach_email: "Sponsored explainer",
+};
+function editorialEyebrow(actionType: string) {
+  return (
+    EDITORIAL_EYEBROW[actionType] ??
+    actionType.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  );
+}
+
+function realisticHeadline(draft: StudioDraft) {
+  // Prefer the actual cited source headline when available — that's the real
+  // article the agent is being inserted into / pitched against.
+  if (draft.source.title) return draft.source.title;
+  // Strip wrapper phrases like "Get Attio added to '…'" or "Pitch Attio for '…'".
+  const m = draft.title.match(/['"“”‘’](.+?)['"“”‘’]/);
+  if (m && m[1]) return m[1];
+  return draft.title
+    .replace(/^Get\s+\w+\s+added\s+to\s+/i, "")
+    .replace(/^Pitch\s+\w+\s+for\s+/i, "")
+    .trim();
+}
+
 function EditorialReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 260, onDone);
+  const headline = realisticHeadline(draft);
   return (
     <ReplicaShell chromeColor="#7c3aed" channel={draft.channel} domain={draft.source.domain}>
       <div className="bg-white p-8 text-zinc-900">
@@ -369,10 +400,10 @@ function EditorialReplica({ draft, cps, onDone, ownBrand }: Props) {
             {draft.source.domain && <Favicon name={draft.source.domain} kind="brand" size={14} />}
             <span>{draft.source.domain ?? "Editorial"}</span>
             <span>·</span>
-            <span>Guest contributor draft</span>
+            <span>{editorialEyebrow(draft.actionType)}</span>
           </div>
           <h1 className="mt-3 font-serif text-[34px] leading-[1.15] tracking-tight text-zinc-900">
-            {draft.title}
+            {headline}
           </h1>
           <div className="mt-3 flex items-center gap-2 text-[12px] text-zinc-500">
             <BrandAvatar brand={ownBrand} size={28} />
@@ -588,6 +619,7 @@ function OwnedReplica({ draft, cps, onDone, ownBrand }: Props) {
 /* ------------------------------- GENERIC ------------------------------- */
 function GenericReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 240, onDone);
+  const headline = realisticHeadline(draft);
   return (
     <ReplicaShell chromeColor="#64748b" channel={draft.channel} domain={draft.source.domain}>
       <div className="bg-white p-6 text-zinc-900">
@@ -602,7 +634,7 @@ function GenericReplica({ draft, cps, onDone, ownBrand }: Props) {
               {draft.source.domain} <ExternalLink className="h-3 w-3" />
             </a>
           )}
-          <h1 className="mt-2 text-2xl font-bold">{draft.title}</h1>
+          <h1 className="mt-2 text-2xl font-bold">{headline}</h1>
           <div className="mt-3 flex items-center gap-2 text-[12px] text-zinc-500">
             <BrandAvatar brand={ownBrand} size={20} />
             <span>From {ownBrand.name}</span>
