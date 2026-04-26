@@ -464,21 +464,13 @@ function PromptsPage() {
                     cardReasons.length <= 2 ? "grid-cols-2" : "grid-cols-2",
                   )}
                 >
-                  {cardReasons.map((r, i) => {
-                    const { headline, body } = summarizeReason(r);
-                    const meta = classifyReason(r, i);
-                    return (
-                      <ReasonCardItem
-                        key={r}
-                        card={{
-                          icon: meta.icon,
-                          tone: meta.tone,
-                          headline,
-                          body,
-                        }}
-                      />
-                    );
-                  })}
+                  {cardReasons.map((r, i) => (
+                    <ReasonCardItem
+                      key={`${r.headline}-${i}`}
+                      card={r}
+                      index={i}
+                    />
+                  ))}
                 </div>
               ) : null}
             </div>
