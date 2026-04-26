@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScoreBar } from "@/components/score-bar";
+import { Favicon } from "@/components/favicon";
 import { store, useAppStore } from "@/lib/store";
 import type { Opening } from "@/lib/types";
 import { cn } from "@/lib/utils";
