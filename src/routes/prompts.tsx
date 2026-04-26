@@ -13,8 +13,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Favicon } from "@/components/favicon";
 import { store, useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { demoOpenings } from "@/lib/demo-data";
-import type { Opening } from "@/lib/types";
 import {
   getPromptBrandMetrics,
   type PromptBrandMetric,
@@ -334,7 +332,7 @@ function OpeningPreviewCard({
   opening,
   onOpen,
 }: {
-  opening: Opening;
+  opening: PromptRecommendation["openingPreviews"][number];
   onOpen: () => void;
 }) {
   let host = "";
