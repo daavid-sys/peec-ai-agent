@@ -1,19 +1,33 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ChevronDown, Copy, Download, FileText, Mail } from "lucide-react";
+import { ArrowLeft, ChevronDown, Copy, Download, FileText, Loader2, Mail } from "lucide-react";
 import { jsPDF } from "jspdf";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { store, useAppStore } from "@/lib/store";
+import { postToContentful } from "@/lib/server/post-to-contentful";
+import contentfulLogo from "@/assets/contentful-logo.png";
 
 export const Route = createFileRoute("/queue/draft/$id")({
   head: () => ({
