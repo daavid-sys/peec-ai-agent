@@ -18,7 +18,7 @@ import {
   CreditCard,
   Gift,
   ChevronDown,
-  Bot,
+  Workflow,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
