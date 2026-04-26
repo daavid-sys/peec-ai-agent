@@ -30,6 +30,7 @@ type Props = {
   cps?: number;
   onDone?: () => void;
   ownBrand: OwnBrandInfo;
+  showCaret?: boolean;
 };
 
 export function PlatformReplica(props: Props) {
