@@ -238,7 +238,28 @@ function OpeningsPage() {
   );
 }
 
-function FilterChips({
+function toTitleCase(input: string) {
+  return input
+    .toLowerCase()
+    .split(/\s+/)
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
+
+function ChannelTag({ accent, label }: { accent: string; label: string }) {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-foreground">
+      <span
+        aria-hidden
+        className="h-2 w-2 shrink-0 rounded-full"
+        style={{ backgroundColor: accent }}
+      />
+      {label}
+    </span>
+  );
+}
+
+
   channelFilter,
   competitorFilter,
   onChannelChange,
