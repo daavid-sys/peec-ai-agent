@@ -1,4 +1,3 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InfoPopover } from "@/components/info-popover";
 import type { PromptQfo } from "@/lib/server/get-prompt-qfos";
