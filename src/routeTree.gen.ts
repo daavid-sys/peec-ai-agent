@@ -13,7 +13,6 @@ import { Route as StudioRouteImport } from './routes/studio'
 import { Route as ResultsRouteImport } from './routes/results'
 import { Route as QueueRouteImport } from './routes/queue'
 import { Route as PromptsRouteImport } from './routes/prompts'
-import { Route as ProjectRouteImport } from './routes/project'
 import { Route as OpeningsRouteImport } from './routes/openings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiTavilyExtractRouteImport } from './routes/api/tavily/extract'
@@ -39,11 +38,6 @@ const QueueRoute = QueueRouteImport.update({
 const PromptsRoute = PromptsRouteImport.update({
   id: '/prompts',
   path: '/prompts',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjectRoute = ProjectRouteImport.update({
-  id: '/project',
-  path: '/project',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OpeningsRoute = OpeningsRouteImport.update({
@@ -81,7 +75,6 @@ const ApiAgentsFindOpeningsRoute = ApiAgentsFindOpeningsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/openings': typeof OpeningsRoute
-  '/project': typeof ProjectRoute
   '/prompts': typeof PromptsRoute
   '/queue': typeof QueueRoute
   '/results': typeof ResultsRoute
@@ -94,7 +87,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/openings': typeof OpeningsRoute
-  '/project': typeof ProjectRoute
   '/prompts': typeof PromptsRoute
   '/queue': typeof QueueRoute
   '/results': typeof ResultsRoute
@@ -108,7 +100,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/openings': typeof OpeningsRoute
-  '/project': typeof ProjectRoute
   '/prompts': typeof PromptsRoute
   '/queue': typeof QueueRoute
   '/results': typeof ResultsRoute
@@ -123,7 +114,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/openings'
-    | '/project'
     | '/prompts'
     | '/queue'
     | '/results'
@@ -136,7 +126,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/openings'
-    | '/project'
     | '/prompts'
     | '/queue'
     | '/results'
@@ -149,7 +138,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/openings'
-    | '/project'
     | '/prompts'
     | '/queue'
     | '/results'
@@ -163,7 +151,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OpeningsRoute: typeof OpeningsRoute
-  ProjectRoute: typeof ProjectRoute
   PromptsRoute: typeof PromptsRoute
   QueueRoute: typeof QueueRoute
   ResultsRoute: typeof ResultsRoute
@@ -202,13 +189,6 @@ declare module '@tanstack/react-router' {
       path: '/prompts'
       fullPath: '/prompts'
       preLoaderRoute: typeof PromptsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/project': {
-      id: '/project'
-      path: '/project'
-      fullPath: '/project'
-      preLoaderRoute: typeof ProjectRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/openings': {
@@ -259,7 +239,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OpeningsRoute: OpeningsRoute,
-  ProjectRoute: ProjectRoute,
   PromptsRoute: PromptsRoute,
   QueueRoute: QueueRoute,
   ResultsRoute: ResultsRoute,

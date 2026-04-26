@@ -50,7 +50,7 @@ function PromptsPage() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
-        Step 3 · Prompt Opportunities
+        Step 1 · Prompt Opportunities
       </div>
       <h1 className="text-3xl font-semibold tracking-tight">
         Fix the prompt with the highest opportunity first
