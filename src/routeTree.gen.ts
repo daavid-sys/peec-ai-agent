@@ -20,6 +20,7 @@ import { Route as ApiPublicAnalyzePromptRouteImport } from './routes/api/public/
 import { Route as ApiPeecToolRouteImport } from './routes/api/peec.$tool'
 import { Route as ApiAgentsGenerateEngagementsRouteImport } from './routes/api/agents/generate-engagements'
 import { Route as ApiAgentsFindOpeningsRouteImport } from './routes/api/agents/find-openings'
+import { Route as ApiAdminBulkScrapeRouteImport } from './routes/api/admin/bulk-scrape'
 
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
@@ -77,6 +78,11 @@ const ApiAgentsFindOpeningsRoute = ApiAgentsFindOpeningsRouteImport.update({
   path: '/api/agents/find-openings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminBulkScrapeRoute = ApiAdminBulkScrapeRouteImport.update({
+  id: '/api/admin/bulk-scrape',
+  path: '/api/admin/bulk-scrape',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/queue': typeof QueueRoute
   '/results': typeof ResultsRoute
   '/studio': typeof StudioRoute
+  '/api/admin/bulk-scrape': typeof ApiAdminBulkScrapeRoute
   '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
   '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
   '/api/peec/$tool': typeof ApiPeecToolRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/queue': typeof QueueRoute
   '/results': typeof ResultsRoute
   '/studio': typeof StudioRoute
+  '/api/admin/bulk-scrape': typeof ApiAdminBulkScrapeRoute
   '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
   '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
   '/api/peec/$tool': typeof ApiPeecToolRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/queue': typeof QueueRoute
   '/results': typeof ResultsRoute
   '/studio': typeof StudioRoute
+  '/api/admin/bulk-scrape': typeof ApiAdminBulkScrapeRoute
   '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
   '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
   '/api/peec/$tool': typeof ApiPeecToolRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/queue'
     | '/results'
     | '/studio'
+    | '/api/admin/bulk-scrape'
     | '/api/agents/find-openings'
     | '/api/agents/generate-engagements'
     | '/api/peec/$tool'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/queue'
     | '/results'
     | '/studio'
+    | '/api/admin/bulk-scrape'
     | '/api/agents/find-openings'
     | '/api/agents/generate-engagements'
     | '/api/peec/$tool'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/queue'
     | '/results'
     | '/studio'
+    | '/api/admin/bulk-scrape'
     | '/api/agents/find-openings'
     | '/api/agents/generate-engagements'
     | '/api/peec/$tool'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   QueueRoute: typeof QueueRoute
   ResultsRoute: typeof ResultsRoute
   StudioRoute: typeof StudioRoute
+  ApiAdminBulkScrapeRoute: typeof ApiAdminBulkScrapeRoute
   ApiAgentsFindOpeningsRoute: typeof ApiAgentsFindOpeningsRoute
   ApiAgentsGenerateEngagementsRoute: typeof ApiAgentsGenerateEngagementsRoute
   ApiPeecToolRoute: typeof ApiPeecToolRoute
@@ -253,6 +266,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAgentsFindOpeningsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/bulk-scrape': {
+      id: '/api/admin/bulk-scrape'
+      path: '/api/admin/bulk-scrape'
+      fullPath: '/api/admin/bulk-scrape'
+      preLoaderRoute: typeof ApiAdminBulkScrapeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   QueueRoute: QueueRoute,
   ResultsRoute: ResultsRoute,
   StudioRoute: StudioRoute,
+  ApiAdminBulkScrapeRoute: ApiAdminBulkScrapeRoute,
   ApiAgentsFindOpeningsRoute: ApiAgentsFindOpeningsRoute,
   ApiAgentsGenerateEngagementsRoute: ApiAgentsGenerateEngagementsRoute,
   ApiPeecToolRoute: ApiPeecToolRoute,
