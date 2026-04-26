@@ -80,7 +80,7 @@ export const getPromptTable = createServerFn({ method: "GET" }).handler(
       modelsByPrompt.get(q.prompt_id)!.add(q.model_id);
     }
 
-    return (prompts ?? []).map((p) => {
+    const rows = (prompts ?? []).map((p) => {
       const own = ownByPrompt.get(p.id);
       return {
         id: p.id,
@@ -95,5 +95,7 @@ export const getPromptTable = createServerFn({ method: "GET" }).handler(
         mentioned_competitors: competitorsByPrompt.get(p.id) ?? [],
       };
     });
+    rows.sort((a, b) => (a.visibility ?? 0) - (b.visibility ?? 0));
+    return rows;
   },
 );
