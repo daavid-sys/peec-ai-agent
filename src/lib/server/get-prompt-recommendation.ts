@@ -33,6 +33,7 @@ export type PromptRecommendation = {
   };
   reasons: ReasonCardPayload[];
   topSourceDomains: string[];
+  qfoModels: string[];
   openingPreviews: {
     id: string;
     sourceName: string;
