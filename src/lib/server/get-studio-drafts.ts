@@ -11,7 +11,8 @@ export type StudioDraft = {
   channelAccent: string;
   title: string;
   actionType: string;
-  competitor: string | null;
+  /** All competitors targeted by this single post. */
+  competitors: string[];
   rationale: string | null;
   impactScore: number;
   source: {
