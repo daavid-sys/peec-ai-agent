@@ -170,6 +170,8 @@ function PromptsPage() {
   const cardCounts = recommendation?.counts ?? null;
   const cardReasons = recommendation?.reasons ?? [];
   const previewOpenings = recommendation?.openingPreviews ?? [];
+  const formatMetric = (value: number | null, suffix = "%") =>
+    recommendationLoading ? "…" : value === null ? "—" : `${value}${suffix}`;
 
 
   const startFlow = () => {
@@ -210,30 +212,30 @@ function PromptsPage() {
             <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
               <Stat
                 label="Your visibility"
-                value={recommendationLoading ? "…" : `${cardMetrics.ownVisibility}%`}
+                value={formatMetric(cardMetrics.ownVisibility)}
                 tone="destructive"
               />
               <Stat
                 label={`${cardMetrics.topCompetitor ?? "Top competitor"} visibility`}
-                value={recommendationLoading ? "…" : `${cardMetrics.topCompetitorVisibility}%`}
+                value={formatMetric(cardMetrics.topCompetitorVisibility)}
               />
               <Stat
                 label="Visibility gap"
-                value={recommendationLoading ? "…" : `${cardMetrics.visibilityGap}%`}
+                value={formatMetric(cardMetrics.visibilityGap)}
                 tone="destructive"
                 icon={TrendingDown}
               />
               <Stat
                 label="Opportunity score"
-                value={recommendationLoading ? "…" : `${cardMetrics.opportunityScore}/100`}
+                value={formatMetric(cardMetrics.opportunityScore, "/100")}
                 tone="primary"
               />
             </div>
 
             <div className="mt-6 grid grid-cols-3 gap-3 text-xs">
-              <Mini label="Sources found" value={recommendationLoading ? "…" : cardCounts.sources} />
-              <Mini label="Query fanouts" value={recommendationLoading ? "…" : cardCounts.qfos} />
-              <Mini label="Openings found" value={recommendationLoading ? "…" : cardCounts.openings} />
+              <Mini label="Sources found" value={recommendationLoading ? "…" : (cardCounts?.sources ?? "—")} />
+              <Mini label="Query fanouts" value={recommendationLoading ? "…" : (cardCounts?.qfos ?? "—")} />
+              <Mini label="Openings found" value={recommendationLoading ? "…" : (cardCounts?.openings ?? "—")} />
             </div>
 
             {cardReasons.length > 0 && (
@@ -295,7 +297,7 @@ function PromptsPage() {
               Sneak peek · openings for this prompt
             </h2>
             <p className="text-xs text-muted-foreground">
-              The first {previewOpenings.length} of {cardCounts.openings}{" "}
+              The first {previewOpenings.length} of {cardCounts?.openings ?? "—"}{" "}
               openings already drafted by the agent.
             </p>
           </div>
