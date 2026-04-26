@@ -111,9 +111,12 @@ function QueuePage() {
         </Button>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-3">
+      <div className="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-4">
         {columns.map((col) => {
-          const items = engagements.filter((e) => bucket(e) === col.key);
+          const items = engagements.filter((e) => {
+            const op = openings.find((o) => o.id === e.openingId);
+            return bucket(e, op?.sourceUrl, op?.openingType) === col.key;
+          });
           return (
             <div key={col.key}>
               <div className="mb-3 flex items-center justify-between">
