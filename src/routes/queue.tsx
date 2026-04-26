@@ -309,10 +309,7 @@ function QueuePage() {
                     <TypeIcon className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                      Task · {TASK_META[currentType].label}
-                    </div>
-                    <h2 className="mt-0.5 text-lg font-semibold leading-tight tracking-tight text-foreground sm:text-xl">
+                    <h2 className="text-lg font-semibold leading-tight tracking-tight text-foreground sm:text-xl">
                       {dynamicTitle}
                     </h2>
                   </div>
