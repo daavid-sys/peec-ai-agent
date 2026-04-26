@@ -183,6 +183,32 @@ function ReasonCardItem({
       )}
     </div>
   );
+
+  if (!card.body) return cardInner;
+
+  return (
+    <TooltipProvider delayDuration={120}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="h-full">{cardInner}</div>
+        </TooltipTrigger>
+        <TooltipContent
+          side="right"
+          align="start"
+          className="max-w-xs text-[12px] leading-relaxed"
+        >
+          <div
+            className={cn(
+              "[&_p]:m-0 [&_p+p]:mt-1 [&_strong]:font-semibold",
+              "[&_a]:underline [&_a]:underline-offset-2",
+            )}
+          >
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{card.body}</ReactMarkdown>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 }
 
 function PromptsPage() {
