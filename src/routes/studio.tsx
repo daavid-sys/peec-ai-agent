@@ -250,7 +250,7 @@ function StudioPage() {
       <div className="flex items-center justify-between gap-6">
         <div className="min-w-0">
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-            Watch the agent write each draft on its real platform
+            Watch our agents get you brand mentions
           </h1>
         </div>
         <Button
