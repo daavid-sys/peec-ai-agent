@@ -254,16 +254,26 @@ export const getPromptRecommendation = createServerFn({ method: "GET" })
     const visibilityGap = ownVisibility - topCompetitorVisibility;
     const opportunityScore = Math.round(Number(prompt?.opportunity_score ?? 0));
 
-    const openingPreviews = openingRows.slice(0, 3).map((opening) => {
+    // Dedupe previews by source domain so we don't show the same site 3×
+    // (and skip placeholder "default.com" sources). Openings are already sorted
+    // by impact_score DESC, so the first hit per domain is the best one.
+    const seenDomains = new Set<string>();
+    const openingPreviews: PromptRecommendation["openingPreviews"] = [];
+    for (const opening of openingRows) {
       const source = opening.source_id ? sourceById.get(opening.source_id) : null;
-      return {
+      const domainKey = (source?.domain ?? "").toLowerCase().trim();
+      if (!domainKey || domainKey === "default.com") continue;
+      if (seenDomains.has(domainKey)) continue;
+      seenDomains.add(domainKey);
+      openingPreviews.push({
         id: opening.id,
         sourceName: source?.title ?? source?.domain ?? opening.title,
         sourceUrl: source?.url ?? "",
         openingType: humanizeActionType(opening.action_type),
         impactScore: opening.impact_score ?? 50,
-      };
-    });
+      });
+      if (openingPreviews.length >= 3) break;
+    }
 
     const evidence: RationaleEvidence = {
       promptText: prompt?.text ?? promptId,
