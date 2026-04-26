@@ -132,9 +132,43 @@ export const getOpeningsOverview = createServerFn({ method: "GET" })
       draftByOpening.set(d.opening_id, d);
     }
 
+    // Collapse duplicate rows that target the same (source, action_type) with
+    // different competitors — they're a single post that calls out many.
+    const merged = dedupeOpenings(
+      openings.map((o) => ({
+        ...o,
+        impact_score: o.impact_score ?? 0,
+      })),
+    );
+
+    // Pick the best draft across the merged group: prefer a ready draft on
+    // ANY of the merged rows, then drafting/pending, else fall back to the
+    // canonical row's draft (or missing).
+    const draftStatusRank: Record<string, number> = {
+      ready: 5,
+      drafting: 4,
+      pending: 3,
+      missing: 2,
+      failed: 1,
+    };
+    const bestDraftFor = (groupIds: string[]) => {
+      let best: DraftRow | null = null;
+      let bestRank = -1;
+      for (const id of groupIds) {
+        const d = draftByOpening.get(id);
+        const rank = d?.status ? (draftStatusRank[d.status] ?? 0) : 0;
+        if (rank > bestRank) {
+          bestRank = rank;
+          best = d ?? null;
+        }
+      }
+      return best;
+    };
+
     const groups = new Map<Channel, OpeningOverviewItem[]>();
 
-    for (const o of openings) {
+    for (const m of merged) {
+      const o = m.canonical;
       const source = o.source_id ? sourceById.get(o.source_id) ?? null : null;
       const scrape = o.source_id ? scrapeBySource.get(o.source_id) ?? null : null;
       const channel = classifyChannel({
@@ -143,7 +177,7 @@ export const getOpeningsOverview = createServerFn({ method: "GET" })
         domain: source?.domain,
         ownDomain,
       });
-      const draft = draftByOpening.get(o.id);
+      const draft = bestDraftFor(m.groupIds);
 
       const item: OpeningOverviewItem = {
         id: o.id,
@@ -153,7 +187,7 @@ export const getOpeningsOverview = createServerFn({ method: "GET" })
         recommendedEngagement: o.recommended_engagement,
         impactScore: o.impact_score ?? 50,
         riskLevel: o.risk_level ?? "low",
-        competitor: o.competitor,
+        competitors: m.competitors,
         source: {
           id: source?.id ?? null,
           url: source?.url ?? null,
