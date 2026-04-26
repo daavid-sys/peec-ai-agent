@@ -290,10 +290,22 @@ async function generateReasons(evidence: RationaleEvidence): Promise<ReasonCardP
 }
 
 export const getPromptRecommendation = createServerFn({ method: "GET" })
-  .inputValidator((input: { promptId: string; ownBrandName: string }) => input)
+  .inputValidator(
+    (input: {
+      promptId: string;
+      ownBrandName: string;
+      ownBrandDomain?: string | null;
+      competitors?: { name: string; domain?: string | null }[];
+    }) => input,
+  )
   .handler(async ({ data }): Promise<PromptRecommendation> => {
     const promptId = data.promptId;
     const ownBrandName = data.ownBrandName;
+    const ownBrandDomain = data.ownBrandDomain ?? null;
+    const competitors = (data.competitors ?? []).map((c) => ({
+      name: c.name,
+      domain: c.domain ?? null,
+    }));
 
     const [promptRes, metricsRes, sourcesRes, qfosRes, openingsRes] = await Promise.all([
       supabaseAdmin.from("prompts").select("*").eq("id", promptId).maybeSingle(),
