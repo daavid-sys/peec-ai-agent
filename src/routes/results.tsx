@@ -15,9 +15,6 @@ function ResultsPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
-      <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
-        Step 5 · Results
-      </div>
       <h1 className="text-3xl font-semibold tracking-tight">
         Track visibility after execution
       </h1>
