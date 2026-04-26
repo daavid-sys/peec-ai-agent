@@ -34,7 +34,6 @@ type Item = {
 const general: Item[] = [
   { label: "Overview", icon: Home },
   { label: "Prompts", icon: ScanLine },
-  { label: "Openings", icon: Search, active: true, to: "/openings" },
 ];
 
 const sources: Item[] = [
@@ -45,6 +44,7 @@ const sources: Item[] = [
 const actions: Item[] = [
   { label: "Earned · Off-page", icon: FileText },
   { label: "Owned · On-page", icon: FileSearch },
+  { label: "Openings", icon: Search, active: true, to: "/openings" },
   { label: "Impact", icon: LineChart },
 ];
 
