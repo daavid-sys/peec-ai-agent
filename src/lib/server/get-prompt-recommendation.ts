@@ -159,6 +159,43 @@ function fallbackReasons(evidence: RationaleEvidence): ReasonCardPayload[] {
     category: "win",
   });
 
+  // Pad to exactly 4 cards using whatever evidence is left so the UI is never short.
+  const usedDomains = new Set(cards.map((c) => c.platformDomain).filter(Boolean));
+  const extraSources = evidence.topSources.filter(
+    (s) => s.domain && !usedDomains.has(s.domain),
+  );
+  const extraCompetitors = evidence.competitors.filter(
+    (c) => c.name.toLowerCase() !== (evidence.topCompetitor ?? "").toLowerCase(),
+  );
+
+  while (cards.length < 4) {
+    const nextSource = extraSources.shift();
+    if (nextSource?.domain) {
+      cards.push({
+        headline: `Show up on ${nextSource.domain}`,
+        body: `**${nextSource.domain}** is another cited source for this prompt where **${brand}** isn't represented yet. Each additional source you appear on widens the set of answers that mention you.`,
+        platformDomain: nextSource.domain,
+        category: "platform",
+      });
+      continue;
+    }
+    const nextCompetitor = extraCompetitors.shift();
+    if (nextCompetitor) {
+      cards.push({
+        headline: `Stay ahead of ${nextCompetitor.name}`,
+        body: `**${nextCompetitor.name}** is competing for the same answer surface as **${brand}** on this prompt. Owning the cited sources here keeps them from compounding awareness at your expense.`,
+        competitorDomains: nextCompetitor.domain ? [nextCompetitor.domain] : [],
+        category: "competitor",
+      });
+      continue;
+    }
+    cards.push({
+      headline: `Compounding awareness for ${brand}`,
+      body: `Every answer that includes **${brand}** on this prompt builds long-term awareness with buyers actively researching this exact need. Skipping it leaves that ground to whoever shows up instead.`,
+      category: "win",
+    });
+  }
+
   return cards.slice(0, 4);
 }
 
