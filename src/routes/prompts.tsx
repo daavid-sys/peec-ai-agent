@@ -130,8 +130,8 @@ function ReasonCardItem({
   ).slice(0, 4);
 
   const cardInner = (
-    <div className="group flex h-full flex-col items-center justify-center gap-2 rounded-lg border border-border bg-background p-3 text-center transition-colors hover:border-foreground/20 hover:bg-card">
-      <div className="flex items-center justify-center gap-2">
+    <div className="group flex h-full flex-col items-stretch justify-center gap-2 rounded-lg border border-border bg-background p-3 transition-colors hover:border-foreground/20 hover:bg-card">
+      <div className="flex items-center gap-2 text-left">
         <div
           className={cn(
             "flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md ring-1",
