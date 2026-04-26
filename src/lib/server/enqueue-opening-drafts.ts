@@ -175,7 +175,7 @@ async function callLovableAi(args: {
 }
 
 async function generateDraftFor(
-  opening: OpeningRow,
+  job: DraftJob,
   ctx: {
     promptText: string;
     ownBrand: string;
@@ -184,6 +184,7 @@ async function generateDraftFor(
     scrapeBySource: Map<string, ScrapeRow>;
   },
 ) {
+  const opening = job.opening;
   const source = opening.source_id ? ctx.sourceById.get(opening.source_id) ?? null : null;
   const scrape = opening.source_id ? ctx.scrapeBySource.get(opening.source_id) ?? null : null;
   const channel = classifyChannel({
@@ -193,19 +194,18 @@ async function generateDraftFor(
     ownDomain: ctx.ownDomain,
   });
 
-  // Mark drafting
-  await supabaseAdmin
-    .from("opening_drafts")
-    .upsert(
-      {
-        opening_id: opening.id,
-        platform: channel,
-        status: "drafting",
-        model: MODEL,
-        error: null,
-      },
-      { onConflict: "opening_id" },
-    );
+  // Mark every duplicate row in this group as drafting so concurrent callers
+  // don't double-do work and the overview reflects in-flight status correctly.
+  await supabaseAdmin.from("opening_drafts").upsert(
+    job.groupIds.map((id) => ({
+      opening_id: id,
+      platform: channel,
+      status: "drafting",
+      model: MODEL,
+      error: null,
+    })),
+    { onConflict: "opening_id" },
+  );
 
   try {
     const draft = await callLovableAi({
@@ -213,37 +213,37 @@ async function generateDraftFor(
       ownBrand: ctx.ownBrand,
       channel,
       opening,
+      competitors: job.competitors,
       source,
       scrape,
     });
-    await supabaseAdmin
-      .from("opening_drafts")
-      .upsert(
-        {
-          opening_id: opening.id,
-          platform: channel,
-          status: "ready",
-          brief: draft.brief,
-          full_draft: draft.full_draft,
-          model: MODEL,
-          generated_at: new Date().toISOString(),
-          error: null,
-        },
-        { onConflict: "opening_id" },
-      );
+    const generatedAt = new Date().toISOString();
+    // Mirror the same draft to every duplicate row so historical dupes resolve
+    // as "ready" everywhere — the overview reader picks one canonical row.
+    await supabaseAdmin.from("opening_drafts").upsert(
+      job.groupIds.map((id) => ({
+        opening_id: id,
+        platform: channel,
+        status: "ready",
+        brief: draft.brief,
+        full_draft: draft.full_draft,
+        model: MODEL,
+        generated_at: generatedAt,
+        error: null,
+      })),
+      { onConflict: "opening_id" },
+    );
   } catch (err) {
-    await supabaseAdmin
-      .from("opening_drafts")
-      .upsert(
-        {
-          opening_id: opening.id,
-          platform: channel,
-          status: "failed",
-          error: err instanceof Error ? err.message : String(err),
-          model: MODEL,
-        },
-        { onConflict: "opening_id" },
-      );
+    await supabaseAdmin.from("opening_drafts").upsert(
+      job.groupIds.map((id) => ({
+        opening_id: id,
+        platform: channel,
+        status: "failed",
+        error: err instanceof Error ? err.message : String(err),
+        model: MODEL,
+      })),
+      { onConflict: "opening_id" },
+    );
   }
 }
 
