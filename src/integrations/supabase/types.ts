@@ -129,6 +129,56 @@ export type Database = {
           },
         ]
       }
+      opening_drafts: {
+        Row: {
+          brief: string | null
+          created_at: string
+          error: string | null
+          full_draft: string | null
+          generated_at: string | null
+          id: string
+          model: string | null
+          opening_id: string
+          platform: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          brief?: string | null
+          created_at?: string
+          error?: string | null
+          full_draft?: string | null
+          generated_at?: string | null
+          id?: string
+          model?: string | null
+          opening_id: string
+          platform?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          brief?: string | null
+          created_at?: string
+          error?: string | null
+          full_draft?: string | null
+          generated_at?: string | null
+          id?: string
+          model?: string | null
+          opening_id?: string
+          platform?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opening_drafts_opening_id_fkey"
+            columns: ["opening_id"]
+            isOneToOne: true
+            referencedRelation: "action_openings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prompt_brand_metrics: {
         Row: {
           brand_id: string

@@ -1,134 +1,187 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ExternalLink, Loader2, RefreshCw, Sparkles, Target, MessageSquare, Search } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowRight,
+  ExternalLink,
+  Loader2,
+  RefreshCw,
+  Sparkles,
+} from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Favicon } from "@/components/favicon";
+import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
-import { getActionPlan, type ActionPlan } from "@/lib/server/get-action-plan";
-import { QfosTable } from "@/components/qfos-table";
-import type { PromptQfo } from "@/lib/server/get-prompt-qfos";
+import { CHANNELS, type Channel } from "@/lib/channel";
+import {
+  getOpeningsOverview,
+  type OpeningChannelGroup,
+  type OpeningOverviewItem,
+  type OpeningsOverview,
+} from "@/lib/server/get-openings-overview";
+import { enqueueOpeningDrafts } from "@/lib/server/enqueue-opening-drafts";
 
 export const Route = createFileRoute("/openings")({
-  head: () => ({ meta: [{ title: "Action Plan — Peec AI Openings" }] }),
-  loader: async () => {
-    // We can't read selected prompt at SSR time, return empty; fetch on client.
-    return { initial: null as ActionPlan | null };
-  },
+  head: () => ({ meta: [{ title: "Content Plan — Peec AI Openings" }] }),
   component: OpeningsPage,
 });
 
 function OpeningsPage() {
   const selectedPromptId = useAppStore((s) => s.selectedPromptId);
   const prompts = useAppStore((s) => s.prompts);
+  const project = useAppStore((s) => s.project);
   const fallbackPromptId = "pr_05a66669-478c-4b25-94bc-9119409e5e2f";
   const promptId = selectedPromptId ?? fallbackPromptId;
   const localPrompt = prompts.find((p) => p.id === promptId);
+  const navigate = useNavigate();
 
-  const [plan, setPlan] = useState<ActionPlan | null>(null);
+  const [overview, setOverview] = useState<OpeningsOverview | null>(null);
   const [loading, setLoading] = useState(true);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  // Track in-flight enqueue calls so we don't spam.
+  const enqueuingRef = useRef(false);
 
   async function load() {
-    setLoading(true);
-    setError(null);
     try {
-      const res = await getActionPlan({ data: { promptId } });
-      setPlan(res);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      const res = await getOpeningsOverview({
+        data: { promptId, ownDomain: project?.ownBrand.domain ?? null },
+      });
+      setOverview(res);
     } finally {
       setLoading(false);
     }
   }
 
-  async function runAnalyze() {
-    setAnalyzing(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/analyze-prompt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ promptId, maxSources: 6 }),
-      });
-      if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
-      await load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setAnalyzing(false);
-    }
-  }
-
   useEffect(() => {
+    setLoading(true);
+    setOverview(null);
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promptId]);
 
-  const promptText = plan?.prompt?.text ?? localPrompt?.text ?? "Selected prompt";
+  // Background drafting + polling: while any draft is missing/pending/drafting,
+  // keep enqueuing batches and re-fetching the overview.
+  useEffect(() => {
+    if (!overview || !project) return;
+    const pending = overview.groups.flatMap((g) =>
+      g.openings.filter(
+        (o) =>
+          o.draft.status === "missing" ||
+          o.draft.status === "pending" ||
+          o.draft.status === "drafting" ||
+          o.draft.status === "failed",
+      ),
+    );
+    if (pending.length === 0) return;
+
+    let cancelled = false;
+    const tick = async () => {
+      if (cancelled) return;
+      if (!enqueuingRef.current) {
+        enqueuingRef.current = true;
+        try {
+          await enqueueOpeningDrafts({
+            data: {
+              promptId,
+              ownBrand: project.ownBrand.name,
+              ownDomain: project.ownBrand.domain ?? null,
+            },
+          });
+        } catch {
+          /* ignore */
+        } finally {
+          enqueuingRef.current = false;
+        }
+      }
+      if (cancelled) return;
+      await load();
+    };
+    const handle = window.setTimeout(tick, 2500);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handle);
+    };
+  }, [overview, project, promptId]);
+
+  const promptText =
+    overview?.promptText ?? localPrompt?.text ?? "Selected prompt";
+
+  const totalReady = useMemo(() => {
+    if (!overview) return 0;
+    return overview.groups.reduce(
+      (acc, g) =>
+        acc + g.openings.filter((o) => o.draft.status === "ready").length,
+      0,
+    );
+  }, [overview]);
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] px-6 py-10 2xl:px-10">
+    <div className="mx-auto w-full max-w-[1500px] px-6 py-10 2xl:px-10">
       <div className="flex items-start justify-between gap-6">
         <div className="min-w-0">
-          <h1 className="text-3xl font-semibold tracking-tight">
+          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Content plan for
+          </div>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
             <span className="text-primary">&ldquo;{promptText}&rdquo;</span>
           </h1>
           <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-            Every source the AI engines retrieved for this prompt — pulled from real Peec data.
-            Sources where competitors are mentioned but your brand isn&rsquo;t are scraped via Tavily,
-            then analysed to find the exact passage and a fast way to insert your brand.
+            We grouped every opening by the channel where the agent will publish.
+            Each row expands to show the cited source, what we read in the scrape,
+            and a short brief of the draft we&rsquo;re writing for it.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => void load()} disabled={loading}>
-            <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-            Refresh
+          <Button variant="outline" size="sm" onClick={() => void load()}>
+            <RefreshCw className="h-4 w-4" /> Refresh
           </Button>
-          <Button size="sm" onClick={() => void runAnalyze()} disabled={analyzing}>
-            {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            {analyzing ? "Scraping & analysing…" : "Run analysis"}
+          <Button
+            size="sm"
+            onClick={() => navigate({ to: "/studio" })}
+            disabled={!overview || overview.totalOpenings === 0}
+          >
+            Open Engagement Studio <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {error && (
-        <div className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-          {error}
-        </div>
-      )}
+      <SummaryStrip overview={overview} loading={loading} totalReady={totalReady} />
 
-      <SummaryStrip plan={plan} loading={loading} />
+      <div className="mt-8 space-y-3">
+        {loading ? (
+          <>
+            <ChannelSkeleton />
+            <ChannelSkeleton />
+            <ChannelSkeleton />
+          </>
+        ) : overview && overview.groups.length > 0 ? (
+          <Accordion
+            type="multiple"
+            defaultValue={overview.groups.slice(0, 2).map((g) => g.channel)}
+            className="space-y-3"
+          >
+            {overview.groups.map((group) => (
+              <ChannelGroupCard key={group.channel} group={group} />
+            ))}
+          </Accordion>
+        ) : (
+          <Card className="p-12 text-center">
+            <p className="text-sm text-muted-foreground">
+              No openings generated yet for this prompt.
+            </p>
+          </Card>
+        )}
+      </div>
 
-      <Tabs defaultValue="sources" className="mt-8">
-        <TabsList>
-          <TabsTrigger value="sources">
-            <Search className="h-3.5 w-3.5" /> Sources ({plan?.sources.length ?? 0})
-          </TabsTrigger>
-          <TabsTrigger value="competitors">
-            <Target className="h-3.5 w-3.5" /> Competitors
-          </TabsTrigger>
-          <TabsTrigger value="qfos">
-            <MessageSquare className="h-3.5 w-3.5" /> Query fanouts ({plan?.qfos.length ?? 0})
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="sources" className="mt-4">
-          <SourcesTab plan={plan} loading={loading} />
-        </TabsContent>
-        <TabsContent value="competitors" className="mt-4">
-          <CompetitorsTab plan={plan} />
-        </TabsContent>
-        <TabsContent value="qfos" className="mt-4">
-          <QfosTab plan={plan} />
-        </TabsContent>
-      </Tabs>
-
-      <div className="mt-6">
+      <div className="mt-8">
         <Button variant="ghost" asChild>
           <Link to="/prompts">← Back to prompts</Link>
         </Button>
@@ -137,240 +190,352 @@ function OpeningsPage() {
   );
 }
 
-function SummaryStrip({ plan, loading }: { plan: ActionPlan | null; loading: boolean }) {
-  const s = plan?.summary;
-  const items = [
-    { label: "Sources AI reads", value: s?.total_sources ?? 0 },
-    { label: "Gap sources", value: s?.gap_sources ?? 0 },
-    { label: "Pages scraped", value: s?.scraped ?? 0 },
-    { label: "Competitor mentions", value: s?.competitor_mentions ?? 0 },
-    { label: "Openings generated", value: s?.openings ?? 0, accent: true },
-  ];
+function SummaryStrip({
+  overview,
+  loading,
+  totalReady,
+}: {
+  overview: OpeningsOverview | null;
+  loading: boolean;
+  totalReady: number;
+}) {
+  const total = overview?.totalOpenings ?? 0;
+  const channels = overview?.groups.length ?? 0;
+  const drafting = overview
+    ? overview.groups.reduce(
+        (acc, g) =>
+          acc +
+          g.openings.filter(
+            (o) =>
+              o.draft.status === "drafting" || o.draft.status === "pending",
+          ).length,
+        0,
+      )
+    : 0;
+  const readyPct = total > 0 ? Math.round((totalReady / total) * 100) : 0;
+
   return (
-    <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-5">
-      {items.map((it) => (
-        <Card
-          key={it.label}
-          className={
-            "border-border bg-card p-4" + (it.accent ? " border-primary/30 bg-primary-soft" : "")
-          }
-        >
-          <div className="text-xs text-muted-foreground">{it.label}</div>
-          <div className="mt-1 text-2xl font-semibold tabular-nums">
-            {loading ? "…" : it.value}
-          </div>
-        </Card>
-      ))}
+    <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <SummaryTile
+        label="Total openings"
+        value={loading ? "…" : String(total)}
+      />
+      <SummaryTile
+        label="Channels in plan"
+        value={loading ? "…" : String(channels)}
+      />
+      <SummaryTile
+        label="Drafts ready"
+        value={loading ? "…" : `${totalReady} / ${total}`}
+        accent
+      />
+      <SummaryTile
+        label={drafting > 0 ? "Agent drafting now" : "Plan complete"}
+        value={
+          loading
+            ? "…"
+            : drafting > 0
+              ? `${drafting} writing`
+              : `${readyPct}%`
+        }
+        spinning={drafting > 0}
+      />
     </div>
   );
 }
 
-function SourcesTab({ plan, loading }: { plan: ActionPlan | null; loading: boolean }) {
-  if (loading && !plan) {
-    return <div className="py-12 text-center text-sm text-muted-foreground">Loading sources…</div>;
-  }
-  if (!plan?.sources.length) {
-    return <div className="py-12 text-center text-sm text-muted-foreground">No sources yet.</div>;
-  }
+function SummaryTile({
+  label,
+  value,
+  accent,
+  spinning,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+  spinning?: boolean;
+}) {
   return (
-    <div className="space-y-3">
-      {plan.sources.map((src) => (
-        <Card key={src.id} className="border-border bg-card p-5">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <Badge variant="outline" className="font-normal">
-                  {src.classification ?? "OTHER"}
-                </Badge>
-                <span className="font-mono">{src.domain}</span>
-                <span>·</span>
-                <span>retrieved {src.retrieval_count}×</span>
-                <span>·</span>
-                <span>{src.citation_count} citations</span>
-                {src.scrape_status === "done" && (
-                  <Badge variant="secondary" className="font-normal">scraped</Badge>
-                )}
-                {src.scrape_status === "failed" && (
-                  <Badge variant="destructive" className="font-normal">scrape failed</Badge>
-                )}
+    <Card
+      className={cn(
+        "border-border bg-card p-4",
+        accent && "border-primary/30 bg-primary-soft",
+      )}
+    >
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        {spinning && <Loader2 className="h-3 w-3 animate-spin" />}
+        {label}
+      </div>
+      <div className="mt-1 text-2xl font-semibold tabular-nums">{value}</div>
+    </Card>
+  );
+}
+
+function ChannelSkeleton() {
+  return (
+    <Card className="border-border p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-9 w-9 rounded-md" />
+          <div className="space-y-1.5">
+            <Skeleton className="h-3 w-28" />
+            <Skeleton className="h-2.5 w-48" />
+          </div>
+        </div>
+        <Skeleton className="h-6 w-12 rounded-full" />
+      </div>
+    </Card>
+  );
+}
+
+function ChannelGroupCard({ group }: { group: OpeningChannelGroup }) {
+  const meta = CHANNELS[group.channel];
+  const ready = group.openings.filter((o) => o.draft.status === "ready").length;
+  const drafting = group.openings.filter(
+    (o) => o.draft.status === "drafting" || o.draft.status === "pending",
+  ).length;
+
+  return (
+    <AccordionItem
+      value={group.channel}
+      className="overflow-hidden rounded-lg border border-border bg-card"
+    >
+      <AccordionTrigger className="px-4 py-3 hover:no-underline [&[data-state=open]]:border-b [&[data-state=open]]:border-border">
+        <div className="flex flex-1 items-center justify-between gap-4 pr-2">
+          <div className="flex items-center gap-3 text-left">
+            <ChannelBadge channel={group.channel} />
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                {meta.label}
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-normal text-muted-foreground">
+                  {group.total} opening{group.total === 1 ? "" : "s"}
+                </span>
               </div>
+              <div className="text-xs text-muted-foreground">
+                {meta.description}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            {drafting > 0 && (
+              <span className="inline-flex items-center gap-1 text-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                drafting {drafting}
+              </span>
+            )}
+            <span className="tabular-nums">
+              <span className="text-foreground">{ready}</span> / {group.total}{" "}
+              ready
+            </span>
+            <span className="tabular-nums">
+              top impact {group.topImpact}
+            </span>
+          </div>
+        </div>
+      </AccordionTrigger>
+      <AccordionContent className="bg-background/50 p-0">
+        <div className="divide-y divide-border">
+          {group.openings.map((opening) => (
+            <OpeningRow key={opening.id} opening={opening} channel={group.channel} />
+          ))}
+        </div>
+      </AccordionContent>
+    </AccordionItem>
+  );
+}
+
+function ChannelBadge({ channel }: { channel: Channel }) {
+  const meta = CHANNELS[channel];
+  return (
+    <div
+      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md text-[11px] font-semibold uppercase text-white"
+      style={{ backgroundColor: meta.accent }}
+    >
+      {meta.label.slice(0, 2)}
+    </div>
+  );
+}
+
+function OpeningRow({
+  opening,
+  channel,
+}: {
+  opening: OpeningOverviewItem;
+  channel: Channel;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const status = opening.draft.status;
+  const host = opening.source.domain ?? "";
+
+  return (
+    <div className="px-4 py-3">
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-start justify-between gap-4 text-left transition-colors hover:opacity-80"
+      >
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          {host ? (
+            <Favicon name={host} kind="brand" size={18} className="mt-0.5" />
+          ) : (
+            <div className="mt-0.5 h-[18px] w-[18px] rounded bg-muted" />
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-medium text-foreground">
+              {opening.title}
+            </div>
+            <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+              {host && <span className="font-mono">{host}</span>}
+              {opening.competitor && (
+                <>
+                  <span>·</span>
+                  <span>vs {opening.competitor}</span>
+                </>
+              )}
+              <span>·</span>
+              <span className="capitalize">
+                {opening.actionType.replace(/_/g, " ")}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-shrink-0 items-center gap-2 text-xs">
+          <DraftStatusPill status={status} />
+          <Badge variant="outline" className="font-mono tabular-nums">
+            {opening.impactScore}
+          </Badge>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="animate-fade-in mt-3 grid grid-cols-1 gap-3 rounded-md border border-border bg-secondary/40 p-4 text-sm md:grid-cols-[1fr_1fr]">
+          <div>
+            <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              Cited source
+            </div>
+            {opening.source.url ? (
               <a
-                href={src.url}
+                href={opening.source.url}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-1 inline-flex items-center gap-1 text-sm font-semibold hover:text-primary"
+                className="mt-1 inline-flex items-start gap-1 text-sm font-medium text-foreground hover:text-primary"
               >
-                {src.title ?? src.url}
-                <ExternalLink className="h-3 w-3 opacity-60" />
+                {opening.source.title ?? opening.source.url}
+                <ExternalLink className="mt-0.5 h-3 w-3 opacity-60" />
               </a>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                {src.own_brand_present ? (
-                  <Badge variant="secondary">Your brand mentioned</Badge>
-                ) : (
-                  <Badge variant="destructive">Gap: your brand absent</Badge>
-                )}
-                {src.competitor_brands.map((b) => (
-                  <span key={b} className="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-muted-foreground">
-                    <Favicon name={b} kind="brand" size={12} />
-                    {b}
-                  </span>
-                ))}
+            ) : (
+              <div className="mt-1 text-sm text-muted-foreground">
+                No source attached
               </div>
-            </div>
+            )}
+            {opening.source.excerpt && (
+              <p className="mt-3 text-xs italic text-muted-foreground">
+                &ldquo;{opening.source.excerpt}&rdquo;
+              </p>
+            )}
+            {opening.rationale && (
+              <>
+                <div className="mt-4 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  Why this is an opening
+                </div>
+                <p className="mt-1 text-sm text-foreground">
+                  {opening.rationale}
+                </p>
+              </>
+            )}
           </div>
 
-          {src.mentions.length > 0 && (
-            <>
-              <Separator className="my-4" />
-              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                Competitor mentions found
+          <div className="rounded-md border border-border bg-card p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                <Sparkles className="h-3 w-3 text-primary" />
+                Draft brief · {CHANNELS[channel].label}
               </div>
-              <div className="mt-2 space-y-2">
-                {src.mentions.map((m) => (
-                  <div key={m.id} className="rounded-md border border-border bg-secondary/30 p-3">
-                    <div className="flex items-center gap-2 text-xs font-semibold">
-                      <Favicon name={m.competitor} kind="brand" size={14} /> {m.competitor}
-                      {m.context && (
-                        <span className="font-normal text-muted-foreground">— {m.context}</span>
-                      )}
-                    </div>
-                    <p className="mt-1 text-sm italic text-foreground">&ldquo;{m.quote}&rdquo;</p>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {src.openings.length > 0 && (
-            <>
-              <Separator className="my-4" />
-              <div className="text-[11px] uppercase tracking-wider text-primary">
-                Recommended actions
-              </div>
-              <div className="mt-2 space-y-2">
-                {src.openings.map((o) => (
-                  <OpeningRow key={o.id} opening={o} />
-                ))}
-              </div>
-            </>
-          )}
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-type OpeningItem = ActionPlan["openings"][number];
-
-function CompetitorsTab({ plan }: { plan: ActionPlan | null }) {
-  const grouped = useMemo(() => {
-    if (!plan) return [] as { competitor: string; sources: number; mentions: number; openings: OpeningItem[] }[];
-    const map = new Map<string, { sources: Set<string>; mentions: number; openings: OpeningItem[] }>();
-    for (const src of plan.sources) {
-      for (const c of src.competitor_brands) {
-        if (!map.has(c)) map.set(c, { sources: new Set(), mentions: 0, openings: [] });
-        map.get(c)!.sources.add(src.id);
-        map.get(c)!.mentions += src.mentions.filter((m) => m.competitor === c).length;
-      }
-    }
-    for (const o of plan.openings) {
-      if (!o.competitor) continue;
-      if (!map.has(o.competitor)) map.set(o.competitor, { sources: new Set(), mentions: 0, openings: [] });
-      map.get(o.competitor)!.openings.push(o);
-    }
-    return Array.from(map.entries())
-      .map(([competitor, v]) => ({
-        competitor,
-        sources: v.sources.size,
-        mentions: v.mentions,
-        openings: v.openings,
-      }))
-      .sort((a, b) => b.sources - a.sources);
-  }, [plan]);
-
-  if (!grouped.length) {
-    return <div className="py-12 text-center text-sm text-muted-foreground">No competitor data yet.</div>;
-  }
-
-  return (
-    <div className="space-y-3">
-      {grouped.map((g) => (
-        <Card key={g.competitor} className="border-border bg-card p-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Favicon name={g.competitor} kind="brand" size={18} />
-              <h3 className="text-base font-semibold">{g.competitor}</h3>
+              <DraftStatusPill status={status} />
             </div>
-            <div className="text-xs text-muted-foreground">
-              {g.sources} sources · {g.mentions} verified mentions · {g.openings.length} openings
+            <div className="mt-2 min-h-[80px]">
+              {status === "ready" && opening.draft.brief ? (
+                <p className="text-sm text-foreground">{opening.draft.brief}</p>
+              ) : status === "failed" ? (
+                <p className="text-sm text-destructive">
+                  Draft failed: {opening.draft.error ?? "unknown error"}.
+                  We&rsquo;ll retry on the next cycle.
+                </p>
+              ) : (
+                <BriefSkeleton />
+              )}
             </div>
+            {status === "ready" && (
+              <div className="mt-3 flex items-center justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="text-xs"
+                >
+                  <Link to="/studio">
+                    Open in studio <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </Button>
+              </div>
+            )}
           </div>
-          {g.openings.length > 0 && (
-            <div className="mt-3 space-y-2">
-              {g.openings.slice(0, 5).map((o) => (
-                <OpeningRow key={o.id} opening={o} />
-              ))}
-            </div>
-          )}
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-function QfosTab({ plan }: { plan: ActionPlan | null }) {
-  const qfos: PromptQfo[] | null = plan
-    ? plan.qfos.map((q) => ({
-        id: q.id,
-        query_text: q.query_text,
-        model_id: q.model_id,
-        occurrence_count: q.occurrence_count,
-      }))
-    : null;
-  return (
-    <div>
-      <div>
-        <h2 className="text-xl font-semibold tracking-tight">Query fanouts</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Sub-queries AI engines fan out to while answering this prompt
-        </p>
-      </div>
-      <div className="mt-4">
-        <QfosTable qfos={qfos} loading={!plan} />
-      </div>
-    </div>
-  );
-}
-
-function OpeningRow({ opening }: { opening: ActionPlan["openings"][number] }) {
-  return (
-    <div className="rounded-md border border-primary/20 bg-primary-soft p-3">
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-sm font-semibold">{opening.title}</div>
-        <div className="flex items-center gap-2 text-[11px]">
-          <Badge variant="outline" className="font-normal">{opening.action_type}</Badge>
-          <span className="text-muted-foreground">impact {opening.impact_score}</span>
-          <span
-            className="rounded-full px-2 py-0.5 capitalize"
-            style={{
-              color:
-                opening.risk_level === "high"
-                  ? "var(--destructive)"
-                  : opening.risk_level === "medium"
-                    ? "var(--warning)"
-                    : "var(--success)",
-            }}
-          >
-            {opening.risk_level} risk
-          </span>
         </div>
-      </div>
-      {opening.rationale && (
-        <p className="mt-1.5 text-xs text-muted-foreground">{opening.rationale}</p>
       )}
-      {opening.recommended_engagement && (
-        <p className="mt-2 text-sm text-foreground">{opening.recommended_engagement}</p>
+    </div>
+  );
+}
+
+function DraftStatusPill({
+  status,
+}: {
+  status: OpeningOverviewItem["draft"]["status"];
+}) {
+  const map: Record<
+    OpeningOverviewItem["draft"]["status"],
+    { label: string; className: string; spin?: boolean }
+  > = {
+    ready: {
+      label: "Draft ready",
+      className: "border-success/40 bg-success/10 text-success",
+    },
+    drafting: {
+      label: "Drafting",
+      className: "border-primary/40 bg-primary-soft text-primary",
+      spin: true,
+    },
+    pending: {
+      label: "Queued",
+      className: "border-border bg-muted text-muted-foreground",
+    },
+    missing: {
+      label: "Queued",
+      className: "border-border bg-muted text-muted-foreground",
+    },
+    failed: {
+      label: "Retrying",
+      className: "border-destructive/40 bg-destructive/10 text-destructive",
+    },
+  };
+  const m = map[status];
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium",
+        m.className,
       )}
+    >
+      {m.spin && <Loader2 className="h-2.5 w-2.5 animate-spin" />}
+      {m.label}
+    </span>
+  );
+}
+
+function BriefSkeleton() {
+  return (
+    <div className="space-y-1.5">
+      <Skeleton className="h-3 w-full" />
+      <Skeleton className="h-3 w-11/12" />
+      <Skeleton className="h-3 w-3/4" />
     </div>
   );
 }

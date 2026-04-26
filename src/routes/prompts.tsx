@@ -32,6 +32,7 @@ import {
   getPromptRecommendation,
   type PromptRecommendation,
 } from "@/lib/server/get-prompt-recommendation";
+import { enqueueOpeningDrafts } from "@/lib/server/enqueue-opening-drafts";
 
 export const Route = createFileRoute("/prompts")({
   head: () => ({ meta: [{ title: "Recommended Prompt — Peec AI Openings" }] }),
@@ -139,10 +140,31 @@ function PromptsPage() {
         if (cancelled) return;
         setQfosLoading(false);
       });
+    // Eagerly start drafting content for every opening on this prompt so by the
+    // time the user clicks through to the studio, drafts are ready (or close to it).
+    // Server fn drafts a batch per call; loop a few times in the background to
+    // exhaust pending openings without blocking the UI.
+    void (async () => {
+      for (let i = 0; i < 6; i++) {
+        if (cancelled) return;
+        try {
+          const res = await enqueueOpeningDrafts({
+            data: {
+              promptId: selected.id,
+              ownBrand: project.ownBrand.name,
+              ownDomain: project.ownBrand.domain ?? null,
+            },
+          });
+          if (res.enqueued === 0) return;
+        } catch {
+          return;
+        }
+      }
+    })();
     return () => {
       cancelled = true;
     };
-  }, [project.ownBrand.name, selected.id]);
+  }, [project.ownBrand.name, project.ownBrand.domain, selected.id]);
 
   const selectedStats = recommendation?.prompt;
   const ownBrandMetric = brandMetrics?.find(
