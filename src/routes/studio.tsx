@@ -468,13 +468,8 @@ function SideContext({
       </div>
 
       <div className="rounded-md border border-primary/30 bg-primary-soft/40 p-3">
-        <div className="flex items-center justify-between">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-primary">
-            Next in queue
-          </div>
-          <span className="text-[10px] font-medium tabular-nums text-muted-foreground">
-            {prefetch.length} ready
-          </span>
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-primary">
+          Up next
         </div>
         {prefetch.length === 0 ? (
           <div className="mt-2 text-xs text-muted-foreground">
@@ -482,21 +477,23 @@ function SideContext({
           </div>
         ) : (
           <ol className="mt-2 space-y-2">
-            {prefetch.map((d, i) => (
-              <li key={d.id} className="flex items-start gap-2 text-[12px]">
-                <span className="mt-0.5 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-card text-[9px] font-bold text-muted-foreground">
+            {prefetch.slice(0, 3).map((d, i) => (
+              <li key={d.id} className="flex items-center gap-2 text-[12px]">
+                <span className="inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-card text-[9px] font-bold text-muted-foreground">
                   {i + 1}
                 </span>
-                <span
-                  className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full"
-                  style={{ backgroundColor: d.channelAccent }}
+                <Favicon
+                  name={d.source.domain ?? d.channelLabel}
+                  kind="brand"
+                  size={14}
+                  className="flex-shrink-0 rounded-sm"
                 />
-                <div className="min-w-0">
-                  <div className="truncate font-medium text-foreground">{d.title}</div>
-                  <div className="truncate text-[11px] text-muted-foreground">
-                    {d.channelLabel} · {d.source.domain ?? "draft"}
-                  </div>
-                </div>
+                <span className="text-[11px] font-medium text-muted-foreground">
+                  {d.channelLabel}
+                </span>
+                <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+                  {d.title}
+                </span>
               </li>
             ))}
           </ol>
