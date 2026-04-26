@@ -261,10 +261,12 @@ function SourcesTab({ plan, loading }: { plan: ActionPlan | null; loading: boole
   );
 }
 
+type OpeningItem = ActionPlan["openings"][number];
+
 function CompetitorsTab({ plan }: { plan: ActionPlan | null }) {
   const grouped = useMemo(() => {
-    if (!plan) return [] as { competitor: string; sources: number; mentions: number; openings: typeof plan.openings }[];
-    const map = new Map<string, { sources: Set<string>; mentions: number; openings: typeof plan.openings }>();
+    if (!plan) return [] as { competitor: string; sources: number; mentions: number; openings: OpeningItem[] }[];
+    const map = new Map<string, { sources: Set<string>; mentions: number; openings: OpeningItem[] }>();
     for (const src of plan.sources) {
       for (const c of src.competitor_brands) {
         if (!map.has(c)) map.set(c, { sources: new Set(), mentions: 0, openings: [] });
