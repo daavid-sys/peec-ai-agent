@@ -16,6 +16,7 @@ import { Route as PromptsRouteImport } from './routes/prompts'
 import { Route as OpeningsRouteImport } from './routes/openings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiTavilyExtractRouteImport } from './routes/api/tavily/extract'
+import { Route as ApiPublicBulkScrapeRouteImport } from './routes/api/public/bulk-scrape'
 import { Route as ApiPublicAnalyzePromptRouteImport } from './routes/api/public/analyze-prompt'
 import { Route as ApiPeecToolRouteImport } from './routes/api/peec.$tool'
 import { Route as ApiAgentsGenerateEngagementsRouteImport } from './routes/api/agents/generate-engagements'
@@ -56,6 +57,11 @@ const ApiTavilyExtractRoute = ApiTavilyExtractRouteImport.update({
   path: '/api/tavily/extract',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicBulkScrapeRoute = ApiPublicBulkScrapeRouteImport.update({
+  id: '/api/public/bulk-scrape',
+  path: '/api/public/bulk-scrape',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAnalyzePromptRoute = ApiPublicAnalyzePromptRouteImport.update({
   id: '/api/public/analyze-prompt',
   path: '/api/public/analyze-prompt',
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
   '/api/peec/$tool': typeof ApiPeecToolRoute
   '/api/public/analyze-prompt': typeof ApiPublicAnalyzePromptRoute
+  '/api/public/bulk-scrape': typeof ApiPublicBulkScrapeRoute
   '/api/tavily/extract': typeof ApiTavilyExtractRoute
 }
 export interface FileRoutesByTo {
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
   '/api/peec/$tool': typeof ApiPeecToolRoute
   '/api/public/analyze-prompt': typeof ApiPublicAnalyzePromptRoute
+  '/api/public/bulk-scrape': typeof ApiPublicBulkScrapeRoute
   '/api/tavily/extract': typeof ApiTavilyExtractRoute
 }
 export interface FileRoutesById {
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
   '/api/peec/$tool': typeof ApiPeecToolRoute
   '/api/public/analyze-prompt': typeof ApiPublicAnalyzePromptRoute
+  '/api/public/bulk-scrape': typeof ApiPublicBulkScrapeRoute
   '/api/tavily/extract': typeof ApiTavilyExtractRoute
 }
 export interface FileRouteTypes {
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/api/agents/generate-engagements'
     | '/api/peec/$tool'
     | '/api/public/analyze-prompt'
+    | '/api/public/bulk-scrape'
     | '/api/tavily/extract'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/api/agents/generate-engagements'
     | '/api/peec/$tool'
     | '/api/public/analyze-prompt'
+    | '/api/public/bulk-scrape'
     | '/api/tavily/extract'
   id:
     | '__root__'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/api/agents/generate-engagements'
     | '/api/peec/$tool'
     | '/api/public/analyze-prompt'
+    | '/api/public/bulk-scrape'
     | '/api/tavily/extract'
   fileRoutesById: FileRoutesById
 }
@@ -171,6 +183,7 @@ export interface RootRouteChildren {
   ApiAgentsGenerateEngagementsRoute: typeof ApiAgentsGenerateEngagementsRoute
   ApiPeecToolRoute: typeof ApiPeecToolRoute
   ApiPublicAnalyzePromptRoute: typeof ApiPublicAnalyzePromptRoute
+  ApiPublicBulkScrapeRoute: typeof ApiPublicBulkScrapeRoute
   ApiTavilyExtractRoute: typeof ApiTavilyExtractRoute
 }
 
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTavilyExtractRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/bulk-scrape': {
+      id: '/api/public/bulk-scrape'
+      path: '/api/public/bulk-scrape'
+      fullPath: '/api/public/bulk-scrape'
+      preLoaderRoute: typeof ApiPublicBulkScrapeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/analyze-prompt': {
       id: '/api/public/analyze-prompt'
       path: '/api/public/analyze-prompt'
@@ -267,8 +287,18 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAgentsGenerateEngagementsRoute: ApiAgentsGenerateEngagementsRoute,
   ApiPeecToolRoute: ApiPeecToolRoute,
   ApiPublicAnalyzePromptRoute: ApiPublicAnalyzePromptRoute,
+  ApiPublicBulkScrapeRoute: ApiPublicBulkScrapeRoute,
   ApiTavilyExtractRoute: ApiTavilyExtractRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
