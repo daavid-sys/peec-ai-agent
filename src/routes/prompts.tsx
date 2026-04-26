@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, ArrowUpRight, Sparkles, TrendingDown } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ChevronDown, Sparkles, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
