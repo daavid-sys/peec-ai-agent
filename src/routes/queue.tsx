@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Check, Copy, Download, ExternalLink, Mail, Send } from "lucide-react";
+import { ArrowRight, Check, Copy, ExternalLink, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -212,69 +212,17 @@ function QueuePage() {
                           </>
                         )}
                         {col.key === "ready_to_submit" && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => {
-                                const slug = e.title
-                                  .toLowerCase()
-                                  .replace(/[^a-z0-9]+/g, "-")
-                                  .replace(/^-|-$/g, "")
-                                  .slice(0, 60) || "draft";
-                                const blob = new Blob([`# ${e.title}\n\n${e.draft}\n`], {
-                                  type: "text/markdown",
-                                });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement("a");
-                                a.href = url;
-                                a.download = `${slug}.md`;
-                                a.click();
-                                URL.revokeObjectURL(url);
-                                toast.success("File exported");
-                              }}
-                            >
-                              <Download className="h-3 w-3" /> Export file
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => {
-                                const host = opening
-                                  ? new URL(opening.sourceUrl).hostname.replace(/^www\./, "")
-                                  : "your site";
-                                const subject = `Contributed piece for ${host}: ${e.title}`;
-                                const body = [
-                                  `Hi ${host} editorial team,`,
-                                  ``,
-                                  `I've put together a piece I think would be a strong fit for your readers: "${e.title}".`,
-                                  ``,
-                                  `It addresses: ${e.targetQuestions.slice(0, 3).join("; ")}.`,
-                                  ``,
-                                  `The full draft is attached as a Markdown file, ready for your review and any edits before publishing.`,
-                                  ``,
-                                  `Happy to revise based on your house style.`,
-                                  ``,
-                                  `Thanks,`,
-                                  `The Attio team`,
-                                ].join("\n");
-                                window.location.href = `mailto:?subject=${encodeURIComponent(
-                                  subject,
-                                )}&body=${encodeURIComponent(body)}`;
-                              }}
-                            >
-                              <Mail className="h-3 w-3" /> Draft email
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                store.updateEngagementStatus(e.id, "sent");
-                                toast.success("Marked as submitted");
-                              }}
-                            >
-                              <Send className="h-3 w-3" /> Mark submitted
-                            </Button>
-                          </>
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              navigate({
+                                to: "/queue/draft/$id",
+                                params: { id: e.id },
+                              })
+                            }
+                          >
+                            <ExternalLink className="h-3 w-3" /> Open draft
+                          </Button>
                         )}
                         {col.key === "needs_input" && (
                           <Button
