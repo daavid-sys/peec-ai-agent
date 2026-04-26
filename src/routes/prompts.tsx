@@ -398,33 +398,6 @@ function PromptsPage() {
               <ArrowUpRight className="h-5 w-5 shrink-0 self-center text-muted-foreground transition-all group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </a>
 
-            <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
-              <Stat
-                label="Your visibility"
-                value={formatMetric(cardMetrics.ownVisibility)}
-                tone="destructive"
-                loading={recommendationLoading}
-              />
-              <Stat
-                label={`${cardMetrics.topCompetitor ?? "Top competitor"} visibility`}
-                value={formatMetric(cardMetrics.topCompetitorVisibility)}
-                loading={recommendationLoading}
-              />
-              <Stat
-                label="Visibility gap"
-                value={formatMetric(cardMetrics.visibilityGap)}
-                tone="destructive"
-                icon={TrendingDown}
-                loading={recommendationLoading}
-              />
-              <Stat
-                label="Opportunity score"
-                value={formatMetric(cardMetrics.opportunityScore, "/100")}
-                tone="primary"
-                loading={recommendationLoading}
-              />
-            </div>
-
             <div className="mt-6 grid grid-cols-3 gap-3 text-xs">
               <Mini
                 label="Sources found"
