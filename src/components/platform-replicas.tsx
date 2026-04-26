@@ -1,4 +1,5 @@
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useEffect } from "react";
 import {
   ArrowBigUp,
@@ -138,6 +139,7 @@ function TypedMarkdown({
   return (
     <div className={cn("prose prose-zinc max-w-none", className)}>
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         components={{
           // Open links in new tab; render inline-style so they read naturally
           a: (props) => (
@@ -171,6 +173,28 @@ function TypedMarkdown({
             <blockquote className="my-2 border-l-2 border-zinc-300 pl-3 italic text-zinc-700">
               {children}
             </blockquote>
+          ),
+          table: ({ children }) => (
+            <div className="my-3 overflow-x-auto rounded-md border border-zinc-200">
+              <table className="w-full border-collapse text-[13px]">
+                {children}
+              </table>
+            </div>
+          ),
+          thead: ({ children }) => (
+            <thead className="bg-zinc-50 text-left">{children}</thead>
+          ),
+          tbody: ({ children }) => (
+            <tbody className="divide-y divide-zinc-200">{children}</tbody>
+          ),
+          tr: ({ children }) => <tr className="align-top">{children}</tr>,
+          th: ({ children }) => (
+            <th className="border-b border-zinc-200 px-3 py-2 font-semibold text-zinc-900">
+              {children}
+            </th>
+          ),
+          td: ({ children }) => (
+            <td className="px-3 py-2 text-zinc-700">{children}</td>
           ),
         }}
       >
