@@ -225,7 +225,7 @@ function PromptsPage() {
             <Sparkles className="h-3.5 w-3.5" /> Recommended prompt
           </div>
 
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center justify-between gap-4">
             <h2 className="text-2xl font-semibold leading-snug tracking-tight text-balance">
               &ldquo;{selected.text}&rdquo;
             </h2>
