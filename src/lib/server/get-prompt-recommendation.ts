@@ -33,6 +33,7 @@ export type PromptRecommendation = {
   };
   reasons: ReasonCardPayload[];
   topSourceDomains: string[];
+  qfoModels: string[];
   openingPreviews: {
     id: string;
     sourceName: string;
@@ -370,7 +371,7 @@ export const getPromptRecommendation = createServerFn({ method: "GET" })
         .select("id, url, domain, title, classification, citation_count, retrieval_count, own_brand_present, competitor_brands")
         .eq("prompt_id", promptId)
         .order("retrieval_count", { ascending: false }),
-      supabaseAdmin.from("prompt_qfos").select("id").eq("prompt_id", promptId),
+      supabaseAdmin.from("prompt_qfos").select("id, model_id").eq("prompt_id", promptId),
       supabaseAdmin
         .from("action_openings")
         .select("id, source_id, action_type, title, rationale, recommended_engagement, impact_score")
@@ -515,6 +516,13 @@ export const getPromptRecommendation = createServerFn({ method: "GET" })
             ),
         ),
       ).slice(0, 4),
+      qfoModels: Array.from(
+        new Set(
+          (qfosRes.data ?? [])
+            .map((q: { model_id: string | null }) => q.model_id)
+            .filter((m): m is string => typeof m === "string" && m.length > 0),
+        ),
+      ),
       openingPreviews,
     };
   });
