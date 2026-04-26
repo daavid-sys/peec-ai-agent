@@ -29,7 +29,7 @@ export const getPromptTable = createServerFn({ method: "GET" }).handler(
         supabaseAdmin
           .from("prompt_brand_metrics")
           .select(
-            "prompt_id, is_own, visibility, sentiment, position, share_of_voice, mention_count",
+            "prompt_id, brand_name, is_own, visibility, sentiment, position, share_of_voice, mention_count",
           ),
         supabaseAdmin
           .from("prompt_qfos")
