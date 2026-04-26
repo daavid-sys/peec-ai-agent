@@ -395,6 +395,8 @@ export const getPromptRecommendation = createServerFn({ method: "GET" })
     const evidence: RationaleEvidence = {
       promptText: prompt?.text ?? promptId,
       ownBrandName,
+      ownBrandDomain,
+      competitors,
       ownVisibility,
       topCompetitor,
       topCompetitorVisibility,
