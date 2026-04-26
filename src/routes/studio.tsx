@@ -368,8 +368,15 @@ function SideContext({
         </div>
         <div className="mt-3 text-sm font-medium leading-snug">{draft.title}</div>
         {draft.competitor && (
-          <div className="mt-1 text-xs text-muted-foreground">
-            Targeting competitor: <span className="font-mono">{draft.competitor}</span>
+          <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span>Targeting competitor:</span>
+            <Favicon
+              name={draft.competitor}
+              kind="brand"
+              size={12}
+              className="rounded-sm"
+            />
+            <span className="font-mono">{draft.competitor}</span>
           </div>
         )}
       </Card>
