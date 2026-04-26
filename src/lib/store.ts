@@ -19,14 +19,14 @@ interface AppState {
 }
 
 let state: AppState = {
-  connected: false,
+  connected: true,
   demoMode: true,
-  project: null,
-  prompts: [],
-  selectedPromptId: null,
-  openings: [],
-  selectedOpeningId: null,
-  engagements: [],
+  project: demoProject,
+  prompts: demoPrompts,
+  selectedPromptId: demoPrompts[0]?.id ?? null,
+  openings: demoOpenings,
+  selectedOpeningId: demoOpenings[0]?.id ?? null,
+  engagements: demoEngagements,
 };
 
 const listeners = new Set<() => void>();
