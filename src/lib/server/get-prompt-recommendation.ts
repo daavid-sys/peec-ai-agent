@@ -19,6 +19,7 @@ export type PromptRecommendation = {
     openings: number;
   };
   reasons: string[];
+  topSourceDomains: string[];
   openingPreviews: {
     id: string;
     sourceName: string;
