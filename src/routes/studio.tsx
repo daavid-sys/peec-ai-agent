@@ -1,48 +1,204 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Check, Copy, Send, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowRight,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  Loader2,
+  RefreshCw,
+  Sparkles,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { store, useAppStore } from "@/lib/store";
-import type { Engagement, QualityCheck } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAppStore } from "@/lib/store";
+import { CHANNELS } from "@/lib/channel";
+import {
+  getStudioDrafts,
+  type StudioDraft,
+  type StudioDraftsResponse,
+} from "@/lib/server/get-studio-drafts";
+import { enqueueOpeningDrafts } from "@/lib/server/enqueue-opening-drafts";
+import { PlatformReplica } from "@/components/platform-replicas";
 
 export const Route = createFileRoute("/studio")({
   head: () => ({ meta: [{ title: "Engagement Studio — Peec AI Openings" }] }),
   component: StudioPage,
 });
 
+const PREFETCH_AHEAD = 3;
+
 function StudioPage() {
-  const engagements = useAppStore((s) => s.engagements);
-  const openings = useAppStore((s) => s.openings);
+  const selectedPromptId = useAppStore((s) => s.selectedPromptId);
+  const project = useAppStore((s) => s.project);
+  const fallbackPromptId = "pr_05a66669-478c-4b25-94bc-9119409e5e2f";
+  const promptId = selectedPromptId ?? fallbackPromptId;
   const navigate = useNavigate();
 
-  if (!engagements.length) {
+  const [response, setResponse] = useState<StudioDraftsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [index, setIndex] = useState(0);
+  // direction: 1 = forward (swipe left), -1 = backward
+  const [direction, setDirection] = useState<1 | -1>(1);
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
+
+  const enqueuingRef = useRef(false);
+
+  async function load(opts: { silent?: boolean } = {}) {
+    if (!opts.silent) setLoading(true);
+    try {
+      const res = await getStudioDrafts({
+        data: { promptId, ownDomain: project?.ownBrand.domain ?? null },
+      });
+      setResponse(res);
+    } finally {
+      if (!opts.silent) setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    setLoading(true);
+    setResponse(null);
+    setIndex(0);
+    setCompleted(new Set());
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [promptId]);
+
+  // Keep enqueuing pending drafts in the background while we're on the page,
+  // so the next 3 tiles always have content waiting.
+  useEffect(() => {
+    if (!response || !project) return;
+    if (response.pendingCount === 0) return;
+    let cancelled = false;
+    const tick = async () => {
+      if (cancelled) return;
+      if (!enqueuingRef.current) {
+        enqueuingRef.current = true;
+        try {
+          await enqueueOpeningDrafts({
+            data: {
+              promptId,
+              ownBrand: project.ownBrand.name,
+              ownDomain: project.ownBrand.domain ?? null,
+            },
+          });
+        } catch {
+          /* ignore */
+        } finally {
+          enqueuingRef.current = false;
+        }
+      }
+      if (cancelled) return;
+      await load({ silent: true });
+    };
+    const handle = window.setTimeout(tick, 2200);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handle);
+    };
+  }, [response, project, promptId]);
+
+  const drafts = response?.drafts ?? [];
+  const total = drafts.length + (response?.pendingCount ?? 0);
+  const current = drafts[index] ?? null;
+
+  const prefetchPool = useMemo(
+    () => drafts.slice(index + 1, index + 1 + PREFETCH_AHEAD),
+    [drafts, index],
+  );
+
+  function next() {
+    if (!drafts.length) return;
+    setDirection(1);
+    setIndex((i) => Math.min(i + 1, drafts.length - 1));
+  }
+  function prev() {
+    if (!drafts.length) return;
+    setDirection(-1);
+    setIndex((i) => Math.max(i - 1, 0));
+  }
+  function markDone() {
+    if (!current) return;
+    setCompleted((s) => {
+      if (s.has(current.id)) return s;
+      const n = new Set(s);
+      n.add(current.id);
+      return n;
+    });
+  }
+
+  // Keyboard nav
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drafts.length]);
+
+  function copy() {
+    if (!current) return;
+    navigator.clipboard.writeText(current.fullDraft);
+    toast.success("Draft copied to clipboard");
+  }
+
+  if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-20 text-center">
-        <p className="text-sm text-muted-foreground">No drafts yet.</p>
-        <Button asChild className="mt-4">
-          <Link to="/openings">Find openings</Link>
-        </Button>
+      <div className="mx-auto max-w-[1500px] px-6 py-10">
+        <Skeleton className="h-9 w-96" />
+        <Skeleton className="mt-3 h-4 w-[640px]" />
+        <Skeleton className="mt-8 h-[560px] w-full rounded-xl" />
       </div>
     );
   }
 
-  const first = engagements[0].id;
+  if (!current) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-20 text-center">
+        <Sparkles className="mx-auto h-8 w-8 text-primary" />
+        <h2 className="mt-3 text-xl font-semibold">No drafts ready yet</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {response?.pendingCount
+            ? `Agent is still drafting ${response.pendingCount} opening${response.pendingCount === 1 ? "" : "s"}…`
+            : "Pick a prompt and let the agent generate your content plan."}
+        </p>
+        <div className="mt-5 flex justify-center gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/openings">Back to action plan</Link>
+          </Button>
+          <Button onClick={() => void load()}>
+            <RefreshCw className="h-4 w-4" /> Refresh
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const progressPct = Math.round(((index + 1) / Math.max(drafts.length, 1)) * 100);
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
-      <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Source-specific drafts, generated with Gemini
+    <div className="mx-auto w-full max-w-[1500px] px-6 py-8 2xl:px-10">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-6">
+        <div className="min-w-0">
+          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Engagement studio · live drafting
+          </div>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+            Watch the agent write each draft on its real platform
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Each draft targets the exact source, query fanouts, and missing
-            proof. Quality checks block spam before it reaches your queue.
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+            One tile per opening. Each renders the actual platform UI you&rsquo;ll
+            publish to (Reddit thread, LinkedIn feed, editorial column, etc.) and
+            streams the draft into place. Use ← / → or the buttons to swipe through.
           </p>
         </div>
         <Button size="lg" onClick={() => navigate({ to: "/queue" })}>
@@ -50,172 +206,215 @@ function StudioPage() {
         </Button>
       </div>
 
-      <Tabs defaultValue={first} className="mt-8">
-        <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 bg-transparent p-0">
-          {engagements.map((e) => {
-            const opening = openings.find((o) => o.id === e.openingId);
-            return (
-              <TabsTrigger
-                key={e.id}
-                value={e.id}
-                className="data-[state=active]:bg-primary-soft data-[state=active]:text-accent-foreground rounded-md border border-border bg-card px-3 py-2 text-xs font-medium data-[state=active]:border-primary/40"
-              >
-                <span className="mr-2 truncate max-w-[200px]">
-                  {opening?.openingType ?? "Draft"}
-                </span>
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
+      {/* Progress strip */}
+      <div className="mt-6 flex items-center gap-4">
+        <div className="text-xs font-medium tabular-nums text-muted-foreground">
+          {index + 1} <span className="text-border">/</span> {drafts.length}
+          {total > drafts.length && (
+            <span className="ml-1 text-muted-foreground/70">
+              ({total - drafts.length} more drafting)
+            </span>
+          )}
+        </div>
+        <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+          <div
+            className="absolute inset-y-0 left-0 bg-primary transition-[width] duration-500"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+        {response && response.pendingCount > 0 && (
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            agent drafting {response.pendingCount}
+          </span>
+        )}
+      </div>
 
-        {engagements.map((e) => (
-          <TabsContent key={e.id} value={e.id} className="mt-5">
-            <DraftCard engagement={e} />
-          </TabsContent>
-        ))}
-      </Tabs>
+      {/* Stage */}
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        {/* Replica stage with swipe animation */}
+        <div className="relative">
+          <div className="relative min-h-[600px] overflow-hidden rounded-xl border border-border bg-secondary/30 p-4">
+            <AnimatePresence mode="wait" custom={direction} initial={false}>
+              <motion.div
+                key={current.id}
+                custom={direction}
+                initial={{ x: direction === 1 ? "60%" : "-60%", opacity: 0, scale: 0.97 }}
+                animate={{ x: 0, opacity: 1, scale: 1 }}
+                exit={{ x: direction === 1 ? "-60%" : "60%", opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.32, ease: [0.32, 0.72, 0.24, 1] }}
+                className="w-full"
+              >
+                <PlatformReplica
+                  draft={current}
+                  cps={260}
+                  onDone={markDone}
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Side nav buttons */}
+            <button
+              onClick={prev}
+              disabled={index === 0}
+              className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/90 text-foreground shadow-sm backdrop-blur transition disabled:opacity-30 hover:bg-background"
+              aria-label="Previous draft"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={next}
+              disabled={index >= drafts.length - 1}
+              className="absolute right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/90 text-foreground shadow-sm backdrop-blur transition disabled:opacity-30 hover:bg-background"
+              aria-label="Next draft"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Thumbnail rail with prefetch indicator */}
+          <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
+            {drafts.map((d, i) => {
+              const isCurrent = i === index;
+              const isCompleted = completed.has(d.id);
+              const isPrefetch = i > index && i <= index + PREFETCH_AHEAD;
+              return (
+                <button
+                  key={d.id}
+                  onClick={() => {
+                    setDirection(i > index ? 1 : -1);
+                    setIndex(i);
+                  }}
+                  className={`group flex flex-shrink-0 items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] transition ${
+                    isCurrent
+                      ? "border-primary bg-primary-soft text-foreground"
+                      : isCompleted
+                        ? "border-success/40 bg-success/5 text-foreground"
+                        : isPrefetch
+                          ? "border-primary/30 bg-card text-muted-foreground"
+                          : "border-border bg-card text-muted-foreground"
+                  }`}
+                  title={d.title}
+                >
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: d.channelAccent }}
+                  />
+                  <span className="max-w-[140px] truncate">
+                    {d.channelLabel} · {d.source.domain ?? "draft"}
+                  </span>
+                  {isCompleted && <Check className="h-3 w-3 text-success" />}
+                  {isPrefetch && !isCurrent && (
+                    <span className="ml-0.5 rounded bg-primary/10 px-1 text-[9px] font-semibold uppercase text-primary">
+                      ready
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Side panel */}
+        <SideContext draft={current} prefetch={prefetchPool} onCopy={copy} />
+      </div>
     </div>
   );
 }
 
-function DraftCard({ engagement }: { engagement: Engagement }) {
-  const opening = useAppStore((s) =>
-    s.openings.find((o) => o.id === engagement.openingId),
-  );
-
-  function copy() {
-    navigator.clipboard.writeText(engagement.draft);
-    toast.success("Draft copied to clipboard");
-  }
-  function approve() {
-    store.updateEngagementStatus(engagement.id, "approved");
-    toast.success("Approved · sent to queue");
-  }
-  function send() {
-    store.updateEngagementStatus(engagement.id, "sent");
-    toast.success("Marked as sent");
-  }
-
+function SideContext({
+  draft,
+  prefetch,
+  onCopy,
+}: {
+  draft: StudioDraft;
+  prefetch: StudioDraft[];
+  onCopy: () => void;
+}) {
+  const meta = CHANNELS[draft.channel];
   return (
-    <Card className="border-border p-0">
-      <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr]">
-        <div className="border-b border-border p-6 lg:border-b-0 lg:border-r">
-          <div className="flex items-center justify-between">
-            <Badge variant="outline" className="font-normal capitalize">
-              {engagement.format?.replace("_", " ") ?? "draft"}
-            </Badge>
-            <Badge
-              variant="outline"
-              style={{
-                color:
-                  engagement.status === "blocked"
-                    ? "var(--destructive)"
-                    : engagement.status === "approved" || engagement.status === "sent"
-                      ? "var(--success)"
-                      : "var(--muted-foreground)",
-              }}
-            >
-              {engagement.status}
-            </Badge>
+    <div className="space-y-4">
+      <Card className="border-border p-4">
+        <div className="flex items-center gap-2">
+          <span
+            className="h-6 w-6 rounded-md text-center text-[10px] font-bold leading-6 text-white"
+            style={{ backgroundColor: meta.accent }}
+          >
+            {meta.label.slice(0, 1)}
+          </span>
+          <div className="text-sm font-semibold">{meta.label}</div>
+          <Badge variant="outline" className="ml-auto font-mono tabular-nums">
+            impact {draft.impactScore}
+          </Badge>
+        </div>
+        <div className="mt-1 text-xs text-muted-foreground">
+          {meta.description}
+        </div>
+        <div className="mt-3 text-sm font-medium leading-snug">{draft.title}</div>
+        {draft.competitor && (
+          <div className="mt-1 text-xs text-muted-foreground">
+            Targeting competitor: <span className="font-mono">{draft.competitor}</span>
           </div>
-          <h2 className="mt-3 text-lg font-semibold">{engagement.title}</h2>
-          {opening && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              Targets <span className="font-mono">{engagement.targetSource}</span>
+        )}
+      </Card>
+
+      <Card className="border-border p-4">
+        <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <Sparkles className="h-3 w-3 text-primary" /> Brief
+        </div>
+        <p className="mt-1.5 text-sm">{draft.brief}</p>
+      </Card>
+
+      {draft.source.url && (
+        <Card className="border-border p-4">
+          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            Cited source
+          </div>
+          <a
+            href={draft.source.url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 block text-sm font-medium hover:text-primary"
+          >
+            {draft.source.title ?? draft.source.url}
+          </a>
+          {draft.source.excerpt && (
+            <p className="mt-2 text-xs italic text-muted-foreground">
+              &ldquo;{draft.source.excerpt}&rdquo;
             </p>
           )}
+        </Card>
+      )}
 
-          <Textarea
-            value={engagement.draft}
-            readOnly
-            className="mt-4 min-h-[260px] resize-y bg-secondary/30 font-mono text-sm leading-relaxed"
-          />
+      <div className="flex flex-wrap gap-2">
+        <Button variant="secondary" onClick={onCopy} className="flex-1">
+          <Copy className="h-4 w-4" /> Copy draft
+        </Button>
+      </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button onClick={approve} disabled={engagement.status === "blocked"}>
-              <Check className="h-4 w-4" /> Approve
-            </Button>
-            <Button variant="secondary" onClick={copy}>
-              <Copy className="h-4 w-4" /> Copy
-            </Button>
-            <Button variant="ghost" onClick={send} disabled={engagement.status === "blocked"}>
-              <Send className="h-4 w-4" /> Mark as sent
-            </Button>
+      {prefetch.length > 0 && (
+        <div className="rounded-md border border-dashed border-border bg-card/40 p-3">
+          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            Loaded next ({prefetch.length})
           </div>
-        </div>
-
-        <div className="bg-secondary/30 p-6">
-          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Why it works
-          </div>
-          <p className="mt-2 text-sm text-foreground">
-            {engagement.missingProofAddressed}
-          </p>
-
-          <Separator className="my-5" />
-
-          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Target query fanouts
-          </div>
-          <ul className="mt-2 space-y-1">
-            {engagement.targetQuestions.map((q) => (
-              <li key={q} className="text-sm">
-                · {q}
+          <ul className="mt-2 space-y-1.5">
+            {prefetch.map((d) => (
+              <li
+                key={d.id}
+                className="flex items-center gap-2 text-[12px] text-muted-foreground"
+              >
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: d.channelAccent }}
+                />
+                <span className="truncate">
+                  {d.channelLabel} · {d.title}
+                </span>
               </li>
             ))}
           </ul>
-
-          {engagement.disclosure && (
-            <>
-              <Separator className="my-5" />
-              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Required disclosure
-              </div>
-              <p className="mt-2 rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-sm">
-                &ldquo;{engagement.disclosure}&rdquo;
-              </p>
-            </>
-          )}
-
-          <Separator className="my-5" />
-
-          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Quality checks
-          </div>
-          <ul className="mt-2 space-y-2">
-            {engagement.qualityChecks.map((c) => (
-              <QualityRow key={c.label} check={c} />
-            ))}
-          </ul>
         </div>
-      </div>
-    </Card>
-  );
-}
-
-function QualityRow({ check }: { check: QualityCheck }) {
-  const Icon = check.status === "fail" ? X : check.status === "warning" ? null : Check;
-  const color =
-    check.status === "fail"
-      ? "var(--destructive)"
-      : check.status === "warning"
-        ? "var(--warning)"
-        : "var(--success)";
-  return (
-    <li className="flex items-start gap-2 text-sm">
-      <span
-        className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full"
-        style={{
-          backgroundColor: `color-mix(in oklab, ${color} 15%, transparent)`,
-          color,
-        }}
-      >
-        {Icon ? <Icon className="h-2.5 w-2.5" strokeWidth={3} /> : <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />}
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="font-medium">{check.label}</div>
-        <div className="text-xs text-muted-foreground">{check.note}</div>
-      </div>
-    </li>
+      )}
+    </div>
   );
 }
