@@ -72,6 +72,28 @@ function PromptsPage() {
   const [brandMetricsLoading, setBrandMetricsLoading] = useState(true);
   const [qfos, setQfos] = useState<PromptQfo[] | null>(null);
   const [qfosLoading, setQfosLoading] = useState(true);
+  const [tableRows, setTableRows] = useState<PromptTableRow[] | null>(null);
+  const [tableLoading, setTableLoading] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    setTableLoading(true);
+    getPromptTable()
+      .then((rows) => {
+        if (cancelled) return;
+        setTableRows(rows);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTableRows([]);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setTableLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   useEffect(() => {
     let cancelled = false;
     setBrandMetricsLoading(true);
