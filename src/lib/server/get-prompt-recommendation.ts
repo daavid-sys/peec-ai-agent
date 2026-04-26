@@ -371,7 +371,7 @@ export const getPromptRecommendation = createServerFn({ method: "GET" })
         .select("id, url, domain, title, classification, citation_count, retrieval_count, own_brand_present, competitor_brands")
         .eq("prompt_id", promptId)
         .order("retrieval_count", { ascending: false }),
-      supabaseAdmin.from("prompt_qfos").select("id").eq("prompt_id", promptId),
+      supabaseAdmin.from("prompt_qfos").select("id, model_id").eq("prompt_id", promptId),
       supabaseAdmin
         .from("action_openings")
         .select("id, source_id, action_type, title, rationale, recommended_engagement, impact_score")
