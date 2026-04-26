@@ -403,7 +403,7 @@ function EditorialReplica({ draft, cps, onDone, ownBrand }: Props) {
             <span>{editorialEyebrow(draft.actionType)}</span>
           </div>
           <h1 className="mt-3 font-serif text-[34px] leading-[1.15] tracking-tight text-zinc-900">
-            {draft.title}
+            {headline}
           </h1>
           <div className="mt-3 flex items-center gap-2 text-[12px] text-zinc-500">
             <BrandAvatar brand={ownBrand} size={28} />
