@@ -27,7 +27,7 @@ async function tavilyExtract(urls: string[]): Promise<TavilyResponse> {
  * One-off bulk scraper. POST { batchSize?, maxBatches? } to scrape all
  * prompt_sources that don't yet have a successful source_scrapes row.
  */
-export const Route = createFileRoute("/api/admin/bulk-scrape")({
+export const Route = createFileRoute("/api/public/bulk-scrape")({
   server: {
     handlers: {
       POST: async ({ request }) => {
