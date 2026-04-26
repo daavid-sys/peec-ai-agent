@@ -12,6 +12,7 @@ import {
   type PromptBrandMetric,
 } from "@/lib/server/get-prompt-brand-metrics";
 import { PromptsTable } from "@/components/prompts-table";
+import { ModelLogo } from "@/components/qfos-table";
 import {
   getPromptTable,
   type PromptTableRow,
