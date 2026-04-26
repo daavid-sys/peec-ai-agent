@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScoreBar } from "@/components/score-bar";
 import { Favicon } from "@/components/favicon";
+import { PromptHeaderCard } from "@/components/prompt-header-card";
 import { useAppStore } from "@/lib/store";
 import {
   getStudioDrafts,
@@ -24,6 +25,10 @@ import {
   getResultsMetrics,
   type ResultsMetrics,
 } from "@/lib/server/get-results-metrics";
+import {
+  getPromptTable,
+  type PromptTableRow,
+} from "@/lib/server/get-prompt-table";
 import { classifyTask, getTaskTitle, type TaskType } from "@/lib/task-type";
 
 export const Route = createFileRoute("/results")({
@@ -54,8 +59,25 @@ function ResultsPage() {
 
   const [response, setResponse] = useState<StudioDraftsResponse | null>(null);
   const [metrics, setMetrics] = useState<ResultsMetrics | null>(null);
+  const [promptRow, setPromptRow] = useState<PromptTableRow | null>(null);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [completedRestored, setCompletedRestored] = useState(false);
+
+  // Prompt-row metrics (visibility + competitor mention logos) — same source
+  // the openings page header uses.
+  useEffect(() => {
+    let cancelled = false;
+    setPromptRow(null);
+    getPromptTable()
+      .then((rows) => {
+        if (cancelled) return;
+        setPromptRow(rows.find((r) => r.id === promptId) ?? null);
+      })
+      .catch(() => !cancelled && setPromptRow(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [promptId]);
 
   // Restore queue progress
   useEffect(() => {
@@ -155,15 +177,13 @@ function ResultsPage() {
         </Link>
       </div>
 
-      {metrics?.promptText ? (
-        <div className="mt-6 rounded-lg border border-border bg-card px-6 py-5 text-center">
-          <p className="text-lg font-semibold tracking-tight text-foreground">
-            &ldquo;{metrics.promptText}&rdquo;
-          </p>
-        </div>
-      ) : (
-        <Skeleton className="mt-6 h-[68px] w-full rounded-lg" />
-      )}
+      <div className="mt-6">
+        <PromptHeaderCard
+          text={metrics?.promptText ?? promptRow?.text}
+          row={promptRow}
+          loading={!metrics && !promptRow}
+        />
+      </div>
 
       <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
         {metrics && projection ? (
