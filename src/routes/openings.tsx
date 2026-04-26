@@ -53,7 +53,7 @@ function OpeningsPage() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
-        Step 4 · Openings Map
+        Step 2 · Openings Map
       </div>
       <h1 className="text-3xl font-semibold tracking-tight">
         Openings found for: <span className="text-primary">&ldquo;{prompt?.text}&rdquo;</span>

@@ -44,7 +44,7 @@ function QueuePage() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
-        Step 7 · Approval Queue
+        Step 4 · Approval Queue
       </div>
       <div className="flex items-end justify-between">
         <div>

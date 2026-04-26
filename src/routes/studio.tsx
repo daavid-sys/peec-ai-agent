@@ -36,7 +36,7 @@ function StudioPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
       <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
-        Step 6 · Engagement Studio
+        Step 3 · Engagement Studio
       </div>
       <div className="flex items-end justify-between">
         <div>

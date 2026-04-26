@@ -6,6 +6,6 @@ export const Route = createFileRoute("/")({
     if (!store.getState().connected) {
       store.loadDemoProject();
     }
-    throw redirect({ to: "/project" });
+    throw redirect({ to: "/prompts" });
   },
 });
