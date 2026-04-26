@@ -131,21 +131,21 @@ export function EmailPitchCard({
         </div>
         <div className="space-y-2 px-4 py-3 text-sm">
           <div className="flex items-center gap-3 border-b border-border pb-2">
-            <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">
+            <span className="w-12 shrink-0 text-xs font-medium text-muted-foreground sm:w-16">
               To
             </span>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-0.5 text-xs">
+            <div className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full bg-muted px-2 py-0.5 text-xs">
               <Favicon name={draft.source.domain ?? "mail"} kind="brand" size={12} />
-              <span className="font-mono">{email.to}</span>
+              <span className="truncate font-mono">{email.to}</span>
             </div>
           </div>
           <div className="flex items-start gap-3 border-b border-border pb-2">
-            <span className="w-16 shrink-0 pt-0.5 text-xs font-medium text-muted-foreground">
+            <span className="w-12 shrink-0 pt-0.5 text-xs font-medium text-muted-foreground sm:w-16">
               Subject
             </span>
-            <span className="font-medium">{email.subject}</span>
+            <span className="min-w-0 flex-1 break-words font-medium">{email.subject}</span>
           </div>
-          <div className="whitespace-pre-wrap pt-2 text-sm leading-relaxed text-foreground">
+          <div className="whitespace-pre-wrap break-words pt-2 text-sm leading-relaxed text-foreground">
             {email.body}
           </div>
         </div>
