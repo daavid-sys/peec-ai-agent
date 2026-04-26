@@ -290,7 +290,7 @@ function KPI({
   tone,
   icon,
 }: {
-  label: string;
+  label: React.ReactNode;
   value: string;
   tone?: "destructive";
   icon?: React.ReactNode;
