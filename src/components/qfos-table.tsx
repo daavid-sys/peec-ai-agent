@@ -112,10 +112,7 @@ export function QfosTable({
       </div>
 
       <div className="mt-3 overflow-hidden rounded-lg border border-border bg-background">
-        <div
-          ref={headerRef}
-          className="grid grid-cols-[110px_minmax(0,1fr)_48px] items-center gap-2 bg-secondary/40 px-4 py-2.5 text-[11px] font-medium text-muted-foreground"
-        >
+        <div className="grid grid-cols-[110px_minmax(0,1fr)_48px] items-center gap-2 bg-secondary/40 px-4 py-2.5 text-[11px] font-medium text-muted-foreground">
           <div>Engine</div>
           <div>Query</div>
           <div className="text-right">Runs</div>
