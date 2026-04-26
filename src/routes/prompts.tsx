@@ -298,18 +298,42 @@ function PromptsPage() {
             </div>
           ) : (
             <div className="flex flex-col gap-2.5">
-              {visitedPrompts.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => startFlow(p.id)}
-                  className="group flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-3 text-left transition-colors hover:border-foreground/30 hover:bg-card"
-                >
-                  <span className="line-clamp-1 text-sm font-medium text-foreground">
-                    &ldquo;{p.text}&rdquo;
-                  </span>
-                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
-                </button>
-              ))}
+              {visitedPrompts.map((p) => {
+                const st = visitedStatus[p.id];
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => startFlow(p.id)}
+                    className="group flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-3 text-left transition-colors hover:border-foreground/30 hover:bg-card"
+                  >
+                    <div className="flex min-w-0 flex-1 flex-col gap-1">
+                      <span className="line-clamp-1 text-sm font-medium text-foreground">
+                        &ldquo;{p.text}&rdquo;
+                      </span>
+                      {!st || st.loading ? (
+                        <Skeleton className="h-3 w-32" />
+                      ) : st.total === 0 ? (
+                        <span className="text-[11px] text-muted-foreground">
+                          No openings yet
+                        </span>
+                      ) : st.inProgress > 0 ? (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          {st.ready} ready · {st.inProgress} drafting
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground">
+                          <span className="font-medium text-foreground tabular-nums">
+                            {st.ready}
+                          </span>{" "}
+                          / {st.total} drafts ready
+                        </span>
+                      )}
+                    </div>
+                    <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+                  </button>
+                );
+              })}
             </div>
           )}
         </Card>
