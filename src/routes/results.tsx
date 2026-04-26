@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScoreBar } from "@/components/score-bar";
 import { Favicon } from "@/components/favicon";
+import { PromptHeaderCard } from "@/components/prompt-header-card";
 import { useAppStore } from "@/lib/store";
 import {
   getStudioDrafts,
@@ -24,6 +25,10 @@ import {
   getResultsMetrics,
   type ResultsMetrics,
 } from "@/lib/server/get-results-metrics";
+import {
+  getPromptTable,
+  type PromptTableRow,
+} from "@/lib/server/get-prompt-table";
 import { classifyTask, getTaskTitle, type TaskType } from "@/lib/task-type";
 
 export const Route = createFileRoute("/results")({
