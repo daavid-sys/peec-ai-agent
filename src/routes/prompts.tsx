@@ -12,6 +12,12 @@ import {
   type PromptBrandMetric,
 } from "@/lib/server/get-prompt-brand-metrics";
 import { PromptsTable, computePromptAggregates } from "@/components/prompts-table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Search as SearchIcon } from "lucide-react";
 import { ModelLogo } from "@/components/qfos-table";
