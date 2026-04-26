@@ -1,101 +1,70 @@
-## Simplify /openings around the 4 things that matter
+## Goal
 
-The page should answer at a glance:
-1. **What gap** — what's missing
-2. **From what source** — the cited URL/page
-3. **Vs who** — which competitor is winning there
-4. **What platform** — domain + channel (G2, Reddit, YouTube, blog, …)
+Replace the 4-column Kanban on `/queue` with a single linear **task queue** that mirrors the studio's preview UX. Each task has a dynamic title and an action card matched to the kind of work needed.
 
-Right now the page stacks: 4 summary tiles, then a channel accordion, then per-row expansions to reveal source/competitor/brief. The hierarchy hides exactly the four things that matter — the user has to expand twice to see a competitor or source.
+## Three task types (auto-classified per draft)
 
-### New layout — one flat, visual gap board
+We classify each draft using `channel`, `source.domain`, and the project's own domain:
+
+1. **Pitch via email** — for sources we don't control (competitor blogs, third-party editorial, listicles, comparison sites, YouTube creators).
+   - Title pattern: `Email <domain> editor to pitch insertion`
+   - Action card: rendered email draft (To / Subject / Body) with **attachments chips** (auto-generated: `pitch-brief.md`, `draft.md`, `data-points.csv`)
+   - Buttons: **Export all (.zip)**, **Copy email**, **Mark as sent**
+
+2. **Publish to owned blog (Contentful)** — for sources on the project's own domain that are blog/editorial content.
+   - Title pattern: `Publish "<title>" to <ownDomain>`
+   - Action card: full article preview (title, intro, body) styled like a CMS preview
+   - Buttons: **Connect to Contentful to publish** (primary, calls `standard_connectors--connect` flow on click; once linked, swaps to **Publish to Contentful**), **Copy markdown**, **Mark as published**
+
+3. **Post on platform** — for Reddit, LinkedIn, X, YouTube, Medium, forums, owned listicle/comparison pages we run, etc.
+   - Title pattern dynamic per channel: `Post Reddit reply on r/<sub>`, `Publish LinkedIn post`, `Reply on <host>`, etc.
+   - Action card: existing `PlatformReplica` (Reddit/LinkedIn/Editorial/Listicle/Comparison) — already platform-native
+   - Buttons: **Copy draft**, **Open <platform>**, **Mark as posted**
+
+## Layout (mirrors studio)
 
 ```text
-┌────────────────────────────────────────────────────────────────┐
-│  Content gaps for "best CRM for small teams"                   │
-│  12 gaps · 8 sources · 5 competitors                  [Next →] │
-└────────────────────────────────────────────────────────────────┘
-
-┌─ Filter chips ─────────────────────────────────────────────────┐
-│  All (12)  G2 (4)  Reddit (3)  YouTube (3)  Blogs (2)          │
-│  vs HubSpot (5) · Salesforce (4) · Pipedrive (3)               │
-└────────────────────────────────────────────────────────────────┘
-
-┌──────────────────────┬──────────────────────┬─────────────────┐
-│ 🟦 g2.com · Listicle │ 🟧 reddit · Discus.. │ 🟥 youtube · Rv │
-│ "Top 10 CRMs 2024"   │ "What CRM do you..." │ "HubSpot review"│
-│                      │                      │                 │
-│ vs 🅷 HubSpot        │ vs 🅿 Pipedrive      │ vs 🆂 Salesforce│
-│                      │                      │                 │
-│ Gap: you're absent;  │ Gap: 14 mentions of  │ Gap: 1 video w/ │
-│ HubSpot mentioned 3× │ Pipedrive, 0 of you  │ 240k views, no  │
-│                      │                      │ mention of you  │
-│                      │                      │                 │
-│ Impact 87 · Draft ✓  │ Impact 74 · Drafting │ Impact 69 · ✓   │
-│                                                                │
-│ [Open draft →]       │ [Open draft →]       │ [Open draft →]  │
-└──────────────────────┴──────────────────────┴─────────────────┘
-   …more cards in a 3-col grid…
+┌─────────────────────────────────────────────────────────┬─────────────┐
+│  H1: Review & publish                  [See results →]  │             │
+├─────────────────────────────────────────────────────────┤             │
+│  Progress: 3 / 26 · 5 done  ━━━━━━━━━━━━━━━            │             │
+├─────────────────────────────────────────────────────────┤   Side      │
+│  [<]  TASK CARD                                   [>]   │   panel     │
+│       ─────────                                          │  (brief,    │
+│       <dynamic title>                                    │   source,   │
+│       <action card: email | cms preview | replica>      │   up next)  │
+│       <action buttons>                                   │             │
+│  Thumbnail rail (task-type icons)                       │             │
+└─────────────────────────────────────────────────────────┴─────────────┘
 ```
 
-### Card anatomy — every gap, same shape
+Same swipe animation, keyboard nav, completed tracking, and `localStorage` persistence as `/studio`.
 
-One card per opening (no double-nesting, no accordion-inside-accordion):
+## Implementation
 
-- **Header line:** platform favicon + bare domain + classification chip (`Listicle`, `Discussion`, `Review`, `How-to`, …). This is the "what platform" answer.
-- **Source title** — the actual page title, links out to the URL on hover/click of an external-link icon. This is the "from what source" answer.
-- **vs row** — competitor favicon + name (the row already has `opening.competitor`). This is the "vs who" answer.
-- **Gap line** — one short sentence describing the gap (reuse `opening.rationale`, trimmed to ~140 chars). This is the "what gap" answer.
-- **Footer:** impact score + draft-status pill + a single primary action: `Open draft →` (or `Drafting…` when not ready). No source excerpt, no separate brief panel, no "Why this is an opening" header.
+**New files**
+- `src/lib/task-type.ts` — `classifyTask(draft, ownDomain) -> 'email_pitch' | 'cms_publish' | 'platform_post'` plus `getTaskTitle(draft, type)` for dynamic titles per channel/host.
+- `src/components/task-cards/email-pitch-card.tsx` — email composer view (To/Subject/Body), attachment chips with file icons, Export-all (.zip) button using `JSZip` (already light) or a simple multi-download fallback; auto-generates the 3 attachment blobs from `draft.fullDraft`, `draft.brief`, and a CSV of competitor mentions.
+- `src/components/task-cards/cms-publish-card.tsx` — article preview (cover header bar, H1, lead paragraph, body markdown rendered) with Contentful connect/publish button. On click invokes a stub `connectContentful()` that the host UI hooks into the existing connector flow.
+- `src/components/task-cards/platform-post-card.tsx` — thin wrapper around existing `PlatformReplica` with the platform-specific CTA row.
+- `src/components/task-cards/task-shell.tsx` — shared chrome (title row, swipe container) so all three feel uniform.
 
-All visual weight goes to the 4 answers. Everything else (excerpt, full brief, scrape) moves to the studio/draft page where it already lives.
+**Edited files**
+- `src/routes/queue.tsx` — full rewrite: drop the 4-column Kanban; reuse studio's drafts source (`getStudioDrafts`) so the queue == the same backlog post-approval; render the task shell + classified card; wire side panel similar to studio.
+- `src/components/platform-replicas.tsx` — no logic changes; we'll just continue to render existing platform replicas inside `platform-post-card`.
 
-### Filtering — one row of chips replaces the accordion
+**Dependencies**
+- Add `jszip` for the email "Export all" zip bundle (small, edge-safe, used client-side only).
 
-Above the grid, a single chip row:
-- **By platform/channel:** `All · G2 · Reddit · YouTube · Blogs · …` — counts in parens, derived from `overview.groups`.
-- **By competitor:** `vs HubSpot · vs Salesforce · vs Pipedrive` — derived from `opening.competitor` across all openings.
+## Notes on Contentful "connect"
 
-Selecting chips filters the grid client-side. No accordion state, no expand/collapse, no nested grouping. The grouping is now a filter, not a layout.
+Per platform conventions we don't pop the connector dialog from arbitrary buttons — we trigger via a presentation action. The CMS card's primary button will:
+- If `import.meta.env.VITE_LOVABLE_CONNECTOR_CONTENTFUL_SPACE_ID` is set → label becomes **Publish to Contentful** and calls a server function stub (`publishToContentful`) that posts the draft as a new entry to the Contentful Delivery API gateway.
+- Otherwise → label is **Connect Contentful to publish** and shows a toast instructing the user to open Connectors → Contentful (no auto-popup from a button click).
 
-### Header strip — collapse the 4 tiles into one line
+After approval I'll wire the actual connect flow via `standard_connectors--connect` when the user first clicks it.
 
-Replace the 4 SummaryTile cards with a single subtitle line under the heading:
-> `12 gaps · 8 sources · 5 competitors · {readyCount}/{total} drafts ready`
+## Out of scope (this pass)
 
-If the agent is still drafting, append a small `Loader2` + `n drafting`. Same data, 90% less screen.
-
-The big `Next →` button stays top-right, unchanged.
-
-### What gets removed
-
-- `SummaryStrip` + 4 `SummaryTile` cards → replaced by the one-line subtitle.
-- `Accordion` / `AccordionItem` / `ChannelGroupCard` / `ChannelBadge` → replaced by chip filters + flat grid.
-- `OpeningRow` expand-on-click panel → no expansion; the card already shows the 4 answers.
-- "Cited source" / "Why this is an opening" / "Draft brief" sub-panels → moved entirely to the draft page (already exists at `/queue/draft/$id` and `/studio`).
-- `BriefSkeleton` only-on-expand state → cards just show a draft-status pill.
-
-### What stays
-
-- Background drafting + polling loop (`enqueueOpeningDrafts` + `load()` on a timeout). Untouched.
-- `getOpeningsOverview` server function and its return shape. Untouched — we just render it differently.
-- `Favicon`, `Card`, `Badge`, `Button`, channel colors from `CHANNELS`. Reused.
-- The "Back to prompts" link at the bottom.
-
-### Files to edit
-
-- `src/routes/openings.tsx` — rewrite the body of `OpeningsPage` (lines 125–187) and delete `SummaryStrip`, `SummaryTile`, `ChannelSkeleton`, `ChannelGroupCard`, `ChannelBadge`, `OpeningRow`. Add:
-  - `GapCard` — the new flat card described above.
-  - `GapCardSkeleton` — single-card skeleton (replace `ChannelSkeleton`).
-  - `FilterChips` — derives platform + competitor chips from the overview, manages a single `{ channel: Channel | "all", competitor: string | "all" }` filter state.
-- `src/lib/channel.ts` — no change; we keep `CHANNELS[channel].accent` for the platform chip color.
-- No DB / server-function / dependency changes.
-
-### Out of scope
-
-- Studio + draft pages stay as they are (full brief lives there).
-- We're not changing how openings are generated or scored.
-
-### Open question
-
-Grid density: **3 columns on desktop** (richer cards, ~9 visible above fold) or **4 columns** (tighter, more scannable, less per-card text)? Recommendation: 3 columns — keeps the gap sentence readable, which is the headline of each card.
+- Real email sending (requires email infra setup) — we generate the .eml/.zip bundle for the user to forward.
+- Real Contentful publishing handler — scaffolded as a stub; once the user clicks "Connect" we'll add the connector + server function.
