@@ -1,0 +1,107 @@
+import { Link, useLocation } from "@tanstack/react-router";
+import { Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useAppStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
+
+const steps = [
+  { to: "/", label: "Connect" },
+  { to: "/project", label: "Project" },
+  { to: "/prompts", label: "Prompts" },
+  { to: "/openings", label: "Openings" },
+  { to: "/studio", label: "Studio" },
+  { to: "/queue", label: "Queue" },
+  { to: "/results", label: "Results" },
+] as const;
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  const demoMode = useAppStore((s) => s.demoMode);
+  const connected = useAppStore((s) => s.connected);
+  const location = useLocation();
+
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-6">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-sm font-semibold tracking-tight">
+                Peec AI Openings
+              </span>
+              <span className="text-xs text-muted-foreground">by Peec</span>
+            </div>
+          </Link>
+
+          <nav className="hidden flex-1 items-center gap-1 md:flex">
+            {steps.map((s, i) => {
+              const active = location.pathname === s.to;
+              const disabled = !connected && s.to !== "/";
+              return (
+                <Link
+                  key={s.to}
+                  to={s.to}
+                  disabled={disabled}
+                  className={cn(
+                    "group flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
+                    active
+                      ? "bg-primary-soft text-accent-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                    disabled && "pointer-events-none opacity-40",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex h-4 w-4 items-center justify-center rounded-full font-mono text-[10px]",
+                      active
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {i + 1}
+                  </span>
+                  {s.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="ml-auto flex items-center gap-2">
+            {demoMode && (
+              <Badge
+                variant="outline"
+                className="gap-1 border-warning/40 bg-warning/10 text-[11px] font-medium text-warning"
+                style={{
+                  borderColor: "color-mix(in oklab, var(--warning) 30%, transparent)",
+                  backgroundColor:
+                    "color-mix(in oklab, var(--warning) 10%, transparent)",
+                  color: "var(--warning)",
+                }}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                Demo mode
+              </Badge>
+            )}
+            {connected && (
+              <Badge variant="outline" className="gap-1 text-[11px]">
+                <span className="h-1.5 w-1.5 rounded-full bg-success" style={{ backgroundColor: "var(--success)" }} />
+                Connected
+              </Badge>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1">{children}</main>
+
+      <footer className="border-t border-border py-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 text-xs text-muted-foreground">
+          <span>Peec measures AI visibility. Openings helps you act on it.</span>
+          <span>Built at Big Berlin Hack · Peec AI · Tavily · Gemini</span>
+        </div>
+      </footer>
+    </div>
+  );
+}

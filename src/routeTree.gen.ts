@@ -9,38 +9,215 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StudioRouteImport } from './routes/studio'
+import { Route as ResultsRouteImport } from './routes/results'
+import { Route as QueueRouteImport } from './routes/queue'
+import { Route as PromptsRouteImport } from './routes/prompts'
+import { Route as ProjectRouteImport } from './routes/project'
+import { Route as OpeningsRouteImport } from './routes/openings'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiTavilyExtractRouteImport } from './routes/api/tavily/extract'
+import { Route as ApiPeecToolRouteImport } from './routes/api/peec.$tool'
+import { Route as ApiAgentsGenerateEngagementsRouteImport } from './routes/api/agents/generate-engagements'
+import { Route as ApiAgentsFindOpeningsRouteImport } from './routes/api/agents/find-openings'
 
+const StudioRoute = StudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResultsRoute = ResultsRouteImport.update({
+  id: '/results',
+  path: '/results',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QueueRoute = QueueRouteImport.update({
+  id: '/queue',
+  path: '/queue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromptsRoute = PromptsRouteImport.update({
+  id: '/prompts',
+  path: '/prompts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectRoute = ProjectRouteImport.update({
+  id: '/project',
+  path: '/project',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpeningsRoute = OpeningsRouteImport.update({
+  id: '/openings',
+  path: '/openings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTavilyExtractRoute = ApiTavilyExtractRouteImport.update({
+  id: '/api/tavily/extract',
+  path: '/api/tavily/extract',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPeecToolRoute = ApiPeecToolRouteImport.update({
+  id: '/api/peec/$tool',
+  path: '/api/peec/$tool',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAgentsGenerateEngagementsRoute =
+  ApiAgentsGenerateEngagementsRouteImport.update({
+    id: '/api/agents/generate-engagements',
+    path: '/api/agents/generate-engagements',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAgentsFindOpeningsRoute = ApiAgentsFindOpeningsRouteImport.update({
+  id: '/api/agents/find-openings',
+  path: '/api/agents/find-openings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/openings': typeof OpeningsRoute
+  '/project': typeof ProjectRoute
+  '/prompts': typeof PromptsRoute
+  '/queue': typeof QueueRoute
+  '/results': typeof ResultsRoute
+  '/studio': typeof StudioRoute
+  '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
+  '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
+  '/api/peec/$tool': typeof ApiPeecToolRoute
+  '/api/tavily/extract': typeof ApiTavilyExtractRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/openings': typeof OpeningsRoute
+  '/project': typeof ProjectRoute
+  '/prompts': typeof PromptsRoute
+  '/queue': typeof QueueRoute
+  '/results': typeof ResultsRoute
+  '/studio': typeof StudioRoute
+  '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
+  '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
+  '/api/peec/$tool': typeof ApiPeecToolRoute
+  '/api/tavily/extract': typeof ApiTavilyExtractRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/openings': typeof OpeningsRoute
+  '/project': typeof ProjectRoute
+  '/prompts': typeof PromptsRoute
+  '/queue': typeof QueueRoute
+  '/results': typeof ResultsRoute
+  '/studio': typeof StudioRoute
+  '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
+  '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
+  '/api/peec/$tool': typeof ApiPeecToolRoute
+  '/api/tavily/extract': typeof ApiTavilyExtractRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/openings'
+    | '/project'
+    | '/prompts'
+    | '/queue'
+    | '/results'
+    | '/studio'
+    | '/api/agents/find-openings'
+    | '/api/agents/generate-engagements'
+    | '/api/peec/$tool'
+    | '/api/tavily/extract'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/openings'
+    | '/project'
+    | '/prompts'
+    | '/queue'
+    | '/results'
+    | '/studio'
+    | '/api/agents/find-openings'
+    | '/api/agents/generate-engagements'
+    | '/api/peec/$tool'
+    | '/api/tavily/extract'
+  id:
+    | '__root__'
+    | '/'
+    | '/openings'
+    | '/project'
+    | '/prompts'
+    | '/queue'
+    | '/results'
+    | '/studio'
+    | '/api/agents/find-openings'
+    | '/api/agents/generate-engagements'
+    | '/api/peec/$tool'
+    | '/api/tavily/extract'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  OpeningsRoute: typeof OpeningsRoute
+  ProjectRoute: typeof ProjectRoute
+  PromptsRoute: typeof PromptsRoute
+  QueueRoute: typeof QueueRoute
+  ResultsRoute: typeof ResultsRoute
+  StudioRoute: typeof StudioRoute
+  ApiAgentsFindOpeningsRoute: typeof ApiAgentsFindOpeningsRoute
+  ApiAgentsGenerateEngagementsRoute: typeof ApiAgentsGenerateEngagementsRoute
+  ApiPeecToolRoute: typeof ApiPeecToolRoute
+  ApiTavilyExtractRoute: typeof ApiTavilyExtractRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/studio': {
+      id: '/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof StudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/results': {
+      id: '/results'
+      path: '/results'
+      fullPath: '/results'
+      preLoaderRoute: typeof ResultsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/queue': {
+      id: '/queue'
+      path: '/queue'
+      fullPath: '/queue'
+      preLoaderRoute: typeof QueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prompts': {
+      id: '/prompts'
+      path: '/prompts'
+      fullPath: '/prompts'
+      preLoaderRoute: typeof PromptsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/project': {
+      id: '/project'
+      path: '/project'
+      fullPath: '/project'
+      preLoaderRoute: typeof ProjectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/openings': {
+      id: '/openings'
+      path: '/openings'
+      fullPath: '/openings'
+      preLoaderRoute: typeof OpeningsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +225,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/tavily/extract': {
+      id: '/api/tavily/extract'
+      path: '/api/tavily/extract'
+      fullPath: '/api/tavily/extract'
+      preLoaderRoute: typeof ApiTavilyExtractRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/peec/$tool': {
+      id: '/api/peec/$tool'
+      path: '/api/peec/$tool'
+      fullPath: '/api/peec/$tool'
+      preLoaderRoute: typeof ApiPeecToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/agents/generate-engagements': {
+      id: '/api/agents/generate-engagements'
+      path: '/api/agents/generate-engagements'
+      fullPath: '/api/agents/generate-engagements'
+      preLoaderRoute: typeof ApiAgentsGenerateEngagementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/agents/find-openings': {
+      id: '/api/agents/find-openings'
+      path: '/api/agents/find-openings'
+      fullPath: '/api/agents/find-openings'
+      preLoaderRoute: typeof ApiAgentsFindOpeningsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  OpeningsRoute: OpeningsRoute,
+  ProjectRoute: ProjectRoute,
+  PromptsRoute: PromptsRoute,
+  QueueRoute: QueueRoute,
+  ResultsRoute: ResultsRoute,
+  StudioRoute: StudioRoute,
+  ApiAgentsFindOpeningsRoute: ApiAgentsFindOpeningsRoute,
+  ApiAgentsGenerateEngagementsRoute: ApiAgentsGenerateEngagementsRoute,
+  ApiPeecToolRoute: ApiPeecToolRoute,
+  ApiTavilyExtractRoute: ApiTavilyExtractRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
