@@ -411,41 +411,6 @@ function QueuePage() {
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>
-
-          {/* Thumbnail rail */}
-          <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
-            {classified.map(({ draft: d, type }, i) => {
-              const isCurrent = i === index;
-              const isCompleted = completed.has(d.id);
-              const Icon = TASK_META[type].icon;
-              return (
-                <button
-                  key={d.id}
-                  onClick={() => {
-                    setDirection(i > index ? 1 : -1);
-                    setIndex(i);
-                  }}
-                  className={`group flex flex-shrink-0 items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] transition ${
-                    isCurrent
-                      ? "border-primary bg-primary-soft text-foreground"
-                      : isCompleted
-                        ? "border-success/40 bg-success/5 text-foreground"
-                        : "border-border bg-card text-muted-foreground"
-                  }`}
-                  title={getTaskTitle(d, type, ownBrand.domain)}
-                >
-                  <Icon
-                    className="h-3 w-3"
-                    style={{ color: TASK_META[type].tone }}
-                  />
-                  <span className="max-w-[140px] truncate">
-                    {TASK_META[type].label} · {d.source.domain ?? d.channelLabel}
-                  </span>
-                  {isCompleted && <Check className="h-3 w-3 text-success" />}
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         {/* Side panel */}
