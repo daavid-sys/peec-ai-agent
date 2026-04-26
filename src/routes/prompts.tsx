@@ -36,10 +36,7 @@ function PromptsPage() {
   if (!project || prompts.length === 0) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-20 text-center">
-        <p className="text-sm text-muted-foreground">No prompts loaded yet.</p>
-        <Button asChild className="mt-4">
-          <Link to="/">Connect Peec AI</Link>
-        </Button>
+        <p className="text-sm text-muted-foreground">Loading prompts…</p>
       </div>
     );
   }
