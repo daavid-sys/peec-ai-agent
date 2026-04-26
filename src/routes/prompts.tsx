@@ -41,6 +41,7 @@ import {
 import {
   getPromptRecommendation,
   type PromptRecommendation,
+  type ReasonCardPayload,
 } from "@/lib/server/get-prompt-recommendation";
 import { enqueueOpeningDrafts } from "@/lib/server/enqueue-opening-drafts";
 
