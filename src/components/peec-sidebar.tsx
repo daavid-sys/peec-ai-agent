@@ -127,7 +127,7 @@ function Section({ title, items, badge }: { title: string; items: Item[]; badge?
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="right" className="max-w-[220px] text-xs">
-                      This is a demo for the Openings section only.
+                      This is a demo for the Agent section only.
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
