@@ -82,14 +82,25 @@ function ResultsPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
-      <h1 className="text-3xl font-semibold tracking-tight">
-        Track visibility after execution
-      </h1>
-      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        Once actions are marked as published, we loop the new mention data back
-        from Peec AI to measure lift across ChatGPT, Perplexity, Gemini, and
-        Claude.
-      </p>
+      <div className="flex items-start justify-between gap-4">
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Step 4: Track Results
+        </h1>
+        <Link
+          to="/prompts"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Go back to Openings <ArrowUpRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+
+      {selectedPrompt && (
+        <div className="mt-6 rounded-lg border border-border bg-card px-6 py-5 text-center">
+          <p className="text-lg font-semibold tracking-tight text-foreground">
+            &ldquo;{selectedPrompt.text}&rdquo;
+          </p>
+        </div>
+      )}
 
       <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
         <BigStat label="Before visibility" value="8%" sub="for 'HubSpot alternatives for startups'" />
