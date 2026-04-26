@@ -1,4 +1,4 @@
-import { Search as SearchIcon, Check } from "lucide-react";
+import { Search as SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
