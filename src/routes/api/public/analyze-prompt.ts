@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { analyzePrompt } from "@/lib/server/analyze-prompt";
 
-export const Route = createFileRoute("/api/analyze-prompt")({
+export const Route = createFileRoute("/api/public/analyze-prompt")({
   server: {
     handlers: {
       POST: async ({ request }) => {
