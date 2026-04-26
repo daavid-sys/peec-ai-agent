@@ -51,7 +51,7 @@ const sources: Item[] = [
 const actions: Item[] = [
   { label: "Earned · Off-page", icon: FileText },
   { label: "Owned · On-page", icon: FileSearch },
-  { label: "Agent", icon: Bot, active: true, to: "/" },
+  { label: "Agent", icon: Workflow, active: true, to: "/" },
   { label: "Impact", icon: LineChart },
 ];
 
