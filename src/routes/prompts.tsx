@@ -299,11 +299,7 @@ function PromptsPage() {
             />
 
             <div className="mt-7">
-              <QfosTable
-                qfos={qfos}
-                loading={qfosLoading}
-                matchHeightRef={leftColumnRef}
-              />
+              <QfosTable qfos={qfos} loading={qfosLoading} maxRows={6} />
             </div>
           </div>
         </div>
