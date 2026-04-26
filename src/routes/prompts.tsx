@@ -670,13 +670,14 @@ function Mini({
           {favicons && favicons.length > 0 && (
             <div className="flex -space-x-1.5">
               {favicons.slice(0, 4).map((domain) => (
-                <div
+                <img
                   key={domain}
+                  src={`https://www.google.com/s2/favicons?sz=32&domain=${domain}`}
+                  alt={domain}
                   title={domain}
-                  className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border border-border bg-background"
-                >
-                  <Favicon domain={domain} size={16} />
-                </div>
+                  loading="lazy"
+                  className="h-5 w-5 rounded-full border border-border bg-background object-contain p-0.5"
+                />
               ))}
             </div>
           )}
