@@ -191,6 +191,8 @@ function ReasonCardItem({
     </div>
   );
 }
+
+function PromptsPage() {
   const prompts = useAppStore((s) => s.prompts);
   const project = useAppStore((s) => s.project);
   const selectedId = useAppStore((s) => s.selectedPromptId);
