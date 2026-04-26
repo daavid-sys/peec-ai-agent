@@ -183,7 +183,8 @@ function OpeningCard({
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
         {Object.entries(opening.brandMentions).map(([brand, count]) => (
-          <span key={brand} className="inline-flex items-center gap-1">
+          <span key={brand} className="inline-flex items-center gap-1.5">
+            <Favicon name={brand} kind="brand" size={12} />
             <span className="font-medium text-foreground">{brand}</span>
             <span className="font-mono">{count}</span>
           </span>
@@ -308,7 +309,10 @@ function SourceXRay({ opening }: { opening: Opening }) {
       <div className="mt-2 space-y-1.5">
         {Object.entries(opening.brandMentions).map(([brand, count]) => (
           <div key={brand} className="flex items-center gap-3">
-            <div className="w-24 truncate text-sm">{brand}</div>
+            <div className="flex w-32 min-w-0 items-center gap-2">
+              <Favicon name={brand} kind="brand" size={14} />
+              <span className="truncate text-sm">{brand}</span>
+            </div>
             <div className="flex-1">
               <ScoreBar
                 value={Math.min(100, count * 5)}
