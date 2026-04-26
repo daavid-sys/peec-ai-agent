@@ -16,6 +16,30 @@ interface AppState {
   openings: Opening[];
   selectedOpeningId: string | null;
   engagements: Engagement[];
+  visitedPromptIds: string[];
+}
+
+const VISITED_KEY = "peec:visited-prompts";
+
+function loadVisited(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(VISITED_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistVisited(ids: string[]) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(VISITED_KEY, JSON.stringify(ids));
+  } catch {
+    /* ignore */
+  }
 }
 
 let state: AppState = {
@@ -27,6 +51,7 @@ let state: AppState = {
   openings: demoOpenings,
   selectedOpeningId: demoOpenings[0]?.id ?? null,
   engagements: demoEngagements,
+  visitedPromptIds: loadVisited(),
 };
 
 const listeners = new Set<() => void>();
