@@ -29,7 +29,6 @@ import { store, useAppStore } from "@/lib/store";
 import { postToContentful } from "@/lib/server/post-to-contentful";
 import contentfulLogo from "@/assets/contentful-logo.png";
 import { GmailIcon } from "@/components/icons/gmail-icon";
-import { sendGmail } from "@/lib/server/send-gmail.functions";
 
 export const Route = createFileRoute("/queue/draft/$id")({
   head: () => ({
