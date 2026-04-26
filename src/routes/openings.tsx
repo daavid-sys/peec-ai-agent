@@ -161,7 +161,7 @@ function OpeningsPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-6 py-10 2xl:px-10">
-      <div className="flex items-start justify-between gap-6">
+      <div className="flex items-center justify-between gap-6">
         <div className="min-w-0">
           <h1 className="text-3xl font-semibold tracking-tight">
             Here are the openings we&rsquo;ll fix for you
