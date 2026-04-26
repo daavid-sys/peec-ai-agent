@@ -1,11 +1,9 @@
-import { Search as SearchIcon } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Favicon } from "@/components/favicon";
 import { cn } from "@/lib/utils";
 import type { PromptTableRow } from "@/lib/server/get-prompt-table";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 function VolumeBars({ volume }: { volume: string | null }) {
   const map: Record<string, number> = {
