@@ -28,6 +28,8 @@ import { Label } from "@/components/ui/label";
 import { store, useAppStore } from "@/lib/store";
 import { postToContentful } from "@/lib/server/post-to-contentful";
 import contentfulLogo from "@/assets/contentful-logo.png";
+import { GmailIcon } from "@/components/icons/gmail-icon";
+import { sendGmail } from "@/lib/server/send-gmail.functions";
 
 export const Route = createFileRoute("/queue/draft/$id")({
   head: () => ({
@@ -237,6 +239,8 @@ function DraftPage() {
   const slug = slugify(engagement.title);
 
   const postFn = useServerFn(postToContentful);
+  const sendGmailFn = useServerFn(sendGmail);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [contentfulOpen, setContentfulOpen] = useState(false);
   const [posting, setPosting] = useState(false);
   const [cfSpaceId, setCfSpaceId] = useState("");
@@ -313,6 +317,7 @@ function DraftPage() {
   const mailto = `mailto:?subject=${encodeURIComponent(
     emailSubject,
   )}&body=${encodeURIComponent(emailBody)}`;
+  const recipientEmail = `editorial@${host}`;
 
   const markdown = `# ${engagement.title}\n\n${engagement.draft}\n`;
 
@@ -353,10 +358,29 @@ function DraftPage() {
             >
               <Copy className="h-3 w-3" /> Copy
             </Button>
-            <Button size="sm" asChild>
-              <a href={mailto}>
-                <Mail className="h-3 w-3" /> Open in mail
-              </a>
+            <Button
+              size="sm"
+              disabled={sendingEmail}
+              onClick={async () => {
+                setSendingEmail(true);
+                try {
+                  await sendGmailFn({
+                    data: { to: recipientEmail, subject: emailSubject, body: emailBody },
+                  });
+                  toast.success(`Email sent to ${recipientEmail}`);
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Failed to send email");
+                } finally {
+                  setSendingEmail(false);
+                }
+              }}
+            >
+              {sendingEmail ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <GmailIcon className="h-3 w-3" />
+              )}
+              Send email
             </Button>
           </div>
         </div>
