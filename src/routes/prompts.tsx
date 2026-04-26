@@ -29,6 +29,10 @@ import {
   getPromptTable,
   type PromptTableRow,
 } from "@/lib/server/get-prompt-table";
+import {
+  getPromptRecommendation,
+  type PromptRecommendation,
+} from "@/lib/server/get-prompt-recommendation";
 
 export const Route = createFileRoute("/prompts")({
   head: () => ({ meta: [{ title: "Recommended Prompt — Peec AI Openings" }] }),
@@ -55,12 +59,6 @@ function PromptsPage() {
     prompts.find((p) => p.status === "best_opportunity") ?? prompts[0];
   const selected = prompts.find((p) => p.id === selectedId) ?? recommended;
 
-  // Openings preview for the currently selected prompt (with sensible fallback)
-  const previewOpenings: Opening[] = useMemo(() => {
-    const matched = demoOpenings.filter((o) => o.promptId === selected.id);
-    return (matched.length ? matched : demoOpenings).slice(0, 3);
-  }, [selected.id]);
-
   // Brand metrics for the currently selected prompt (real Peec data)
   const [brandMetrics, setBrandMetrics] = useState<PromptBrandMetric[] | null>(
     null,
@@ -68,6 +66,9 @@ function PromptsPage() {
   const [brandMetricsLoading, setBrandMetricsLoading] = useState(true);
   const [qfos, setQfos] = useState<PromptQfo[] | null>(null);
   const [qfosLoading, setQfosLoading] = useState(true);
+  const [recommendation, setRecommendation] =
+    useState<PromptRecommendation | null>(null);
+  const [recommendationLoading, setRecommendationLoading] = useState(true);
   const [tableRows, setTableRows] = useState<PromptTableRow[] | null>(null);
   const [tableLoading, setTableLoading] = useState(true);
   useEffect(() => {
@@ -96,6 +97,23 @@ function PromptsPage() {
     setBrandMetrics(null);
     setQfosLoading(true);
     setQfos(null);
+    setRecommendationLoading(true);
+    setRecommendation(null);
+    getPromptRecommendation({
+      data: { promptId: selected.id, ownBrandName: project.ownBrand.name },
+    })
+      .then((data) => {
+        if (cancelled) return;
+        setRecommendation(data);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setRecommendation(null);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setRecommendationLoading(false);
+      });
     getPromptBrandMetrics({ data: { promptId: selected.id } })
       .then((rows) => {
         if (cancelled) return;
@@ -125,7 +143,24 @@ function PromptsPage() {
     return () => {
       cancelled = true;
     };
-  }, [selected.id]);
+  }, [project.ownBrand.name, selected.id]);
+
+  const selectedStats = recommendation?.prompt;
+  const cardMetrics = {
+    ownVisibility: selectedStats?.ownVisibility ?? selected.ownVisibility,
+    topCompetitor: selectedStats?.topCompetitor ?? selected.topCompetitor,
+    topCompetitorVisibility:
+      selectedStats?.topCompetitorVisibility ?? selected.topCompetitorVisibility,
+    visibilityGap: selectedStats?.visibilityGap ?? selected.visibilityGap,
+    opportunityScore: selectedStats?.opportunityScore ?? selected.opportunityScore,
+  };
+  const cardCounts = recommendation?.counts ?? {
+    sources: selected.sourcesFound,
+    qfos: selected.hiddenQuestionsFound,
+    openings: selected.openingsFound,
+  };
+  const cardReasons = recommendation?.reasons ?? selected.reasons ?? [];
+  const previewOpenings = recommendation?.openingPreviews ?? [];
 
 
   const startFlow = () => {
