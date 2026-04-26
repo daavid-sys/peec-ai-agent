@@ -125,11 +125,19 @@ function StudioPage() {
   }
   function markDone() {
     if (!current) return;
+    const id = current.id;
     setCompleted((s) => {
-      if (s.has(current.id)) return s;
+      if (s.has(id)) return s;
       const n = new Set(s);
-      n.add(current.id);
+      n.add(id);
       return n;
+    });
+    // Auto-advance to next draft if available
+    setIndex((i) => {
+      if (drafts[i]?.id !== id) return i; // already moved on
+      if (i >= drafts.length - 1) return i;
+      setDirection(1);
+      return i + 1;
     });
   }
 
@@ -182,7 +190,7 @@ function StudioPage() {
     );
   }
 
-  const progressPct = Math.round(((index + 1) / Math.max(drafts.length, 1)) * 100);
+  
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-6 py-8 2xl:px-10">
@@ -209,17 +217,20 @@ function StudioPage() {
       {/* Progress strip */}
       <div className="mt-6 flex items-center gap-4">
         <div className="text-xs font-medium tabular-nums text-muted-foreground">
-          {index + 1} <span className="text-border">/</span> {drafts.length}
+          <span className="text-foreground">{Math.min(index + 1, drafts.length)}</span>
+          <span className="text-border"> / </span>
+          {total}
+          <span className="ml-2 text-success">{completed.size} done</span>
           {total > drafts.length && (
             <span className="ml-1 text-muted-foreground/70">
-              ({total - drafts.length} more drafting)
+              · {total - drafts.length} drafting
             </span>
           )}
         </div>
         <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
           <div
             className="absolute inset-y-0 left-0 bg-primary transition-[width] duration-500"
-            style={{ width: `${progressPct}%` }}
+            style={{ width: `${Math.round(((index + 1) / Math.max(total, 1)) * 100)}%` }}
           />
         </div>
         {response && response.pendingCount > 0 && (
@@ -396,29 +407,41 @@ function SideContext({
         </Button>
       </div>
 
-      {prefetch.length > 0 && (
-        <div className="rounded-md border border-dashed border-border bg-card/40 p-3">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            Loaded next ({prefetch.length})
+      <div className="rounded-md border border-primary/30 bg-primary-soft/40 p-3">
+        <div className="flex items-center justify-between">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-primary">
+            Next in queue
           </div>
-          <ul className="mt-2 space-y-1.5">
-            {prefetch.map((d) => (
-              <li
-                key={d.id}
-                className="flex items-center gap-2 text-[12px] text-muted-foreground"
-              >
+          <span className="text-[10px] font-medium tabular-nums text-muted-foreground">
+            {prefetch.length} ready
+          </span>
+        </div>
+        {prefetch.length === 0 ? (
+          <div className="mt-2 text-xs text-muted-foreground">
+            Last draft in the batch — agent is preparing more in the background.
+          </div>
+        ) : (
+          <ol className="mt-2 space-y-2">
+            {prefetch.map((d, i) => (
+              <li key={d.id} className="flex items-start gap-2 text-[12px]">
+                <span className="mt-0.5 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-card text-[9px] font-bold text-muted-foreground">
+                  {i + 1}
+                </span>
                 <span
-                  className="h-1.5 w-1.5 rounded-full"
+                  className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full"
                   style={{ backgroundColor: d.channelAccent }}
                 />
-                <span className="truncate">
-                  {d.channelLabel} · {d.title}
-                </span>
+                <div className="min-w-0">
+                  <div className="truncate font-medium text-foreground">{d.title}</div>
+                  <div className="truncate text-[11px] text-muted-foreground">
+                    {d.channelLabel} · {d.source.domain ?? "draft"}
+                  </div>
+                </div>
               </li>
             ))}
-          </ul>
-        </div>
-      )}
+          </ol>
+        )}
+      </div>
     </div>
   );
 }

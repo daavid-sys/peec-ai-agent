@@ -1,4 +1,5 @@
 import ReactMarkdown from "react-markdown";
+import { useEffect } from "react";
 import {
   ArrowBigUp,
   ArrowBigDown,
@@ -56,9 +57,10 @@ export function PlatformReplica(props: Props) {
 
 function useTyped(draft: StudioDraft, cps: number, onDone?: () => void) {
   const { text, done } = useTypewriter(draft.fullDraft, { cps });
-  if (done && onDone) {
-    queueMicrotask(onDone);
-  }
+  useEffect(() => {
+    if (done && onDone) onDone();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done, draft.id]);
   return text;
 }
 
