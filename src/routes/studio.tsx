@@ -125,11 +125,19 @@ function StudioPage() {
   }
   function markDone() {
     if (!current) return;
+    const id = current.id;
     setCompleted((s) => {
-      if (s.has(current.id)) return s;
+      if (s.has(id)) return s;
       const n = new Set(s);
-      n.add(current.id);
+      n.add(id);
       return n;
+    });
+    // Auto-advance to next draft if available
+    setIndex((i) => {
+      if (drafts[i]?.id !== id) return i; // already moved on
+      if (i >= drafts.length - 1) return i;
+      setDirection(1);
+      return i + 1;
     });
   }
 
