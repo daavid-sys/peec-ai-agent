@@ -208,7 +208,7 @@ function TypedMarkdown({
       >
         {text}
       </ReactMarkdown>
-      {showCaret && useContext(CaretContext) && <Caret />}
+      {showCaret && caretEnabled && <Caret />}
     </div>
   );
 }
