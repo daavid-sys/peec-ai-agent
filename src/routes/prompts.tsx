@@ -55,6 +55,33 @@ function PromptsPage() {
     return (matched.length ? matched : demoOpenings).slice(0, 3);
   }, [selected.id]);
 
+  // Brand metrics for the currently selected prompt (real Peec data)
+  const [brandMetrics, setBrandMetrics] = useState<PromptBrandMetric[] | null>(
+    null,
+  );
+  const [brandMetricsLoading, setBrandMetricsLoading] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    setBrandMetricsLoading(true);
+    setBrandMetrics(null);
+    getPromptBrandMetrics({ data: { promptId: selected.id } })
+      .then((rows) => {
+        if (cancelled) return;
+        setBrandMetrics(rows);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setBrandMetrics([]);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setBrandMetricsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selected.id]);
+
   const filteredPrompts = useMemo(() => {
     if (!query) return prompts;
     return prompts.filter((p) =>
