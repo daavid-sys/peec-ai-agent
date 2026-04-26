@@ -2,11 +2,11 @@ import { useLocation } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
-  { path: "/prompts", label: "Choose a prompt" },
-  { path: "/openings", label: "Action plan" },
-  { path: "/studio", label: "Engagement studio" },
-  { path: "/queue", label: "Approval queue" },
-  { path: "/results", label: "Results" },
+  { path: "/prompts", label: "Your openings" },
+  { path: "/openings", label: "Step 1 · Action plan" },
+  { path: "/studio", label: "Step 2 · Agent working" },
+  { path: "/queue", label: "Step 3 · Review & publish" },
+  { path: "/results", label: "Step 4 · Track Results" },
 ] as const;
 
 export function StepDots() {
