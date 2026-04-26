@@ -120,7 +120,7 @@ function Section({ title, items, badge }: { title: string; items: Item[]; badge?
 
 export function PeecSidebar() {
   return (
-    <aside className="flex h-screen w-[260px] shrink-0 flex-col border-r border-border bg-[hsl(0_0%_98%)]">
+    <aside className="sticky top-0 flex h-screen max-h-screen w-[260px] shrink-0 flex-col self-start overflow-hidden border-r border-border bg-[hsl(0_0%_98%)]">
       {/* Project switcher */}
       <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
         <div className="flex min-w-0 items-center gap-2">
