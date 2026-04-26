@@ -1,5 +1,7 @@
 # Peec AI Agent
 
+**Live demo:** [peec-ai-agent.lovable.app](https://peec-ai-agent.lovable.app/)
+
 **The agentic layer on top of Peec AI — turning visibility intelligence into action.**
 
 [Peec AI](https://peec.ai) already tells you where your brand stands in AI search. It shows which sources AI engines cite, how often you're mentioned, and where the gaps are. That intelligence is powerful — but knowing isn't doing.
