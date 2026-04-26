@@ -70,6 +70,19 @@ function OpeningsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promptId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    getPromptTable()
+      .then((rows) => {
+        if (cancelled) return;
+        setPromptRow(rows.find((r) => r.id === promptId) ?? null);
+      })
+      .catch(() => !cancelled && setPromptRow(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [promptId]);
+
   // Background drafting + polling
   useEffect(() => {
     if (!overview || !project) return;
