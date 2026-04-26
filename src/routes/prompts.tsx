@@ -46,6 +46,141 @@ export const Route = createFileRoute("/prompts")({
   component: PromptsPage,
 });
 
+type ReasonCard = {
+  icon: LucideIcon;
+  tone: "primary" | "destructive" | "neutral" | "success";
+  headline: string;
+  body: string;
+};
+
+const TONE_STYLES: Record<
+  ReasonCard["tone"],
+  { iconBg: string; iconColor: string; ring: string }
+> = {
+  primary: {
+    iconBg: "bg-primary/10",
+    iconColor: "text-primary",
+    ring: "ring-primary/20",
+  },
+  destructive: {
+    iconBg: "color-mix(in oklab, var(--destructive) 12%, transparent)",
+    iconColor: "var(--destructive)",
+    ring: "color-mix(in oklab, var(--destructive) 25%, transparent)",
+  } as never,
+  neutral: {
+    iconBg: "bg-muted",
+    iconColor: "text-muted-foreground",
+    ring: "ring-border",
+  },
+  success: {
+    iconBg: "bg-emerald-500/10",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
+    ring: "ring-emerald-500/20",
+  },
+};
+
+// Pull a short headline (first clause / first ~6 words) and use the rest as body.
+function summarizeReason(reason: string): { headline: string; body: string } {
+  const trimmed = reason.replace(/\s+/g, " ").trim();
+
+  // Prefer "Label: rest" patterns the LLM/fallback uses (e.g. "Fastest win: ...")
+  const colon = trimmed.match(/^([^:]{3,40}):\s*(.+)$/);
+  if (colon) {
+    return { headline: colon[1].trim(), body: colon[2].trim() };
+  }
+
+  // Otherwise split on first sentence boundary
+  const sentence = trimmed.match(/^(.{20,90}?[.!?])\s+(.*)$/);
+  if (sentence) {
+    return {
+      headline: sentence[1].replace(/[.!?]$/, "").trim(),
+      body: sentence[2].trim(),
+    };
+  }
+
+  // Fallback: take first ~7 words as headline
+  const words = trimmed.split(" ");
+  if (words.length > 9) {
+    return {
+      headline: words.slice(0, 7).join(" ") + "…",
+      body: trimmed,
+    };
+  }
+  return { headline: trimmed, body: "" };
+}
+
+function classifyReason(reason: string, index: number): {
+  icon: LucideIcon;
+  tone: ReasonCard["tone"];
+} {
+  const r = reason.toLowerCase();
+  if (/(gap|behind|lagging|losing|trailing|lower|less than)/.test(r)) {
+    return { icon: TrendingDown, tone: "destructive" };
+  }
+  if (/(competitor|vs\.|versus|compared to|already references|already appear)/.test(r)) {
+    return { icon: Users, tone: "neutral" };
+  }
+  if (/(opening|drafted|insertion point|action|act on|places to)/.test(r)) {
+    return { icon: Target, tone: "primary" };
+  }
+  if (/(source|cited|retrieved|citation|fanout|query)/.test(r)) {
+    return { icon: FileSearch, tone: "neutral" };
+  }
+  if (/(fastest|quick|fast win|easy|low-hanging|momentum)/.test(r)) {
+    return { icon: Zap, tone: "success" };
+  }
+  if (/(win|opportunity|lift|score|impact)/.test(r)) {
+    return { icon: Trophy, tone: "primary" };
+  }
+  // Stable fallback by index
+  const fallback: { icon: LucideIcon; tone: ReasonCard["tone"] }[] = [
+    { icon: Lightbulb, tone: "primary" },
+    { icon: Target, tone: "neutral" },
+    { icon: Zap, tone: "success" },
+    { icon: Trophy, tone: "primary" },
+  ];
+  return fallback[index % fallback.length];
+}
+
+function ReasonCardItem({ card }: { card: ReasonCard }) {
+  const isDestructive = card.tone === "destructive";
+  const tone = TONE_STYLES[card.tone];
+  return (
+    <div className="group flex h-full flex-col rounded-lg border border-border bg-background p-3 transition-colors hover:border-foreground/20 hover:bg-card">
+      <div
+        className={cn(
+          "flex h-8 w-8 items-center justify-center rounded-md ring-1",
+          !isDestructive && tone.iconBg,
+          !isDestructive && tone.ring,
+        )}
+        style={
+          isDestructive
+            ? {
+                background: "color-mix(in oklab, var(--destructive) 12%, transparent)",
+                boxShadow:
+                  "inset 0 0 0 1px color-mix(in oklab, var(--destructive) 25%, transparent)",
+              }
+            : undefined
+        }
+      >
+        <card.icon
+          className={cn("h-4 w-4", !isDestructive && tone.iconColor)}
+          style={isDestructive ? { color: "var(--destructive)" } : undefined}
+        />
+      </div>
+      <div className="mt-2.5 text-[13px] font-semibold leading-snug text-foreground">
+        {card.headline}
+      </div>
+      {card.body && (
+        <div className="mt-1 line-clamp-4 text-[11.5px] leading-relaxed text-muted-foreground">
+          {card.body}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function PromptsPage() {
   const prompts = useAppStore((s) => s.prompts);
   const project = useAppStore((s) => s.project);
