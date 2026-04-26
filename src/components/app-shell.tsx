@@ -30,7 +30,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 variant="outline"
                 aria-disabled
                 title="Live data stream — read-only"
-                className="pointer-events-none gap-1.5 text-[11px] animate-pulse select-none"
+                className="pointer-events-none gap-1.5 text-[11px] select-none"
               >
                 {/* Official MCP mark */}
                 <img
@@ -40,10 +40,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   height={12}
                   className="h-3 w-3 object-contain dark:invert"
                 />
-                <span className="relative inline-flex h-1.5 w-1.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-70" />
-                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
-                </span>
                 Connected via MCP
               </Badge>
             )}
