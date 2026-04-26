@@ -259,7 +259,7 @@ function ChannelTag({ accent, label }: { accent: string; label: string }) {
   );
 }
 
-
+function FilterChips({
   channelFilter,
   competitorFilter,
   onChannelChange,
