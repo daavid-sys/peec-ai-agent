@@ -202,7 +202,7 @@ function PromptsPage() {
       {/* Hero recommended-prompt card */}
       <Card className="mt-8 overflow-hidden border-border p-0">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-          <div className="border-b border-border p-7 lg:border-b-0 lg:border-r">
+          <div ref={leftColumnRef} className="border-b border-border p-7 lg:border-b-0 lg:border-r">
             <div className="flex items-center gap-2 text-xs font-medium text-primary">
               <Sparkles className="h-3.5 w-3.5" /> Recommended prompt
             </div>
