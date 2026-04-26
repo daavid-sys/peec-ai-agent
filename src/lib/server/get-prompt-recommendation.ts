@@ -335,6 +335,16 @@ export const getPromptRecommendation = createServerFn({ method: "GET" })
         : null,
       counts,
       reasons: await generateReasons(evidence),
+      topSourceDomains: Array.from(
+        new Set(
+          sourceRows
+            .map((s) => s.domain)
+            .filter(
+              (d): d is string =>
+                typeof d === "string" && d.length > 0 && d !== "default.com",
+            ),
+        ),
+      ).slice(0, 4),
       openingPreviews,
     };
   });
