@@ -1,7 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { useAppStore } from "@/lib/store";
 import { PeecSidebar } from "@/components/peec-sidebar";
-import { StepDots } from "@/components/step-dots";
 import { Link } from "@tanstack/react-router";
 import mcpLogo from "@/assets/mcp-logo.png";
 
@@ -24,7 +23,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="text-foreground">Find where to show up next</span>
           </div>
           <div className="flex items-center gap-4">
-            <StepDots />
             {connected && (
               <Badge
                 variant="outline"
