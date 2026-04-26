@@ -245,7 +245,15 @@ function PromptsPage() {
     setRecommendationLoading(true);
     setRecommendation(null);
     getPromptRecommendation({
-      data: { promptId: selected.id, ownBrandName: project.ownBrand.name },
+      data: {
+        promptId: selected.id,
+        ownBrandName: project.ownBrand.name,
+        ownBrandDomain: project.ownBrand.domain ?? null,
+        competitors: project.competitors.map((c) => ({
+          name: c.name,
+          domain: c.domain ?? null,
+        })),
+      },
     })
       .then((data) => {
         if (cancelled) return;
