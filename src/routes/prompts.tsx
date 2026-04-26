@@ -273,7 +273,7 @@ function PromptsPage() {
               ) : null}
             </div>
 
-            <div className="mt-7 flex flex-wrap items-center gap-3">
+            <div className="mt-auto pt-7 flex flex-wrap items-center gap-3">
               <Button size="lg" onClick={startFlow}>
                 Start flow with this prompt{" "}
                 <ArrowRight className="h-4 w-4" />
