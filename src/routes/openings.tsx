@@ -73,9 +73,6 @@ function OpeningsPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1600px] px-6 py-10 2xl:px-10">
-      <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
-        Action Plan
-      </div>
       <div className="flex items-start justify-between gap-6">
         <div className="min-w-0">
           <h1 className="text-3xl font-semibold tracking-tight">
