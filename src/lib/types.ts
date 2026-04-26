@@ -3,6 +3,25 @@ export interface Brand {
   domain?: string;
 }
 
+export interface BrandReportEntry {
+  visibility: number;
+  shareOfVoice: number;
+  sentiment: number;
+  position: number;
+}
+
+export interface ActionRow {
+  action_group_type: string;
+  url_classification: string | null;
+  domain: string | null;
+  opportunity_score: number;
+  relative_opportunity_score: number;
+  gap_percentage: number;
+  coverage_percentage: number;
+  used_ratio: number;
+  used_total: number;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -11,6 +30,9 @@ export interface Project {
   models: string[];
   promptCount: number;
   lastSyncedAt: string;
+  topics?: string[];
+  brandReport?: Record<string, BrandReportEntry>;
+  topActions?: ActionRow[];
 }
 
 export type PromptStatus =
@@ -24,6 +46,8 @@ export type PromptStatus =
 export interface PromptOpportunity {
   id: string;
   text: string;
+  topic?: string;
+  volume?: string;
   ownVisibility: number;
   topCompetitor: string;
   topCompetitorVisibility: number;
@@ -33,7 +57,6 @@ export interface PromptOpportunity {
   openingsFound: number;
   opportunityScore: number;
   status: PromptStatus;
-  // for the recommendation reasoning
   reasons?: string[];
   hiddenQuestions?: string[];
   competitorBreakdown?: { brand: string; visibility: number }[];
@@ -67,7 +90,6 @@ export interface Opening {
   whyItMatters: string;
   missingProof: string;
   recommendedEngagement: string;
-  // x-ray extras
   citationCount?: number;
   retrievalCount?: number;
   citationRate?: number;
