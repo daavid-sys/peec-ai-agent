@@ -634,7 +634,7 @@ function GenericReplica({ draft, cps, onDone, ownBrand }: Props) {
               {draft.source.domain} <ExternalLink className="h-3 w-3" />
             </a>
           )}
-          <h1 className="mt-2 text-2xl font-bold">{draft.title}</h1>
+          <h1 className="mt-2 text-2xl font-bold">{headline}</h1>
           <div className="mt-3 flex items-center gap-2 text-[12px] text-zinc-500">
             <BrandAvatar brand={ownBrand} size={20} />
             <span>From {ownBrand.name}</span>
