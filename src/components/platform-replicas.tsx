@@ -174,6 +174,28 @@ function TypedMarkdown({
               {children}
             </blockquote>
           ),
+          table: ({ children }) => (
+            <div className="my-3 overflow-x-auto rounded-md border border-zinc-200">
+              <table className="w-full border-collapse text-[13px]">
+                {children}
+              </table>
+            </div>
+          ),
+          thead: ({ children }) => (
+            <thead className="bg-zinc-50 text-left">{children}</thead>
+          ),
+          tbody: ({ children }) => (
+            <tbody className="divide-y divide-zinc-200">{children}</tbody>
+          ),
+          tr: ({ children }) => <tr className="align-top">{children}</tr>,
+          th: ({ children }) => (
+            <th className="border-b border-zinc-200 px-3 py-2 font-semibold text-zinc-900">
+              {children}
+            </th>
+          ),
+          td: ({ children }) => (
+            <td className="px-3 py-2 text-zinc-700">{children}</td>
+          ),
         }}
       >
         {text}
