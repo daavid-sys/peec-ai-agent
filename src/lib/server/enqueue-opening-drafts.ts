@@ -56,11 +56,16 @@ async function callLovableAi(args: {
   ownBrand: string;
   channel: Channel;
   opening: OpeningRow;
+  competitors: string[];
   source: SourceRow | null;
   scrape: ScrapeRow | null;
 }): Promise<DraftJson> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
+
+  // Up to 4 named competitors keeps drafts strong without rambling.
+  const namedCompetitors = args.competitors.slice(0, 4);
+  const remainingCompetitors = Math.max(0, args.competitors.length - 4);
 
   const evidence = {
     promptText: args.promptText,
@@ -71,7 +76,10 @@ async function callLovableAi(args: {
       actionType: args.opening.action_type,
       rationale: args.opening.rationale,
       recommendedEngagement: args.opening.recommended_engagement,
-      competitor: args.opening.competitor,
+      // ONE post can target many competitors at once — name them all in the draft.
+      competitors: namedCompetitors,
+      additionalCompetitors:
+        remainingCompetitors > 0 ? `and ${remainingCompetitors} others` : null,
     },
     source: args.source
       ? {
