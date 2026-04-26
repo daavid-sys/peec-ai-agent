@@ -343,7 +343,7 @@ function QueuePage() {
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         {/* Task card */}
         <div className="relative">
-          <div className="relative min-h-[600px] overflow-hidden rounded-xl border border-border bg-secondary/30 p-4 sm:p-6">
+          <div className="relative min-h-[600px] overflow-hidden rounded-xl border border-border bg-secondary/30 p-3 sm:p-6">
             <AnimatePresence mode="wait" custom={direction} initial={false}>
               <motion.div
                 key={current.id}
