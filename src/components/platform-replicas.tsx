@@ -1,6 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useEffect } from "react";
+import { createContext, useContext, useEffect } from "react";
 import {
   ArrowBigUp,
   ArrowBigDown,
@@ -30,30 +30,37 @@ type Props = {
   cps?: number;
   onDone?: () => void;
   ownBrand: OwnBrandInfo;
+  showCaret?: boolean;
 };
 
+const CaretContext = createContext<boolean>(true);
+
 export function PlatformReplica(props: Props) {
-  switch (props.draft.channel) {
-    case "reddit":
-      return <RedditReplica {...props} />;
-    case "linkedin":
-      return <LinkedInReplica {...props} />;
-    case "medium":
-    case "editorial":
-      return <EditorialReplica {...props} />;
-    case "twitter":
-      return <TwitterReplica {...props} />;
-    case "youtube":
-      return <YouTubeReplica {...props} />;
-    case "listicle":
-      return <ListicleReplica {...props} />;
-    case "comparison":
-      return <ComparisonReplica {...props} />;
-    case "owned":
-      return <OwnedReplica {...props} />;
-    default:
-      return <GenericReplica {...props} />;
-  }
+  const { showCaret = true, ...rest } = props;
+  const inner = (() => {
+    switch (props.draft.channel) {
+      case "reddit":
+        return <RedditReplica {...rest} />;
+      case "linkedin":
+        return <LinkedInReplica {...rest} />;
+      case "medium":
+      case "editorial":
+        return <EditorialReplica {...rest} />;
+      case "twitter":
+        return <TwitterReplica {...rest} />;
+      case "youtube":
+        return <YouTubeReplica {...rest} />;
+      case "listicle":
+        return <ListicleReplica {...rest} />;
+      case "comparison":
+        return <ComparisonReplica {...rest} />;
+      case "owned":
+        return <OwnedReplica {...rest} />;
+      default:
+        return <GenericReplica {...rest} />;
+    }
+  })();
+  return <CaretContext.Provider value={showCaret}>{inner}</CaretContext.Provider>;
 }
 
 function useTyped(draft: StudioDraft, cps: number, onDone?: () => void) {
@@ -136,6 +143,7 @@ function TypedMarkdown({
   className?: string;
   showCaret?: boolean;
 }) {
+  const caretEnabled = useContext(CaretContext);
   return (
     <div className={cn("prose prose-zinc max-w-none", className)}>
       <ReactMarkdown
@@ -200,7 +208,7 @@ function TypedMarkdown({
       >
         {text}
       </ReactMarkdown>
-      {showCaret && <Caret />}
+      {showCaret && caretEnabled && <Caret />}
     </div>
   );
 }

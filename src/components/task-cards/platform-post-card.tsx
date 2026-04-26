@@ -22,7 +22,7 @@ export function PlatformPostCard({
 
   return (
     <div className="space-y-3">
-      <PlatformReplica draft={draft} cps={9999} onDone={() => {}} ownBrand={ownBrand} />
+      <PlatformReplica draft={draft} cps={9999} onDone={() => {}} ownBrand={ownBrand} showCaret={false} />
       <div className="flex flex-wrap gap-2">
         {draft.source.url && (
           <Button asChild variant="secondary" className="gap-1.5">
