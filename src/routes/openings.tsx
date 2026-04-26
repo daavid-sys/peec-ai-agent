@@ -202,7 +202,7 @@ function OpeningsPage() {
       </h1>
 
       <div className="mt-6">
-        <PromptRowCard text={promptText} row={promptRow} />
+        <PromptHeaderCard text={promptText} row={promptRow} />
       </div>
 
       {!loading && allOpenings.length > 0 && (
