@@ -484,7 +484,7 @@ function SideContext({
                 </span>
                 <Favicon
                   name={d.source.domain ?? d.channelLabel}
-                  kind="domain"
+                  kind="brand"
                   size={14}
                   className="flex-shrink-0 rounded-sm"
                 />
