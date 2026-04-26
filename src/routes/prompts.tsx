@@ -5,20 +5,15 @@ import {
   Check,
   Sparkles,
   TrendingDown,
-  Search as SearchIcon,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { ScoreBar } from "@/components/score-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Favicon } from "@/components/favicon";
 import { store, useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { demoOpenings } from "@/lib/demo-data";
-import type { Opening, PromptOpportunity } from "@/lib/types";
+import type { Opening } from "@/lib/types";
 import {
   getPromptBrandMetrics,
   type PromptBrandMetric,
@@ -44,7 +39,7 @@ function PromptsPage() {
   const project = useAppStore((s) => s.project);
   const selectedId = useAppStore((s) => s.selectedPromptId);
   const navigate = useNavigate();
-  const [query, setQuery] = useState("");
+  
 
   if (!project || prompts.length === 0) {
     return (
@@ -131,12 +126,6 @@ function PromptsPage() {
     };
   }, [selected.id]);
 
-  const filteredPrompts = useMemo(() => {
-    if (!query) return prompts;
-    return prompts.filter((p) =>
-      p.text.toLowerCase().includes(query.toLowerCase()),
-    );
-  }, [prompts, query]);
 
   const startFlow = () => {
     store.selectPrompt(selected.id);
@@ -302,80 +291,6 @@ function PromptsPage() {
         />
       </div>
     </div>
-  );
-}
-
-function PromptRow({
-  prompt,
-  active,
-  isOwn,
-  onSelect,
-}: {
-  prompt: PromptOpportunity;
-  active: boolean;
-  isOwn: (b: string) => boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <li>
-      <button
-        onClick={onSelect}
-        className={cn(
-          "flex w-full items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-muted/40",
-          active && "bg-muted/60",
-        )}
-      >
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            {active && (
-              <Badge className="h-5 gap-1 bg-foreground px-1.5 text-[10px] text-background">
-                <Sparkles className="h-3 w-3" /> Selected
-              </Badge>
-            )}
-            <span className="truncate text-sm font-medium text-foreground">
-              {prompt.text}
-            </span>
-          </div>
-          <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <Favicon name={prompt.topCompetitor} kind="brand" size={10} />
-              top: {prompt.topCompetitor} {prompt.topCompetitorVisibility}%
-            </span>
-            <span>·</span>
-            <span>{prompt.openingsFound} openings</span>
-            <span>·</span>
-            <span>{prompt.hiddenQuestionsFound} fanouts</span>
-          </div>
-        </div>
-
-        <div className="hidden w-24 sm:block">
-          <div className="mb-1 flex items-center justify-between text-[10px] font-mono text-muted-foreground">
-            <span>your viz</span>
-            <span>{prompt.ownVisibility}%</span>
-          </div>
-          <ScoreBar
-            value={prompt.ownVisibility}
-            tone={isOwn(prompt.topCompetitor) ? "primary" : "destructive"}
-          />
-        </div>
-
-        <div className="hidden w-32 text-right sm:block">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            Opp. score
-          </div>
-          <div className="font-mono text-base font-semibold tabular-nums">
-            {prompt.opportunityScore}
-          </div>
-        </div>
-
-        <ChevronRight
-          className={cn(
-            "h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform",
-            active && "translate-x-0.5 text-foreground",
-          )}
-        />
-      </button>
-    </li>
   );
 }
 
