@@ -239,11 +239,6 @@ function OpeningsPage() {
         )}
       </div>
 
-      <div className="mt-8">
-        <Button variant="ghost" asChild>
-          <Link to="/prompts">← Back to prompts</Link>
-        </Button>
-      </div>
     </div>
   );
 }
