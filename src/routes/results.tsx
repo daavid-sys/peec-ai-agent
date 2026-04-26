@@ -174,7 +174,7 @@ function ResultsPage() {
           to="/prompts"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          Go back to Openings <ArrowUpRight className="h-3.5 w-3.5" />
+          Go back to Agent <ArrowUpRight className="h-3.5 w-3.5" />
         </Link>
       </div>
 
