@@ -141,10 +141,9 @@ export function QfosTable({
         ) : (
           <>
             <ul className="divide-y divide-border">
-              {visibleQfos.map((q, idx) => (
+              {visibleQfos.map((q) => (
                 <li
                   key={q.id}
-                  ref={idx === 0 ? rowRef : undefined}
                   className="grid grid-cols-[110px_minmax(0,1fr)_48px] items-center gap-2 px-4 py-3 text-sm"
                 >
                   <div className="flex items-center gap-2 text-muted-foreground">
