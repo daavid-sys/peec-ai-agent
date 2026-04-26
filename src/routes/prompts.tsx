@@ -219,20 +219,9 @@ function PromptsPage() {
               ownBrandName={project.ownBrand.name}
             />
 
-            {selected.hiddenQuestions && selected.hiddenQuestions.length > 0 && (
-              <>
-                <div className="mt-7 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Query fanouts AI engines run
-                </div>
-                <ul className="mt-3 space-y-1.5">
-                  {selected.hiddenQuestions.map((q) => (
-                    <li key={q} className="text-sm text-foreground">
-                      · {q}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
+            <div className="mt-7">
+              <QfosTable qfos={qfos} loading={qfosLoading} />
+            </div>
           </div>
         </div>
       </Card>
