@@ -406,7 +406,7 @@ function Stat({
   );
 }
 
-function Mini({ label, value }: { label: string; value: number }) {
+function Mini({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-md border border-border bg-background px-3 py-2">
       <div className="text-[11px] text-muted-foreground">{label}</div>
