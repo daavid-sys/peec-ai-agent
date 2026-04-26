@@ -42,6 +42,7 @@ export type ActionPlanQfo = {
   id: string;
   query_text: string;
   model_id: string | null;
+  occurrence_count: number;
 };
 
 export type ActionPlan = {
@@ -84,8 +85,9 @@ export const getActionPlan = createServerFn({ method: "GET" })
           .order("retrieval_count", { ascending: false }),
         supabaseAdmin
           .from("prompt_qfos")
-          .select("id, query_text, model_id")
-          .eq("prompt_id", promptId),
+          .select("id, query_text, model_id, occurrence_count")
+          .eq("prompt_id", promptId)
+          .order("occurrence_count", { ascending: false }),
         supabaseAdmin.from("source_scrapes").select("source_id, status"),
         supabaseAdmin
           .from("competitor_mentions")
@@ -187,6 +189,7 @@ export const getActionPlan = createServerFn({ method: "GET" })
         id: q.id,
         query_text: q.query_text,
         model_id: q.model_id,
+        occurrence_count: q.occurrence_count ?? 1,
       })),
       openings: allOpenings,
       summary: {

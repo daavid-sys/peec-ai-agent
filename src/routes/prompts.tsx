@@ -23,6 +23,11 @@ import {
   getPromptBrandMetrics,
   type PromptBrandMetric,
 } from "@/lib/server/get-prompt-brand-metrics";
+import {
+  getPromptQfos,
+  type PromptQfo,
+} from "@/lib/server/get-prompt-qfos";
+import { QfosTable } from "@/components/qfos-table";
 
 export const Route = createFileRoute("/prompts")({
   head: () => ({ meta: [{ title: "Recommended Prompt — Peec AI Openings" }] }),
@@ -60,10 +65,14 @@ function PromptsPage() {
     null,
   );
   const [brandMetricsLoading, setBrandMetricsLoading] = useState(true);
+  const [qfos, setQfos] = useState<PromptQfo[] | null>(null);
+  const [qfosLoading, setQfosLoading] = useState(true);
   useEffect(() => {
     let cancelled = false;
     setBrandMetricsLoading(true);
     setBrandMetrics(null);
+    setQfosLoading(true);
+    setQfos(null);
     getPromptBrandMetrics({ data: { promptId: selected.id } })
       .then((rows) => {
         if (cancelled) return;
@@ -76,6 +85,19 @@ function PromptsPage() {
       .finally(() => {
         if (cancelled) return;
         setBrandMetricsLoading(false);
+      });
+    getPromptQfos({ data: { promptId: selected.id } })
+      .then((rows) => {
+        if (cancelled) return;
+        setQfos(rows);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setQfos([]);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setQfosLoading(false);
       });
     return () => {
       cancelled = true;
@@ -197,20 +219,9 @@ function PromptsPage() {
               ownBrandName={project.ownBrand.name}
             />
 
-            {selected.hiddenQuestions && selected.hiddenQuestions.length > 0 && (
-              <>
-                <div className="mt-7 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Query fanouts AI engines run
-                </div>
-                <ul className="mt-3 space-y-1.5">
-                  {selected.hiddenQuestions.map((q) => (
-                    <li key={q} className="text-sm text-foreground">
-                      · {q}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
+            <div className="mt-7">
+              <QfosTable qfos={qfos} loading={qfosLoading} />
+            </div>
           </div>
         </div>
       </Card>
