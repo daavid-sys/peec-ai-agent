@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAppStore } from "@/lib/store";
+import { Favicon } from "@/components/favicon";
 
 export const Route = createFileRoute("/project")({
   head: () => ({
@@ -43,7 +44,8 @@ function ProjectPage() {
 
       <Card className="mt-8 divide-y divide-border border-border bg-card p-0">
         <Row icon={Building2} label="Own brand">
-          <Badge variant="outline" className="font-medium">
+          <Badge variant="outline" className="gap-1.5 font-medium">
+            <Favicon name={project.ownBrand.name} kind="brand" size={14} />
             {project.ownBrand.name}
           </Badge>
           {project.ownBrand.domain && (
@@ -55,7 +57,8 @@ function ProjectPage() {
         <Row icon={Users} label="Competitors">
           <div className="flex flex-wrap gap-1.5">
             {project.competitors.map((c) => (
-              <Badge key={c.name} variant="outline" className="font-medium">
+              <Badge key={c.name} variant="outline" className="gap-1.5 font-medium">
+                <Favicon name={c.name} kind="brand" size={14} />
                 {c.name}
               </Badge>
             ))}
@@ -66,8 +69,9 @@ function ProjectPage() {
             {project.models.map((m) => (
               <span
                 key={m}
-                className="rounded-md border border-border bg-background px-2 py-0.5 text-xs text-foreground"
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-0.5 text-xs text-foreground"
               >
+                <Favicon name={m} kind="model" size={14} />
                 {m}
               </span>
             ))}
