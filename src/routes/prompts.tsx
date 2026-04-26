@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ScoreBar } from "@/components/score-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Favicon } from "@/components/favicon";
 import { store, useAppStore } from "@/lib/store";
