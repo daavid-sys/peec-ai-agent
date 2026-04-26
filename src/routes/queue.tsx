@@ -1,262 +1,447 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Check, Copy, ExternalLink, Send } from "lucide-react";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowRight,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Globe,
+  Loader2,
+  Mail,
+  RefreshCw,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { store, useAppStore } from "@/lib/store";
-import type { Engagement } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Favicon } from "@/components/favicon";
+import { useAppStore } from "@/lib/store";
+import {
+  getStudioDrafts,
+  type StudioDraft,
+  type StudioDraftsResponse,
+} from "@/lib/server/get-studio-drafts";
+import { classifyTask, getTaskTitle, type TaskType } from "@/lib/task-type";
+import { EmailPitchCard } from "@/components/task-cards/email-pitch-card";
+import { CmsPublishCard } from "@/components/task-cards/cms-publish-card";
+import { PlatformPostCard } from "@/components/task-cards/platform-post-card";
 
 export const Route = createFileRoute("/queue")({
-  head: () => ({ meta: [{ title: "Approval Queue — Peec AI Openings" }] }),
+  head: () => ({ meta: [{ title: "Review & publish — Peec AI Openings" }] }),
   component: QueuePage,
 });
 
-const columns = [
-  { key: "ready", title: "Ready to publish", desc: "Owned channels — approved & safe" },
-  {
-    key: "ready_to_submit",
-    title: "Ready to submit",
-    desc: "Third-party site — file exported & email drafted",
-  },
-  { key: "needs_input", title: "Needs input", desc: "Resolve before sending" },
-  { key: "blocked", title: "Blocked", desc: "Safety guardrail triggered" },
-] as const;
+const TASK_META: Record<
+  TaskType,
+  { label: string; icon: typeof Mail; tone: string }
+> = {
+  email_pitch: { label: "Email pitch", icon: Mail, tone: "var(--warning, #d97706)" },
+  cms_publish: { label: "Owned blog", icon: Globe, tone: "var(--primary)" },
+  platform_post: { label: "Platform post", icon: Sparkles, tone: "var(--success)" },
+};
 
-// Channels we own and can publish to directly. Anything else (guest posts on
-// salesforce.com, third-party blogs, partner sites, etc.) needs to be packaged
-// up and emailed to the site owner for review & publishing.
-const OWNED_DOMAINS = ["attio.com"];
-const OWNED_OPENING_TYPES: ReadonlyArray<string> = [
-  "Reddit comment opportunity",
-  "LinkedIn founder comment",
-  "FAQ/schema update",
-  "Community/forum reply",
-  "Owned comparison page",
-];
+function QueuePage() {
+  const selectedPromptId = useAppStore((s) => s.selectedPromptId);
+  const project = useAppStore((s) => s.project);
+  const fallbackPromptId = "pr_05a66669-478c-4b25-94bc-9119409e5e2f";
+  const promptId = selectedPromptId ?? fallbackPromptId;
+  const navigate = useNavigate();
 
-function isThirdPartySubmission(e: Engagement, sourceUrl?: string, openingType?: string) {
-  if (e.format === "pitch_email" || e.format === "creator_pitch") return true;
-  if (openingType && !OWNED_OPENING_TYPES.includes(openingType)) {
-    if (
-      openingType === "Blog/editorial update pitch" ||
-      openingType === "YouTube creator pitch" ||
-      openingType === "Review request campaign"
-    ) {
-      return true;
+  const ownBrand = useMemo(
+    () => ({
+      name: project?.ownBrand.name ?? "Attio",
+      domain: project?.ownBrand.domain ?? "attio.com",
+    }),
+    [project],
+  );
+
+  const [response, setResponse] = useState<StudioDraftsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [index, setIndex] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
+  const restoredRef = useRef(false);
+
+  const storageKey = `queue:progress:${promptId}`;
+
+  async function load() {
+    setLoading(true);
+    try {
+      const res = await getStudioDrafts({
+        data: { promptId, ownDomain: ownBrand.domain },
+      });
+      setResponse(res);
+    } finally {
+      setLoading(false);
     }
   }
-  if (sourceUrl) {
+
+  useEffect(() => {
+    setLoading(true);
+    setResponse(null);
+    setIndex(0);
+    setCompleted(new Set());
+    restoredRef.current = false;
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [promptId]);
+
+  // Restore progress from localStorage
+  useEffect(() => {
+    if (restoredRef.current) return;
+    if (!response || response.drafts.length === 0) return;
     try {
-      const host = new URL(sourceUrl).hostname.replace(/^www\./, "");
-      if (!OWNED_DOMAINS.some((d) => host === d || host.endsWith(`.${d}`))) {
-        // External host + a pitch-style opening means we need to submit, not publish
-        if (
-          openingType === "Blog/editorial update pitch" ||
-          openingType === "YouTube creator pitch" ||
-          openingType === "Review request campaign"
-        ) {
-          return true;
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const saved = JSON.parse(raw) as {
+          currentDraftId?: string;
+          completed?: string[];
+        };
+        if (saved.completed?.length) setCompleted(new Set(saved.completed));
+        if (saved.currentDraftId) {
+          const idx = response.drafts.findIndex(
+            (d) => d.id === saved.currentDraftId,
+          );
+          if (idx >= 0) setIndex(idx);
         }
       }
     } catch {
       /* ignore */
     }
+    restoredRef.current = true;
+  }, [response, storageKey]);
+
+  // Persist
+  useEffect(() => {
+    if (!restoredRef.current) return;
+    const drafts = response?.drafts ?? [];
+    const currentDraftId = drafts[index]?.id;
+    if (!currentDraftId) return;
+    try {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          currentDraftId,
+          completed: Array.from(completed),
+        }),
+      );
+    } catch {
+      /* ignore */
+    }
+  }, [index, completed, response, storageKey]);
+
+  const drafts = response?.drafts ?? [];
+  const total = drafts.length;
+  const current = drafts[index] ?? null;
+
+  // Pre-classify everything once
+  const classified = useMemo(
+    () =>
+      drafts.map((d) => ({
+        draft: d,
+        type: classifyTask(d, ownBrand.domain),
+      })),
+    [drafts, ownBrand.domain],
+  );
+
+  function next() {
+    if (!drafts.length) return;
+    setDirection(1);
+    setIndex((i) => Math.min(i + 1, drafts.length - 1));
   }
-  return false;
-}
+  function prev() {
+    if (!drafts.length) return;
+    setDirection(-1);
+    setIndex((i) => Math.max(i - 1, 0));
+  }
+  function markDone() {
+    if (!current) return;
+    const id = current.id;
+    setCompleted((s) => {
+      if (s.has(id)) return s;
+      const n = new Set(s);
+      n.add(id);
+      return n;
+    });
+    setIndex((i) => {
+      if (drafts[i]?.id !== id) return i;
+      if (i >= drafts.length - 1) return i;
+      setDirection(1);
+      return i + 1;
+    });
+  }
 
-function bucket(
-  e: Engagement,
-  sourceUrl?: string,
-  openingType?: string,
-): (typeof columns)[number]["key"] {
-  if (e.status === "blocked") return "blocked";
-  const hasFail = e.qualityChecks.some((c) => c.status === "fail");
-  if (hasFail) return "needs_input";
-  if (isThirdPartySubmission(e, sourceUrl, openingType)) return "ready_to_submit";
-  return "ready";
-}
+  // Keyboard nav
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drafts.length]);
 
-function QueuePage() {
-  const engagements = useAppStore((s) => s.engagements);
-  const openings = useAppStore((s) => s.openings);
-  const navigate = useNavigate();
-
-  if (!engagements.length) {
+  if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-20 text-center">
-        <p className="text-sm text-muted-foreground">Queue is empty.</p>
-        <Button asChild className="mt-4">
-          <Link to="/studio">Generate drafts</Link>
-        </Button>
+      <div className="mx-auto max-w-[1500px] px-6 py-10">
+        <Skeleton className="h-9 w-72" />
+        <Skeleton className="mt-8 h-[560px] w-full rounded-xl" />
       </div>
     );
   }
 
+  if (!current) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-20 text-center">
+        <Sparkles className="mx-auto h-8 w-8 text-primary" />
+        <h2 className="mt-3 text-xl font-semibold">Nothing to review yet</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {response?.pendingCount
+            ? `Agent is still drafting ${response.pendingCount} opening${response.pendingCount === 1 ? "" : "s"}…`
+            : "Generate drafts in the studio to populate your task queue."}
+        </p>
+        <div className="mt-5 flex justify-center gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/studio">Back to studio</Link>
+          </Button>
+          <Button onClick={() => void load()}>
+            <RefreshCw className="h-4 w-4" /> Refresh
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentEntry = classified[index];
+  const currentType = currentEntry.type;
+  const dynamicTitle = getTaskTitle(current, currentType, ownBrand.domain);
+  const TypeIcon = TASK_META[currentType].icon;
+
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10">
+    <div className="mx-auto w-full max-w-[1500px] px-6 py-8 2xl:px-10">
+      {/* Header */}
       <div className="flex items-center justify-between gap-6">
         <h1 className="text-3xl font-semibold tracking-tight">
           Review &amp; publish
         </h1>
-        <Button size="lg" onClick={() => navigate({ to: "/results" })}>
-          See results <ArrowRight className="h-4 w-4" />
+        <Button
+          size="lg"
+          className="h-14 shrink-0 px-8 text-base"
+          onClick={() => navigate({ to: "/results" })}
+        >
+          See results <ArrowRight className="h-5 w-5" />
         </Button>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-4">
-        {columns.map((col) => {
-          const items = engagements.filter((e) => {
-            const op = openings.find((o) => o.id === e.openingId);
-            return bucket(e, op?.sourceUrl, op?.openingType) === col.key;
-          });
-          return (
-            <div key={col.key}>
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-semibold">{col.title}</h2>
-                  <p className="text-xs text-muted-foreground">{col.desc}</p>
-                </div>
-                <Badge variant="outline" className="font-mono">
-                  {items.length}
-                </Badge>
-              </div>
-              <div className="space-y-3">
-                {items.length === 0 && (
-                  <Card className="border-dashed border-border bg-transparent p-5 text-center text-xs text-muted-foreground">
-                    Nothing here.
-                  </Card>
-                )}
-                {items.map((e) => {
-                  const opening = openings.find((o) => o.id === e.openingId);
-                  return (
-                    <Card key={e.id} className="border-border bg-card p-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                            {opening?.openingType}
-                          </div>
-                          <h3 className="mt-1 truncate text-sm font-semibold">
-                            {e.title}
-                          </h3>
-                        </div>
-                      </div>
-
-                      {opening && (
-                        <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-                          <a
-                            href={opening.sourceUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 truncate font-mono hover:text-primary"
-                          >
-                            {new URL(opening.sourceUrl).hostname}
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
-                          <span className="font-mono">
-                            Impact {opening.impactScore}
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="mt-3 flex flex-wrap gap-1">
-                        {e.targetQuestions.slice(0, 2).map((q) => (
-                          <span
-                            key={q}
-                            className="rounded bg-secondary px-1.5 py-0.5 text-[10px] text-muted-foreground"
-                          >
-                            {q}
-                          </span>
-                        ))}
-                      </div>
-
-                      {col.key === "ready_to_submit" && opening && (
-                        <div className="mt-3 rounded-md border border-dashed border-border bg-muted/30 p-2 text-[11px] text-muted-foreground">
-                          Submit to{" "}
-                          <span className="font-mono text-foreground">
-                            {new URL(opening.sourceUrl).hostname.replace(/^www\./, "")}
-                          </span>{" "}
-                          editorial team — we don&rsquo;t own this domain.
-                        </div>
-                      )}
-
-                      <div className="mt-4 flex flex-wrap gap-1.5">
-                        {col.key === "ready" && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => {
-                                navigator.clipboard.writeText(e.draft);
-                                toast.success("Copied");
-                              }}
-                            >
-                              <Copy className="h-3 w-3" /> Copy
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                store.updateEngagementStatus(e.id, "sent");
-                                toast.success("Marked as sent");
-                              }}
-                            >
-                              <Send className="h-3 w-3" /> Mark sent
-                            </Button>
-                          </>
-                        )}
-                        {col.key === "ready_to_submit" && (
-                          <Button
-                            size="sm"
-                            onClick={() =>
-                              navigate({
-                                to: "/queue/draft/$id",
-                                params: { id: e.id },
-                              })
-                            }
-                          >
-                            <ExternalLink className="h-3 w-3" /> Open draft
-                          </Button>
-                        )}
-                        {col.key === "needs_input" && (
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => {
-                              navigator.clipboard.writeText(e.draft);
-                              toast.success("Copied");
-                            }}
-                          >
-                            <Copy className="h-3 w-3" /> Copy
-                          </Button>
-                        )}
-                        {col.key === "blocked" && (
-                          <Badge
-                            variant="outline"
-                            style={{
-                              color: "var(--destructive)",
-                              borderColor:
-                                "color-mix(in oklab, var(--destructive) 30%, transparent)",
-                            }}
-                          >
-                            Action required offline
-                          </Badge>
-                        )}
-                        {e.status === "sent" && (
-                          <Badge variant="outline" className="gap-1">
-                            <Check className="h-3 w-3" />{" "}
-                            {col.key === "ready_to_submit" ? "Submitted" : "Sent"}
-                          </Badge>
-                        )}
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+      {/* Progress strip */}
+      <div className="mt-6 flex items-center gap-4">
+        <div className="text-xs font-medium tabular-nums text-muted-foreground">
+          <span className="text-foreground">{Math.min(index + 1, total)}</span>
+          <span className="text-border"> / </span>
+          {total}
+          <span className="ml-2 text-success">{completed.size} done</span>
+          {response && response.pendingCount > 0 && (
+            <span className="ml-2 inline-flex items-center gap-1 text-muted-foreground/70">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              {response.pendingCount} drafting
+            </span>
+          )}
+        </div>
+        <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+          <div
+            className="absolute inset-y-0 left-0 bg-primary transition-[width] duration-500"
+            style={{ width: `${Math.round(((index + 1) / Math.max(total, 1)) * 100)}%` }}
+          />
+        </div>
       </div>
+
+      {/* Stage */}
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        {/* Task card */}
+        <div className="relative">
+          <div className="relative min-h-[600px] overflow-hidden rounded-xl border border-border bg-secondary/30 p-4 sm:p-6">
+            <AnimatePresence mode="wait" custom={direction} initial={false}>
+              <motion.div
+                key={current.id}
+                custom={direction}
+                initial={{ x: direction === 1 ? "60%" : "-60%", opacity: 0, scale: 0.97 }}
+                animate={{ x: 0, opacity: 1, scale: 1 }}
+                exit={{ x: direction === 1 ? "-60%" : "60%", opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.32, ease: [0.32, 0.72, 0.24, 1] }}
+                className="w-full space-y-4"
+              >
+                {/* Dynamic task title */}
+                <div className="flex items-start gap-3">
+                  <span
+                    className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                    style={{
+                      backgroundColor: `color-mix(in oklab, ${TASK_META[currentType].tone} 15%, transparent)`,
+                      color: TASK_META[currentType].tone,
+                    }}
+                  >
+                    <TypeIcon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                      Task · {TASK_META[currentType].label}
+                    </div>
+                    <h2 className="mt-0.5 text-lg font-semibold leading-tight tracking-tight text-foreground sm:text-xl">
+                      {dynamicTitle}
+                    </h2>
+                  </div>
+                </div>
+
+                {/* Action card */}
+                {currentType === "email_pitch" && (
+                  <EmailPitchCard draft={current} ownBrand={ownBrand} onDone={markDone} />
+                )}
+                {currentType === "cms_publish" && (
+                  <CmsPublishCard draft={current} ownBrand={ownBrand} onDone={markDone} />
+                )}
+                {currentType === "platform_post" && (
+                  <PlatformPostCard
+                    draft={current}
+                    ownBrand={ownBrand}
+                    onDone={markDone}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Side nav */}
+            <button
+              onClick={prev}
+              disabled={index === 0}
+              className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/90 text-foreground shadow-sm backdrop-blur transition disabled:opacity-30 hover:bg-background"
+              aria-label="Previous task"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={next}
+              disabled={index >= drafts.length - 1}
+              className="absolute right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/90 text-foreground shadow-sm backdrop-blur transition disabled:opacity-30 hover:bg-background"
+              aria-label="Next task"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Thumbnail rail */}
+          <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
+            {classified.map(({ draft: d, type }, i) => {
+              const isCurrent = i === index;
+              const isCompleted = completed.has(d.id);
+              const Icon = TASK_META[type].icon;
+              return (
+                <button
+                  key={d.id}
+                  onClick={() => {
+                    setDirection(i > index ? 1 : -1);
+                    setIndex(i);
+                  }}
+                  className={`group flex flex-shrink-0 items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] transition ${
+                    isCurrent
+                      ? "border-primary bg-primary-soft text-foreground"
+                      : isCompleted
+                        ? "border-success/40 bg-success/5 text-foreground"
+                        : "border-border bg-card text-muted-foreground"
+                  }`}
+                  title={getTaskTitle(d, type, ownBrand.domain)}
+                >
+                  <Icon
+                    className="h-3 w-3"
+                    style={{ color: TASK_META[type].tone }}
+                  />
+                  <span className="max-w-[140px] truncate">
+                    {TASK_META[type].label} · {d.source.domain ?? d.channelLabel}
+                  </span>
+                  {isCompleted && <Check className="h-3 w-3 text-success" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Side panel */}
+        <SidePanel draft={current} type={currentType} ownDomain={ownBrand.domain} />
+      </div>
+    </div>
+  );
+}
+
+function SidePanel({
+  draft,
+  type,
+  ownDomain,
+}: {
+  draft: StudioDraft;
+  type: TaskType;
+  ownDomain: string;
+}) {
+  return (
+    <div className="space-y-3">
+      <Card className="border-border p-4">
+        <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          Why this task
+        </div>
+        <p className="mt-1.5 text-sm">{draft.brief}</p>
+      </Card>
+
+      {draft.competitors.length > 0 && (
+        <Card className="border-border p-4">
+          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            Targeting
+          </div>
+          <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1.5 text-xs">
+            {draft.competitors.slice(0, 6).map((c) => (
+              <span key={c} className="inline-flex items-center gap-1">
+                <Favicon name={c} kind="brand" size={12} className="rounded-sm" />
+                <span className="font-mono text-foreground">{c}</span>
+              </span>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {draft.source.url && (
+        <Card className="border-border p-4">
+          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            {type === "cms_publish" ? "Target page" : "Cited source"}
+          </div>
+          <a
+            href={draft.source.url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 flex items-start gap-1 text-sm font-medium hover:text-primary"
+          >
+            <span className="line-clamp-2">
+              {draft.source.title ?? draft.source.url}
+            </span>
+            <ExternalLink className="mt-0.5 h-3 w-3 shrink-0 opacity-60" />
+          </a>
+          {draft.source.excerpt && (
+            <p className="mt-2 text-xs italic text-muted-foreground line-clamp-3">
+              &ldquo;{draft.source.excerpt}&rdquo;
+            </p>
+          )}
+        </Card>
+      )}
+
+      <Card className="border-border p-4 text-[11px] text-muted-foreground">
+        <span className="font-medium text-foreground">Tip:</span> use{" "}
+        <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px]">
+          ←
+        </kbd>{" "}
+        <kbd className="rounded border border-border bg-muted px-1 py-0.5 font-mono text-[10px]">
+          →
+        </kbd>{" "}
+        to swipe through tasks. Your own domain for this run is{" "}
+        <span className="font-mono text-foreground">{ownDomain}</span>.
+      </Card>
     </div>
   );
 }
