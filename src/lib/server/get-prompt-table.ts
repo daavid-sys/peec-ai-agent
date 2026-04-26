@@ -13,6 +13,9 @@ export type PromptTableRow = {
   share_of_voice: number | null; // 0-100
   // distinct AI engines that returned mentions of any tracked brand for this prompt
   model_ids: string[];
+  // competitor brands actually mentioned in answers for this prompt, ordered
+  // by mention_count desc. Excludes the own brand. Used to render brand logos.
+  mentioned_competitors: { name: string; mention_count: number }[];
 };
 
 export const getPromptTable = createServerFn({ method: "GET" }).handler(
