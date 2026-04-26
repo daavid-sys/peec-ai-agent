@@ -15,6 +15,7 @@ import { Route as QueueRouteImport } from './routes/queue'
 import { Route as PromptsRouteImport } from './routes/prompts'
 import { Route as OpeningsRouteImport } from './routes/openings'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiAnalyzePromptRouteImport } from './routes/api/analyze-prompt'
 import { Route as ApiTavilyExtractRouteImport } from './routes/api/tavily/extract'
 import { Route as ApiPeecToolRouteImport } from './routes/api/peec.$tool'
 import { Route as ApiAgentsGenerateEngagementsRouteImport } from './routes/api/agents/generate-engagements'
@@ -50,6 +51,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAnalyzePromptRoute = ApiAnalyzePromptRouteImport.update({
+  id: '/api/analyze-prompt',
+  path: '/api/analyze-prompt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiTavilyExtractRoute = ApiTavilyExtractRouteImport.update({
   id: '/api/tavily/extract',
   path: '/api/tavily/extract',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/queue': typeof QueueRoute
   '/results': typeof ResultsRoute
   '/studio': typeof StudioRoute
+  '/api/analyze-prompt': typeof ApiAnalyzePromptRoute
   '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
   '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
   '/api/peec/$tool': typeof ApiPeecToolRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/queue': typeof QueueRoute
   '/results': typeof ResultsRoute
   '/studio': typeof StudioRoute
+  '/api/analyze-prompt': typeof ApiAnalyzePromptRoute
   '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
   '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
   '/api/peec/$tool': typeof ApiPeecToolRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/queue': typeof QueueRoute
   '/results': typeof ResultsRoute
   '/studio': typeof StudioRoute
+  '/api/analyze-prompt': typeof ApiAnalyzePromptRoute
   '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
   '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
   '/api/peec/$tool': typeof ApiPeecToolRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/queue'
     | '/results'
     | '/studio'
+    | '/api/analyze-prompt'
     | '/api/agents/find-openings'
     | '/api/agents/generate-engagements'
     | '/api/peec/$tool'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/queue'
     | '/results'
     | '/studio'
+    | '/api/analyze-prompt'
     | '/api/agents/find-openings'
     | '/api/agents/generate-engagements'
     | '/api/peec/$tool'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/queue'
     | '/results'
     | '/studio'
+    | '/api/analyze-prompt'
     | '/api/agents/find-openings'
     | '/api/agents/generate-engagements'
     | '/api/peec/$tool'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   QueueRoute: typeof QueueRoute
   ResultsRoute: typeof ResultsRoute
   StudioRoute: typeof StudioRoute
+  ApiAnalyzePromptRoute: typeof ApiAnalyzePromptRoute
   ApiAgentsFindOpeningsRoute: typeof ApiAgentsFindOpeningsRoute
   ApiAgentsGenerateEngagementsRoute: typeof ApiAgentsGenerateEngagementsRoute
   ApiPeecToolRoute: typeof ApiPeecToolRoute
@@ -205,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/analyze-prompt': {
+      id: '/api/analyze-prompt'
+      path: '/api/analyze-prompt'
+      fullPath: '/api/analyze-prompt'
+      preLoaderRoute: typeof ApiAnalyzePromptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/tavily/extract': {
       id: '/api/tavily/extract'
       path: '/api/tavily/extract'
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   QueueRoute: QueueRoute,
   ResultsRoute: ResultsRoute,
   StudioRoute: StudioRoute,
+  ApiAnalyzePromptRoute: ApiAnalyzePromptRoute,
   ApiAgentsFindOpeningsRoute: ApiAgentsFindOpeningsRoute,
   ApiAgentsGenerateEngagementsRoute: ApiAgentsGenerateEngagementsRoute,
   ApiPeecToolRoute: ApiPeecToolRoute,

@@ -1,385 +1,372 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import {
-  ArrowRight,
-  ExternalLink,
-  Lock,
-  ShieldAlert,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { ExternalLink, Loader2, RefreshCw, Sparkles, Target, MessageSquare, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { ScoreBar } from "@/components/score-bar";
 import { Favicon } from "@/components/favicon";
-import { store, useAppStore } from "@/lib/store";
-import type { Opening } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { useAppStore } from "@/lib/store";
+import { getActionPlan, type ActionPlan } from "@/lib/server/get-action-plan";
 
 export const Route = createFileRoute("/openings")({
-  head: () => ({ meta: [{ title: "Openings Map — Peec AI Openings" }] }),
+  head: () => ({ meta: [{ title: "Action Plan — Peec AI Openings" }] }),
+  loader: async () => {
+    // We can't read selected prompt at SSR time, return empty; fetch on client.
+    return { initial: null as ActionPlan | null };
+  },
   component: OpeningsPage,
 });
 
 function OpeningsPage() {
-  const openings = useAppStore((s) => s.openings);
-  const selectedId = useAppStore((s) => s.selectedOpeningId);
-  const prompts = useAppStore((s) => s.prompts);
   const selectedPromptId = useAppStore((s) => s.selectedPromptId);
-  const navigate = useNavigate();
-  const selected = openings.find((o) => o.id === selectedId) ?? openings[0];
-  const prompt = prompts.find((p) => p.id === selectedPromptId);
+  const prompts = useAppStore((s) => s.prompts);
+  const fallbackPromptId = "pr_05a66669-478c-4b25-94bc-9119409e5e2f";
+  const promptId = selectedPromptId ?? fallbackPromptId;
+  const localPrompt = prompts.find((p) => p.id === promptId);
 
-  if (!openings.length) {
-    return (
-      <div className="mx-auto max-w-3xl px-6 py-20 text-center">
-        <p className="text-sm text-muted-foreground">No openings loaded yet.</p>
-        <Button asChild className="mt-4">
-          <Link to="/prompts">Pick a prompt</Link>
-        </Button>
-      </div>
-    );
+  const [plan, setPlan] = useState<ActionPlan | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getActionPlan({ data: { promptId } });
+      setPlan(res);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const summary = {
-    sources: openings.length,
-    hiddenQs: new Set(openings.flatMap((o) => o.influencedQuestions)).size,
-    openings: openings.length,
-    ready: openings.filter((o) => o.status === "ready").length,
-    blocked: openings.filter((o) => o.status === "blocked").length,
-  };
+  async function runAnalyze() {
+    setAnalyzing(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/analyze-prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promptId, maxSources: 6 }),
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setAnalyzing(false);
+    }
+  }
+
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [promptId]);
+
+  const promptText = plan?.prompt?.text ?? localPrompt?.text ?? "Selected prompt";
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
-        Step 2 · Openings Map
+        Action Plan
       </div>
-      <h1 className="text-3xl font-semibold tracking-tight">
-        Openings found for: <span className="text-primary">&ldquo;{prompt?.text}&rdquo;</span>
-      </h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        We scraped each cited source via Peec MCP get_url_content (Tavily
-        fallback) and asked Gemini to detect safe engagement openings.
-      </p>
-
-      <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-5">
-        <SummaryCard label="Sources AI reads" value={summary.sources} />
-        <SummaryCard label="Hidden questions" value={summary.hiddenQs} />
-        <SummaryCard label="Openings found" value={summary.openings} accent />
-        <SummaryCard label="Ready to approve" value={summary.ready} tone="success" />
-        <SummaryCard label="Blocked for safety" value={summary.blocked} tone="destructive" />
+      <div className="flex items-start justify-between gap-6">
+        <div className="min-w-0">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            <span className="text-primary">&ldquo;{promptText}&rdquo;</span>
+          </h1>
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+            Every source the AI engines retrieved for this prompt — pulled from real Peec data.
+            Sources where competitors are mentioned but your brand isn&rsquo;t are scraped via Tavily,
+            then analysed to find the exact passage and a fast way to insert your brand.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => void load()} disabled={loading}>
+            <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+            Refresh
+          </Button>
+          <Button size="sm" onClick={() => void runAnalyze()} disabled={analyzing}>
+            {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {analyzing ? "Scraping & analysing…" : "Run analysis"}
+          </Button>
+        </div>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_1fr]">
-        {/* Left: opening cards */}
-        <div className="space-y-3">
-          {openings.map((o) => (
-            <OpeningCard
-              key={o.id}
-              opening={o}
-              selected={o.id === selected?.id}
-              onClick={() => store.selectOpening(o.id)}
-            />
-          ))}
+      {error && (
+        <div className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+          {error}
         </div>
+      )}
 
-        {/* Right: source x-ray */}
-        <div className="lg:sticky lg:top-20 lg:self-start">
-          {selected && <SourceXRay opening={selected} />}
-          {selected && (
-            <div className="mt-4 flex justify-end">
-              <Button
-                size="lg"
-                disabled={selected.status === "blocked"}
-                onClick={() => navigate({ to: "/studio" })}
-              >
-                Generate engagement <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </div>
+      <SummaryStrip plan={plan} loading={loading} />
+
+      <Tabs defaultValue="sources" className="mt-8">
+        <TabsList>
+          <TabsTrigger value="sources">
+            <Search className="h-3.5 w-3.5" /> Sources ({plan?.sources.length ?? 0})
+          </TabsTrigger>
+          <TabsTrigger value="competitors">
+            <Target className="h-3.5 w-3.5" /> Competitors
+          </TabsTrigger>
+          <TabsTrigger value="qfos">
+            <MessageSquare className="h-3.5 w-3.5" /> QFOs ({plan?.qfos.length ?? 0})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="sources" className="mt-4">
+          <SourcesTab plan={plan} loading={loading} />
+        </TabsContent>
+        <TabsContent value="competitors" className="mt-4">
+          <CompetitorsTab plan={plan} />
+        </TabsContent>
+        <TabsContent value="qfos" className="mt-4">
+          <QfosTab plan={plan} />
+        </TabsContent>
+      </Tabs>
+
+      <div className="mt-6">
+        <Button variant="ghost" asChild>
+          <Link to="/prompts">← Back to prompts</Link>
+        </Button>
       </div>
     </div>
   );
 }
 
-function SummaryCard({
-  label,
-  value,
-  accent,
-  tone,
-}: {
-  label: string;
-  value: number;
-  accent?: boolean;
-  tone?: "success" | "destructive";
-}) {
+function SummaryStrip({ plan, loading }: { plan: ActionPlan | null; loading: boolean }) {
+  const s = plan?.summary;
+  const items = [
+    { label: "Sources AI reads", value: s?.total_sources ?? 0 },
+    { label: "Gap sources", value: s?.gap_sources ?? 0 },
+    { label: "Pages scraped", value: s?.scraped ?? 0 },
+    { label: "Competitor mentions", value: s?.competitor_mentions ?? 0 },
+    { label: "Openings generated", value: s?.openings ?? 0, accent: true },
+  ];
   return (
-    <Card
-      className={cn(
-        "border-border bg-card p-4",
-        accent && "border-primary/30 bg-primary-soft",
-      )}
-    >
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div
-        className="mt-1 text-2xl font-semibold tabular-nums"
-        style={
-          tone === "success"
-            ? { color: "var(--success)" }
-            : tone === "destructive"
-              ? { color: "var(--destructive)" }
-              : undefined
-        }
-      >
-        {value}
-      </div>
-    </Card>
-  );
-}
-
-function OpeningCard({
-  opening,
-  selected,
-  onClick,
-}: {
-  opening: Opening;
-  selected: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "block w-full rounded-lg border bg-card p-5 text-left transition-all hover:border-primary/40 hover:shadow-sm",
-        selected ? "border-primary ring-2 ring-primary/20" : "border-border",
-      )}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Badge variant="outline" className="font-normal">
-              {opening.sourceType}
-            </Badge>
-            <span className="truncate font-mono">
-              {new URL(opening.sourceUrl).hostname}
-            </span>
-          </div>
-          <h3 className="mt-2 truncate text-sm font-semibold">{opening.sourceName}</h3>
-        </div>
-        <StatusPill status={opening.status} />
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {opening.influencedQuestions.slice(0, 3).map((q) => (
-          <span
-            key={q}
-            className="rounded-md bg-secondary px-1.5 py-0.5 text-[11px] text-muted-foreground"
-          >
-            {q}
-          </span>
-        ))}
-      </div>
-
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        {Object.entries(opening.brandMentions).map(([brand, count]) => (
-          <span key={brand} className="inline-flex items-center gap-1.5">
-            <Favicon name={brand} kind="brand" size={12} />
-            <span className="font-medium text-foreground">{brand}</span>
-            <span className="font-mono">{count}</span>
-          </span>
-        ))}
-      </div>
-
-      <Separator className="my-4" />
-
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-            Opening
-          </div>
-          <div className="text-sm font-medium">{opening.openingType}</div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-              Risk
-            </div>
-            <div
-              className="text-sm font-medium capitalize"
-              style={{
-                color:
-                  opening.riskLevel === "high"
-                    ? "var(--destructive)"
-                    : opening.riskLevel === "medium"
-                      ? "var(--warning)"
-                      : "var(--success)",
-              }}
-            >
-              {opening.riskLevel}
-            </div>
-          </div>
-          <div className="w-20">
-            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-              Impact
-            </div>
-            <div className="flex items-center gap-2">
-              <ScoreBar value={opening.impactScore} className="w-12" />
-              <span className="font-mono text-sm">{opening.impactScore}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-function StatusPill({ status }: { status: Opening["status"] }) {
-  const map = {
-    ready: { label: "Ready", color: "var(--success)" },
-    needs_input: { label: "Needs input", color: "var(--warning)" },
-    blocked: { label: "Blocked", color: "var(--destructive)" },
-  } as const;
-  const m = map[status];
-  return (
-    <span
-      className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium"
-      style={{
-        color: m.color,
-        borderColor: `color-mix(in oklab, ${m.color} 30%, transparent)`,
-        backgroundColor: `color-mix(in oklab, ${m.color} 8%, transparent)`,
-      }}
-    >
-      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: m.color }} />
-      {m.label}
-    </span>
-  );
-}
-
-function SourceXRay({ opening }: { opening: Opening }) {
-  return (
-    <Card className="border-border bg-card p-6">
-      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-primary">
-        <Sparkles className="h-3.5 w-3.5" />
-        Source X-Ray
-      </div>
-      <h2 className="mt-2 text-lg font-semibold leading-snug">
-        {opening.sourceName}
-      </h2>
-      <a
-        href={opening.sourceUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="mt-1 inline-flex items-center gap-1 font-mono text-xs text-muted-foreground hover:text-primary"
-      >
-        {opening.sourceUrl} <ExternalLink className="h-3 w-3" />
-      </a>
-
-      <p className="mt-4 text-sm text-foreground">
-        <span className="font-semibold">Why AI trusts it: </span>
-        {opening.whyItMatters}
-      </p>
-
-      <div className="mt-5 grid grid-cols-2 gap-3 text-xs">
-        <Metric
-          label="Citation count"
-          value={opening.citationCount?.toString() ?? "—"}
-        />
-        <Metric
-          label="Retrieval count"
-          value={opening.retrievalCount?.toString() ?? "—"}
-        />
-        <Metric
-          label="Citation rate"
-          value={
-            opening.citationRate ? `${Math.round(opening.citationRate * 100)}%` : "—"
+    <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+      {items.map((it) => (
+        <Card
+          key={it.label}
+          className={
+            "border-border bg-card p-4" + (it.accent ? " border-primary/30 bg-primary-soft" : "")
           }
-        />
-        <Metric
-          label="Domain influence"
-          value={opening.domainInfluence?.toString() ?? "—"}
-        />
-      </div>
-
-      <Separator className="my-5" />
-
-      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        Brands mentioned
-      </div>
-      <div className="mt-2 space-y-1.5">
-        {Object.entries(opening.brandMentions).map(([brand, count]) => (
-          <div key={brand} className="flex items-center gap-3">
-            <div className="flex w-32 min-w-0 items-center gap-2">
-              <Favicon name={brand} kind="brand" size={14} />
-              <span className="truncate text-sm">{brand}</span>
-            </div>
-            <div className="flex-1">
-              <ScoreBar
-                value={Math.min(100, count * 5)}
-                tone={count === 0 ? "destructive" : "primary"}
-              />
-            </div>
-            <div className="w-8 text-right font-mono text-xs text-muted-foreground">
-              {count}
-            </div>
+        >
+          <div className="text-xs text-muted-foreground">{it.label}</div>
+          <div className="mt-1 text-2xl font-semibold tabular-nums">
+            {loading ? "…" : it.value}
           </div>
-        ))}
-      </div>
-
-      {opening.painSignals && opening.painSignals.length > 0 && (
-        <>
-          <Separator className="my-5" />
-          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Pain signals detected
-          </div>
-          <ul className="mt-2 space-y-1">
-            {opening.painSignals.map((p) => (
-              <li
-                key={p}
-                className="flex items-start gap-2 text-sm text-foreground"
-              >
-                <TrendingUp className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-warning" style={{ color: "var(--warning)" }} />
-                {p}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-
-      <Separator className="my-5" />
-      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        Missing proof
-      </div>
-      <p className="mt-2 text-sm text-foreground">{opening.missingProof}</p>
-
-      <div className="mt-5 rounded-md border border-primary/20 bg-primary-soft p-4">
-        <div className="text-xs font-medium uppercase tracking-wider text-primary">
-          Recommended engagement
-        </div>
-        <p className="mt-1.5 text-sm text-foreground">{opening.recommendedEngagement}</p>
-      </div>
-
-      {opening.status === "blocked" && opening.blockedReason && (
-        <div className="mt-4 flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-4">
-          <ShieldAlert className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
-          <div>
-            <div className="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-destructive">
-              <Lock className="h-3 w-3" /> Blocked for safety
-            </div>
-            <p className="mt-1 text-sm text-foreground">{opening.blockedReason}</p>
-          </div>
-        </div>
-      )}
-    </Card>
+        </Card>
+      ))}
+    </div>
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function SourcesTab({ plan, loading }: { plan: ActionPlan | null; loading: boolean }) {
+  if (loading && !plan) {
+    return <div className="py-12 text-center text-sm text-muted-foreground">Loading sources…</div>;
+  }
+  if (!plan?.sources.length) {
+    return <div className="py-12 text-center text-sm text-muted-foreground">No sources yet.</div>;
+  }
   return (
-    <div className="rounded-md border border-border bg-secondary/40 px-3 py-2">
-      <div className="text-[11px] text-muted-foreground">{label}</div>
-      <div className="font-mono text-sm font-medium">{value}</div>
+    <div className="space-y-3">
+      {plan.sources.map((src) => (
+        <Card key={src.id} className="border-border bg-card p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <Badge variant="outline" className="font-normal">
+                  {src.classification ?? "OTHER"}
+                </Badge>
+                <span className="font-mono">{src.domain}</span>
+                <span>·</span>
+                <span>retrieved {src.retrieval_count}×</span>
+                <span>·</span>
+                <span>{src.citation_count} citations</span>
+                {src.scrape_status === "done" && (
+                  <Badge variant="secondary" className="font-normal">scraped</Badge>
+                )}
+                {src.scrape_status === "failed" && (
+                  <Badge variant="destructive" className="font-normal">scrape failed</Badge>
+                )}
+              </div>
+              <a
+                href={src.url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-1 inline-flex items-center gap-1 text-sm font-semibold hover:text-primary"
+              >
+                {src.title ?? src.url}
+                <ExternalLink className="h-3 w-3 opacity-60" />
+              </a>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                {src.own_brand_present ? (
+                  <Badge variant="secondary">Your brand mentioned</Badge>
+                ) : (
+                  <Badge variant="destructive">Gap: your brand absent</Badge>
+                )}
+                {src.competitor_brands.map((b) => (
+                  <span key={b} className="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-muted-foreground">
+                    <Favicon name={b} kind="brand" size={12} />
+                    {b}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {src.mentions.length > 0 && (
+            <>
+              <Separator className="my-4" />
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                Competitor mentions found
+              </div>
+              <div className="mt-2 space-y-2">
+                {src.mentions.map((m) => (
+                  <div key={m.id} className="rounded-md border border-border bg-secondary/30 p-3">
+                    <div className="flex items-center gap-2 text-xs font-semibold">
+                      <Favicon name={m.competitor} kind="brand" size={14} /> {m.competitor}
+                      {m.context && (
+                        <span className="font-normal text-muted-foreground">— {m.context}</span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-sm italic text-foreground">&ldquo;{m.quote}&rdquo;</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {src.openings.length > 0 && (
+            <>
+              <Separator className="my-4" />
+              <div className="text-[11px] uppercase tracking-wider text-primary">
+                Recommended actions
+              </div>
+              <div className="mt-2 space-y-2">
+                {src.openings.map((o) => (
+                  <OpeningRow key={o.id} opening={o} />
+                ))}
+              </div>
+            </>
+          )}
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function CompetitorsTab({ plan }: { plan: ActionPlan | null }) {
+  const grouped = useMemo(() => {
+    if (!plan) return [] as { competitor: string; sources: number; mentions: number; openings: typeof plan.openings }[];
+    const map = new Map<string, { sources: Set<string>; mentions: number; openings: typeof plan.openings }>();
+    for (const src of plan.sources) {
+      for (const c of src.competitor_brands) {
+        if (!map.has(c)) map.set(c, { sources: new Set(), mentions: 0, openings: [] });
+        map.get(c)!.sources.add(src.id);
+        map.get(c)!.mentions += src.mentions.filter((m) => m.competitor === c).length;
+      }
+    }
+    for (const o of plan.openings) {
+      if (!o.competitor) continue;
+      if (!map.has(o.competitor)) map.set(o.competitor, { sources: new Set(), mentions: 0, openings: [] });
+      map.get(o.competitor)!.openings.push(o);
+    }
+    return Array.from(map.entries())
+      .map(([competitor, v]) => ({
+        competitor,
+        sources: v.sources.size,
+        mentions: v.mentions,
+        openings: v.openings,
+      }))
+      .sort((a, b) => b.sources - a.sources);
+  }, [plan]);
+
+  if (!grouped.length) {
+    return <div className="py-12 text-center text-sm text-muted-foreground">No competitor data yet.</div>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {grouped.map((g) => (
+        <Card key={g.competitor} className="border-border bg-card p-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Favicon name={g.competitor} kind="brand" size={18} />
+              <h3 className="text-base font-semibold">{g.competitor}</h3>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {g.sources} sources · {g.mentions} verified mentions · {g.openings.length} openings
+            </div>
+          </div>
+          {g.openings.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {g.openings.slice(0, 5).map((o) => (
+                <OpeningRow key={o.id} opening={o} />
+              ))}
+            </div>
+          )}
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function QfosTab({ plan }: { plan: ActionPlan | null }) {
+  if (!plan?.qfos.length) {
+    return <div className="py-12 text-center text-sm text-muted-foreground">No fan-out queries yet.</div>;
+  }
+  return (
+    <div className="space-y-2">
+      {plan.qfos.map((q) => (
+        <Card key={q.id} className="border-border bg-card p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="text-sm">{q.query_text}</div>
+              <div className="mt-1 text-xs text-muted-foreground font-mono">{q.model_id}</div>
+            </div>
+            <Badge variant="outline" className="font-normal">QFO</Badge>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function OpeningRow({ opening }: { opening: ActionPlan["openings"][number] }) {
+  return (
+    <div className="rounded-md border border-primary/20 bg-primary-soft p-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-sm font-semibold">{opening.title}</div>
+        <div className="flex items-center gap-2 text-[11px]">
+          <Badge variant="outline" className="font-normal">{opening.action_type}</Badge>
+          <span className="text-muted-foreground">impact {opening.impact_score}</span>
+          <span
+            className="rounded-full px-2 py-0.5 capitalize"
+            style={{
+              color:
+                opening.risk_level === "high"
+                  ? "var(--destructive)"
+                  : opening.risk_level === "medium"
+                    ? "var(--warning)"
+                    : "var(--success)",
+            }}
+          >
+            {opening.risk_level} risk
+          </span>
+        </div>
+      </div>
+      {opening.rationale && (
+        <p className="mt-1.5 text-xs text-muted-foreground">{opening.rationale}</p>
+      )}
+      {opening.recommended_engagement && (
+        <p className="mt-2 text-sm text-foreground">{opening.recommended_engagement}</p>
+      )}
     </div>
   );
 }
