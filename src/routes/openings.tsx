@@ -6,13 +6,6 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,16 +15,18 @@ import { useAppStore } from "@/lib/store";
 import { CHANNELS, type Channel } from "@/lib/channel";
 import {
   getOpeningsOverview,
-  type OpeningChannelGroup,
   type OpeningOverviewItem,
   type OpeningsOverview,
 } from "@/lib/server/get-openings-overview";
 import { enqueueOpeningDrafts } from "@/lib/server/enqueue-opening-drafts";
 
 export const Route = createFileRoute("/openings")({
-  head: () => ({ meta: [{ title: "Content Plan — Peec AI Openings" }] }),
+  head: () => ({ meta: [{ title: "Content Gaps — Peec AI Openings" }] }),
   component: OpeningsPage,
 });
+
+type ChannelFilter = Channel | "all";
+type CompetitorFilter = string | "all";
 
 function OpeningsPage() {
   const selectedPromptId = useAppStore((s) => s.selectedPromptId);
@@ -44,8 +39,9 @@ function OpeningsPage() {
 
   const [overview, setOverview] = useState<OpeningsOverview | null>(null);
   const [loading, setLoading] = useState(true);
+  const [channelFilter, setChannelFilter] = useState<ChannelFilter>("all");
+  const [competitorFilter, setCompetitorFilter] = useState<CompetitorFilter>("all");
 
-  // Track in-flight enqueue calls so we don't spam.
   const enqueuingRef = useRef(false);
 
   async function load() {
@@ -62,12 +58,13 @@ function OpeningsPage() {
   useEffect(() => {
     setLoading(true);
     setOverview(null);
+    setChannelFilter("all");
+    setCompetitorFilter("all");
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promptId]);
 
-  // Background drafting + polling: while any draft is missing/pending/drafting,
-  // keep enqueuing batches and re-fetching the overview.
+  // Background drafting + polling
   useEffect(() => {
     if (!overview || !project) return;
     const pending = overview.groups.flatMap((g) =>
@@ -110,70 +107,154 @@ function OpeningsPage() {
     };
   }, [overview, project, promptId]);
 
-  const promptText =
-    overview?.promptText ?? localPrompt?.text ?? "Selected prompt";
+  const promptText = overview?.promptText ?? localPrompt?.text ?? "Selected prompt";
 
-  const totalReady = useMemo(() => {
-    if (!overview) return 0;
-    return overview.groups.reduce(
-      (acc, g) =>
-        acc + g.openings.filter((o) => o.draft.status === "ready").length,
-      0,
-    );
-  }, [overview]);
+  // Flatten + derive filter facets
+  const allOpenings = useMemo(
+    () =>
+      overview?.groups.flatMap((g) =>
+        g.openings.map((o) => ({ ...o, _channel: g.channel as Channel })),
+      ) ?? [],
+    [overview],
+  );
+
+  const channelCounts = useMemo(() => {
+    const map = new Map<Channel, number>();
+    for (const o of allOpenings) map.set(o._channel, (map.get(o._channel) ?? 0) + 1);
+    return map;
+  }, [allOpenings]);
+
+  const competitorCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const o of allOpenings) {
+      if (o.competitor) map.set(o.competitor, (map.get(o.competitor) ?? 0) + 1);
+    }
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+  }, [allOpenings]);
+
+  const sourcesCount = useMemo(() => {
+    const set = new Set<string>();
+    for (const o of allOpenings) if (o.source.domain) set.add(o.source.domain);
+    return set.size;
+  }, [allOpenings]);
+
+  const filtered = useMemo(
+    () =>
+      allOpenings.filter((o) => {
+        if (channelFilter !== "all" && o._channel !== channelFilter) return false;
+        if (competitorFilter !== "all" && o.competitor !== competitorFilter) return false;
+        return true;
+      }),
+    [allOpenings, channelFilter, competitorFilter],
+  );
+
+  const totalReady = allOpenings.filter((o) => o.draft.status === "ready").length;
+  const drafting = allOpenings.filter(
+    (o) => o.draft.status === "drafting" || o.draft.status === "pending",
+  ).length;
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-6 py-10 2xl:px-10">
-      <div className="flex items-center justify-between gap-6">
+      <div className="flex items-start justify-between gap-6">
         <div className="min-w-0">
           <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Content plan for
+            Content gaps for
           </div>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">
             <span className="text-primary">&ldquo;{promptText}&rdquo;</span>
           </h1>
-          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-            We grouped every opening by the channel where the agent will publish.
-            Each row expands to show the cited source, what we read in the scrape,
-            and a short brief of the draft we&rsquo;re writing for it.
+          <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+            {loading ? (
+              <span>Loading gaps…</span>
+            ) : (
+              <>
+                <span className="font-medium text-foreground tabular-nums">
+                  {allOpenings.length}
+                </span>
+                <span>gaps</span>
+                <span aria-hidden>·</span>
+                <span className="font-medium text-foreground tabular-nums">
+                  {sourcesCount}
+                </span>
+                <span>sources</span>
+                <span aria-hidden>·</span>
+                <span className="font-medium text-foreground tabular-nums">
+                  {competitorCounts.length}
+                </span>
+                <span>competitors</span>
+                <span aria-hidden>·</span>
+                <span className="font-medium text-foreground tabular-nums">
+                  {totalReady}/{allOpenings.length}
+                </span>
+                <span>drafts ready</span>
+                {drafting > 0 && (
+                  <span className="ml-1 inline-flex items-center gap-1 text-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    {drafting} drafting
+                  </span>
+                )}
+              </>
+            )}
           </p>
         </div>
-        <div className="flex shrink-0 items-center">
-          <Button
-            size="lg"
-            className="h-14 px-8 text-base"
-            onClick={() => navigate({ to: "/studio" })}
-            disabled={!overview || overview.totalOpenings === 0}
-          >
-            Next <ArrowRight className="h-5 w-5" />
-          </Button>
-        </div>
+        <Button
+          size="lg"
+          className="h-14 shrink-0 px-8 text-base"
+          onClick={() => navigate({ to: "/studio" })}
+          disabled={!overview || overview.totalOpenings === 0}
+        >
+          Next <ArrowRight className="h-5 w-5" />
+        </Button>
       </div>
 
-      <SummaryStrip overview={overview} loading={loading} totalReady={totalReady} />
+      {!loading && allOpenings.length > 0 && (
+        <FilterChips
+          channelFilter={channelFilter}
+          competitorFilter={competitorFilter}
+          onChannelChange={setChannelFilter}
+          onCompetitorChange={setCompetitorFilter}
+          channelCounts={channelCounts}
+          competitorCounts={competitorCounts}
+          total={allOpenings.length}
+        />
+      )}
 
-      <div className="mt-8 space-y-3">
+      <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {loading ? (
           <>
-            <ChannelSkeleton />
-            <ChannelSkeleton />
-            <ChannelSkeleton />
+            <GapCardSkeleton />
+            <GapCardSkeleton />
+            <GapCardSkeleton />
+            <GapCardSkeleton />
+            <GapCardSkeleton />
+            <GapCardSkeleton />
           </>
-        ) : overview && overview.groups.length > 0 ? (
-          <Accordion
-            type="multiple"
-            defaultValue={overview.groups.slice(0, 2).map((g) => g.channel)}
-            className="space-y-3"
-          >
-            {overview.groups.map((group) => (
-              <ChannelGroupCard key={group.channel} group={group} />
-            ))}
-          </Accordion>
-        ) : (
-          <Card className="p-12 text-center">
+        ) : filtered.length > 0 ? (
+          filtered.map((o) => (
+            <GapCard key={o.id} opening={o} channel={o._channel} />
+          ))
+        ) : allOpenings.length === 0 ? (
+          <Card className="col-span-full p-12 text-center">
             <p className="text-sm text-muted-foreground">
               No openings generated yet for this prompt.
             </p>
+          </Card>
+        ) : (
+          <Card className="col-span-full p-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              No gaps match the current filters.
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-3"
+              onClick={() => {
+                setChannelFilter("all");
+                setCompetitorFilter("all");
+              }}
+            >
+              Clear filters
+            </Button>
           </Card>
         )}
       </div>
@@ -187,307 +268,245 @@ function OpeningsPage() {
   );
 }
 
-function SummaryStrip({
-  overview,
-  loading,
-  totalReady,
+function FilterChips({
+  channelFilter,
+  competitorFilter,
+  onChannelChange,
+  onCompetitorChange,
+  channelCounts,
+  competitorCounts,
+  total,
 }: {
-  overview: OpeningsOverview | null;
-  loading: boolean;
-  totalReady: number;
+  channelFilter: ChannelFilter;
+  competitorFilter: CompetitorFilter;
+  onChannelChange: (c: ChannelFilter) => void;
+  onCompetitorChange: (c: CompetitorFilter) => void;
+  channelCounts: Map<Channel, number>;
+  competitorCounts: [string, number][];
+  total: number;
 }) {
-  const total = overview?.totalOpenings ?? 0;
-  const channels = overview?.groups.length ?? 0;
-  const drafting = overview
-    ? overview.groups.reduce(
-        (acc, g) =>
-          acc +
-          g.openings.filter(
-            (o) =>
-              o.draft.status === "drafting" || o.draft.status === "pending",
-          ).length,
-        0,
-      )
-    : 0;
-  const readyPct = total > 0 ? Math.round((totalReady / total) * 100) : 0;
+  const channels = Array.from(channelCounts.entries()).sort((a, b) => b[1] - a[1]);
 
   return (
-    <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-      <SummaryTile
-        label="Total openings"
-        value={loading ? "…" : String(total)}
-      />
-      <SummaryTile
-        label="Channels in plan"
-        value={loading ? "…" : String(channels)}
-      />
-      <SummaryTile
-        label="Drafts ready"
-        value={loading ? "…" : `${totalReady} / ${total}`}
-        accent
-      />
-      <SummaryTile
-        label={drafting > 0 ? "Agent drafting now" : "Plan complete"}
-        value={
-          loading
-            ? "…"
-            : drafting > 0
-              ? `${drafting} writing`
-              : `${readyPct}%`
-        }
-        spinning={drafting > 0}
-      />
-    </div>
-  );
-}
-
-function SummaryTile({
-  label,
-  value,
-  accent,
-  spinning,
-}: {
-  label: string;
-  value: string;
-  accent?: boolean;
-  spinning?: boolean;
-}) {
-  return (
-    <Card
-      className={cn(
-        "border-border bg-card p-4",
-        accent && "border-primary/30 bg-primary-soft",
-      )}
-    >
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        {spinning && <Loader2 className="h-3 w-3 animate-spin" />}
-        {label}
+    <div className="mt-6 space-y-2">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="mr-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          Platform
+        </span>
+        <Chip
+          active={channelFilter === "all"}
+          onClick={() => onChannelChange("all")}
+          label={`All (${total})`}
+        />
+        {channels.map(([c, n]) => (
+          <Chip
+            key={c}
+            active={channelFilter === c}
+            onClick={() => onChannelChange(c)}
+            accent={CHANNELS[c].accent}
+            label={`${CHANNELS[c].label} (${n})`}
+          />
+        ))}
       </div>
-      <div className="mt-1 text-2xl font-semibold tabular-nums">{value}</div>
-    </Card>
-  );
-}
-
-function ChannelSkeleton() {
-  return (
-    <Card className="border-border p-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-9 w-9 rounded-md" />
-          <div className="space-y-1.5">
-            <Skeleton className="h-3 w-28" />
-            <Skeleton className="h-2.5 w-48" />
-          </div>
-        </div>
-        <Skeleton className="h-6 w-12 rounded-full" />
-      </div>
-    </Card>
-  );
-}
-
-function ChannelGroupCard({ group }: { group: OpeningChannelGroup }) {
-  const meta = CHANNELS[group.channel];
-  const ready = group.openings.filter((o) => o.draft.status === "ready").length;
-  const drafting = group.openings.filter(
-    (o) => o.draft.status === "drafting" || o.draft.status === "pending",
-  ).length;
-
-  return (
-    <AccordionItem
-      value={group.channel}
-      className="overflow-hidden rounded-lg border border-border bg-card"
-    >
-      <AccordionTrigger className="px-4 py-3 hover:no-underline [&[data-state=open]]:border-b [&[data-state=open]]:border-border">
-        <div className="flex flex-1 items-center justify-between gap-4 pr-2">
-          <div className="flex items-center gap-3 text-left">
-            <ChannelBadge channel={group.channel} />
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                {meta.label}
-                <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-normal text-muted-foreground">
-                  {group.total} opening{group.total === 1 ? "" : "s"}
-                </span>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {meta.description}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            {drafting > 0 && (
-              <span className="inline-flex items-center gap-1 text-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                drafting {drafting}
-              </span>
-            )}
-            <span className="tabular-nums">
-              <span className="text-foreground">{ready}</span> / {group.total}{" "}
-              ready
-            </span>
-            <span className="tabular-nums">
-              top impact {group.topImpact}
-            </span>
-          </div>
-        </div>
-      </AccordionTrigger>
-      <AccordionContent className="bg-background/50 p-0">
-        <div className="divide-y divide-border">
-          {group.openings.map((opening) => (
-            <OpeningRow key={opening.id} opening={opening} channel={group.channel} />
+      {competitorCounts.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="mr-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            Competitor
+          </span>
+          <Chip
+            active={competitorFilter === "all"}
+            onClick={() => onCompetitorChange("all")}
+            label="All"
+          />
+          {competitorCounts.map(([name, n]) => (
+            <Chip
+              key={name}
+              active={competitorFilter === name}
+              onClick={() => onCompetitorChange(name)}
+              icon={<Favicon name={name} kind="brand" size={12} className="rounded-sm" />}
+              label={`vs ${name} (${n})`}
+            />
           ))}
         </div>
-      </AccordionContent>
-    </AccordionItem>
-  );
-}
-
-function ChannelBadge({ channel }: { channel: Channel }) {
-  const meta = CHANNELS[channel];
-  return (
-    <div
-      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md text-[11px] font-semibold uppercase text-white"
-      style={{ backgroundColor: meta.accent }}
-    >
-      {meta.label.slice(0, 2)}
+      )}
     </div>
   );
 }
 
-function OpeningRow({
+function Chip({
+  active,
+  onClick,
+  label,
+  accent,
+  icon,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  accent?: string;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+        active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+      )}
+    >
+      {accent && (
+        <span
+          aria-hidden
+          className="h-2 w-2 rounded-full"
+          style={{ backgroundColor: accent }}
+        />
+      )}
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+function GapCard({
   opening,
   channel,
 }: {
   opening: OpeningOverviewItem;
   channel: Channel;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const status = opening.draft.status;
+  const meta = CHANNELS[channel];
   const host = opening.source.domain ?? "";
+  const status = opening.draft.status;
+  const classification =
+    opening.source.classification ??
+    opening.actionType.replace(/_/g, " ");
+  const gapText = opening.rationale ?? opening.title;
+  const trimmedGap =
+    gapText.length > 200 ? `${gapText.slice(0, 200).trimEnd()}…` : gapText;
+  const draftReady = status === "ready";
 
-  return (
-    <div className="px-4 py-3">
-      <button
-        onClick={() => setExpanded((v) => !v)}
-        className="flex w-full items-start justify-between gap-4 text-left transition-colors hover:opacity-80"
-      >
-        <div className="flex min-w-0 flex-1 items-start gap-3">
+  const Inner = (
+    <Card className="group flex h-full flex-col gap-3 border-border bg-card p-4 transition-all hover:border-foreground/30 hover:shadow-sm">
+      {/* Platform header */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            aria-hidden
+            className="h-2 w-2 shrink-0 rounded-full"
+            style={{ backgroundColor: meta.accent }}
+          />
           {host ? (
-            <Favicon name={host} kind="brand" size={18} className="mt-0.5" />
-          ) : (
-            <div className="mt-0.5 h-[18px] w-[18px] rounded bg-muted" />
-          )}
-          <div className="min-w-0 flex-1">
-            <div className="text-sm font-medium text-foreground">
-              {opening.title}
-            </div>
-            <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-              {host && <span className="font-mono">{host}</span>}
-              {opening.competitor && (
-                <>
-                  <span>·</span>
-                  <span className="inline-flex items-center gap-1">
-                    vs
-                    <Favicon
-                      name={opening.competitor}
-                      kind="brand"
-                      size={12}
-                      className="rounded-sm"
-                    />
-                    {opening.competitor}
-                  </span>
-                </>
-              )}
-              <span>·</span>
-              <span className="capitalize">
-                {opening.actionType.replace(/_/g, " ")}
-              </span>
-            </div>
-          </div>
+            <Favicon name={host} kind="brand" size={14} />
+          ) : null}
+          <span className="truncate font-mono text-xs text-muted-foreground">
+            {host || meta.label.toLowerCase()}
+          </span>
         </div>
-        <div className="flex flex-shrink-0 items-center gap-2 text-xs">
-          <DraftStatusPill status={status} />
-          <Badge variant="outline" className="font-mono tabular-nums">
-            {opening.impactScore}
-          </Badge>
-        </div>
-      </button>
+        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          {classification}
+        </span>
+      </div>
 
-      {expanded && (
-        <div className="animate-fade-in mt-3 grid grid-cols-1 gap-3 rounded-md border border-border bg-secondary/40 p-4 text-sm md:grid-cols-[1fr_1fr]">
-          <div>
-            <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              Cited source
-            </div>
-            {opening.source.url ? (
-              <a
-                href={opening.source.url}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-1 inline-flex items-start gap-1 text-sm font-medium text-foreground hover:text-primary"
-              >
-                {opening.source.title ?? opening.source.url}
-                <ExternalLink className="mt-0.5 h-3 w-3 opacity-60" />
-              </a>
-            ) : (
-              <div className="mt-1 text-sm text-muted-foreground">
-                No source attached
-              </div>
-            )}
-            {opening.source.excerpt && (
-              <p className="mt-3 text-xs italic text-muted-foreground">
-                &ldquo;{opening.source.excerpt}&rdquo;
-              </p>
-            )}
-            {opening.rationale && (
-              <>
-                <div className="mt-4 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                  Why this is an opening
-                </div>
-                <p className="mt-1 text-sm text-foreground">
-                  {opening.rationale}
-                </p>
-              </>
-            )}
+      {/* Source title */}
+      <div className="min-w-0">
+        {opening.source.url ? (
+          <a
+            href={opening.source.url}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-start gap-1 text-sm font-semibold text-foreground hover:text-primary"
+          >
+            <span className="line-clamp-2">
+              {opening.source.title ?? opening.title}
+            </span>
+            <ExternalLink className="mt-0.5 h-3 w-3 shrink-0 opacity-50" />
+          </a>
+        ) : (
+          <div className="line-clamp-2 text-sm font-semibold text-foreground">
+            {opening.source.title ?? opening.title}
           </div>
+        )}
+      </div>
 
-          <div className="rounded-md border border-border bg-card p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                <Sparkles className="h-3 w-3 text-primary" />
-                Draft brief · {CHANNELS[channel].label}
-              </div>
-              <DraftStatusPill status={status} />
-            </div>
-            <div className="mt-2 min-h-[80px]">
-              {status === "ready" && opening.draft.brief ? (
-                <p className="text-sm text-foreground">{opening.draft.brief}</p>
-              ) : status === "failed" ? (
-                <p className="text-sm text-destructive">
-                  Draft failed: {opening.draft.error ?? "unknown error"}.
-                  We&rsquo;ll retry on the next cycle.
-                </p>
-              ) : (
-                <BriefSkeleton />
-              )}
-            </div>
-            {status === "ready" && (
-              <div className="mt-3 flex items-center justify-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  className="text-xs"
-                >
-                  <Link to="/studio">
-                    Open in studio <ArrowRight className="h-3 w-3" />
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
+      {/* Vs competitor */}
+      {opening.competitor ? (
+        <div className="flex items-center gap-1.5 text-xs">
+          <span className="text-muted-foreground">vs</span>
+          <Favicon
+            name={opening.competitor}
+            kind="brand"
+            size={14}
+            className="rounded-sm"
+          />
+          <span className="font-medium text-foreground">
+            {opening.competitor}
+          </span>
         </div>
+      ) : (
+        <div className="text-xs text-muted-foreground">No competitor mentioned</div>
       )}
-    </div>
+
+      {/* Gap line */}
+      <p className="flex-1 text-xs leading-relaxed text-muted-foreground">
+        {trimmedGap}
+      </p>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between border-t border-border pt-3">
+        <div className="flex items-center gap-2 text-[11px]">
+          <span className="font-mono tabular-nums text-foreground">
+            Impact {opening.impactScore}
+          </span>
+          <DraftStatusPill status={status} />
+        </div>
+        {draftReady ? (
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-primary group-hover:underline">
+            Open draft <ArrowRight className="h-3 w-3" />
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        )}
+      </div>
+    </Card>
+  );
+
+  if (draftReady) {
+    return (
+      <Link
+        to="/queue/draft/$id"
+        params={{ id: opening.id }}
+        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+      >
+        {Inner}
+      </Link>
+    );
+  }
+  return <div className="block">{Inner}</div>;
+}
+
+function GapCardSkeleton() {
+  return (
+    <Card className="flex h-full flex-col gap-3 border-border bg-card p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-3.5 w-3.5 rounded-full" />
+          <Skeleton className="h-3 w-20" />
+        </div>
+        <Skeleton className="h-4 w-14 rounded-full" />
+      </div>
+      <Skeleton className="h-4 w-4/5" />
+      <Skeleton className="h-4 w-3/5" />
+      <Skeleton className="h-3 w-24" />
+      <Skeleton className="h-3 w-full" />
+      <Skeleton className="h-3 w-11/12" />
+      <div className="mt-auto flex items-center justify-between border-t border-border pt-3">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-3 w-16" />
+      </div>
+    </Card>
   );
 }
 
@@ -498,39 +517,41 @@ function DraftStatusPill({
 }) {
   const map: Record<
     OpeningOverviewItem["draft"]["status"],
-    { label: string; className: string; spin?: boolean }
+    { label: string; cls: string; spin?: boolean; icon?: React.ReactNode }
   > = {
     ready: {
       label: "Draft ready",
-      className: "border-success/40 bg-success/10 text-success",
+      cls: "bg-primary-soft text-primary border-primary/20",
+      icon: <Sparkles className="h-3 w-3" />,
     },
     drafting: {
       label: "Drafting",
-      className: "border-primary/40 bg-primary-soft text-primary",
+      cls: "bg-muted text-foreground border-border",
       spin: true,
     },
     pending: {
       label: "Queued",
-      className: "border-border bg-muted text-muted-foreground",
+      cls: "bg-muted text-muted-foreground border-border",
     },
     missing: {
       label: "Queued",
-      className: "border-border bg-muted text-muted-foreground",
+      cls: "bg-muted text-muted-foreground border-border",
     },
     failed: {
-      label: "Retrying",
-      className: "border-destructive/40 bg-destructive/10 text-destructive",
+      label: "Retry",
+      cls: "bg-destructive/10 text-destructive border-destructive/20",
     },
   };
   const m = map[status];
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium",
-        m.className,
+        "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
+        m.cls,
       )}
     >
       {m.spin && <Loader2 className="h-2.5 w-2.5 animate-spin" />}
+      {m.icon}
       {m.label}
     </span>
   );
@@ -539,9 +560,12 @@ function DraftStatusPill({
 function BriefSkeleton() {
   return (
     <div className="space-y-1.5">
-      <Skeleton className="h-3 w-full" />
-      <Skeleton className="h-3 w-11/12" />
-      <Skeleton className="h-3 w-3/4" />
+      <Skeleton className="h-2.5 w-full" />
+      <Skeleton className="h-2.5 w-11/12" />
+      <Skeleton className="h-2.5 w-4/5" />
     </div>
   );
 }
+
+// Keep export so accidental imports don't break — not used in new layout.
+void BriefSkeleton;
