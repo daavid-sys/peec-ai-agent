@@ -270,7 +270,7 @@ function QueuePage() {
           <span className="text-foreground">{Math.min(index + 1, total)}</span>
           <span className="text-border"> / </span>
           {total}
-          <span className="ml-2 text-success">{completed.size} done</span>
+          
           {response && response.pendingCount > 0 && (
             <span className="ml-2 inline-flex items-center gap-1 text-muted-foreground/70">
               <Loader2 className="h-3 w-3 animate-spin" />
