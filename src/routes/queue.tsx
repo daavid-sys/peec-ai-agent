@@ -260,7 +260,7 @@ function QueuePage() {
       </div>
 
       {/* Header */}
-      <h1 className="mt-6 text-3xl font-semibold tracking-tight">
+      <h1 className="mt-6 text-2xl font-semibold tracking-tight sm:text-3xl">
         Step 3: Review and publish
       </h1>
 
