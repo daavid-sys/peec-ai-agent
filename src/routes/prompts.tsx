@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { ScoreBar } from "@/components/score-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Favicon } from "@/components/favicon";
+import { InfoPopover } from "@/components/info-popover";
 import { store, useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import {
