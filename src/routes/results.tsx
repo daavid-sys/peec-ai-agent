@@ -38,7 +38,9 @@ function ResultsPage() {
 
   const selectedPromptId = useAppStore((s) => s.selectedPromptId);
   const project = useAppStore((s) => s.project);
+  const prompts = useAppStore((s) => s.prompts);
   const promptId = selectedPromptId ?? "pr_05a66669-478c-4b25-94bc-9119409e5e2f";
+  const selectedPrompt = prompts.find((p) => p.id === promptId);
   const ownBrand = useMemo(
     () => ({
       name: project?.ownBrand.name ?? "Attio",
