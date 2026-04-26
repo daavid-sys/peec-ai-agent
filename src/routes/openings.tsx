@@ -163,45 +163,9 @@ function OpeningsPage() {
     <div className="mx-auto w-full max-w-[1500px] px-6 py-10 2xl:px-10">
       <div className="flex items-start justify-between gap-6">
         <div className="min-w-0">
-          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Content gaps for
-          </div>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-            <span className="text-primary">&ldquo;{promptText}&rdquo;</span>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Here are the openings we&rsquo;ll fix for you
           </h1>
-          <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-            {loading ? (
-              <span>Loading gaps…</span>
-            ) : (
-              <>
-                <span className="font-medium text-foreground tabular-nums">
-                  {allOpenings.length}
-                </span>
-                <span>gaps</span>
-                <span aria-hidden>·</span>
-                <span className="font-medium text-foreground tabular-nums">
-                  {sourcesCount}
-                </span>
-                <span>sources</span>
-                <span aria-hidden>·</span>
-                <span className="font-medium text-foreground tabular-nums">
-                  {competitorCounts.length}
-                </span>
-                <span>competitors</span>
-                <span aria-hidden>·</span>
-                <span className="font-medium text-foreground tabular-nums">
-                  {totalReady}/{allOpenings.length}
-                </span>
-                <span>drafts ready</span>
-                {drafting > 0 && (
-                  <span className="ml-1 inline-flex items-center gap-1 text-foreground">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    {drafting} drafting
-                  </span>
-                )}
-              </>
-            )}
-          </p>
         </div>
         <Button
           size="lg"
