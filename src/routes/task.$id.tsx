@@ -117,13 +117,17 @@ function TaskPreviewPage() {
 
       <div className="mt-5 flex items-start gap-3">
         <span
-          className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+          className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full"
           style={{
             backgroundColor: `color-mix(in oklab, ${TASK_META[type].tone} 15%, transparent)`,
             color: TASK_META[type].tone,
           }}
         >
-          <TypeIcon className="h-4 w-4" />
+          {type === "platform_post" && draft.source.domain ? (
+            <Favicon name={draft.source.domain} kind="brand" size={18} className="rounded-sm" />
+          ) : (
+            <TypeIcon className="h-4 w-4" />
+          )}
         </span>
         <div className="min-w-0 flex-1">
           <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
