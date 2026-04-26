@@ -17,6 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ScoreBar } from "@/components/score-bar";
+import { Favicon } from "@/components/favicon";
 import { StatusBadge } from "@/components/status-badge";
 import { store, useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -157,11 +158,13 @@ function PromptsPage() {
                   <div className="mb-1 flex items-center justify-between text-xs">
                     <span
                       className={cn(
+                        "inline-flex items-center gap-1.5",
                         c.brand === project.ownBrand.name
                           ? "font-semibold text-primary"
                           : "text-foreground",
                       )}
                     >
+                      <Favicon name={c.brand} kind="brand" size={12} />
                       {c.brand}
                     </span>
                     <span className="font-mono text-muted-foreground">
