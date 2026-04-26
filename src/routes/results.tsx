@@ -38,7 +38,7 @@ function ResultsPage() {
         <BigStat
           label="Visibility lift"
           value="+14pp"
-          sub="across 6 hidden questions"
+          sub="across 6 query fanouts"
           tone="success"
           icon={ArrowUpRight}
         />
