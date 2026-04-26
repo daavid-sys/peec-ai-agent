@@ -58,7 +58,7 @@ function DraftPage() {
   const host = opening
     ? new URL(opening.sourceUrl).hostname.replace(/^www\./, "")
     : "the publication";
-  const ourBrand = project?.brand ?? "our team";
+  const ourBrand = project?.ownBrand?.name ?? "our team";
   const slug = slugify(engagement.title);
 
   const reasons = [
