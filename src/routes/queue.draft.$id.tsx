@@ -1,19 +1,33 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ChevronDown, Copy, Download, FileText, Mail } from "lucide-react";
+import { ArrowLeft, ChevronDown, Copy, Download, FileText, Loader2, Mail } from "lucide-react";
 import { jsPDF } from "jspdf";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { store, useAppStore } from "@/lib/store";
+import { postToContentful } from "@/lib/server/post-to-contentful";
+import contentfulLogo from "@/assets/contentful-logo.png";
 
 export const Route = createFileRoute("/queue/draft/$id")({
   head: () => ({
@@ -222,6 +236,53 @@ function DraftPage() {
   const ourBrand = project?.ownBrand?.name ?? "our team";
   const slug = slugify(engagement.title);
 
+  const postFn = useServerFn(postToContentful);
+  const [contentfulOpen, setContentfulOpen] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const [cfSpaceId, setCfSpaceId] = useState("");
+  const [cfEnv, setCfEnv] = useState("master");
+  const [cfContentType, setCfContentType] = useState("blogPost");
+  const [cfTitleField, setCfTitleField] = useState("title");
+  const [cfBodyField, setCfBodyField] = useState("body");
+  const [cfLocale, setCfLocale] = useState("en-US");
+
+  async function handlePostToContentful() {
+    if (!cfSpaceId.trim() || !cfContentType.trim()) {
+      toast.error("Space ID and content type are required");
+      return;
+    }
+    setPosting(true);
+    try {
+      const res = await postFn({
+        data: {
+          spaceId: cfSpaceId.trim(),
+          environmentId: cfEnv.trim() || "master",
+          contentTypeId: cfContentType.trim(),
+          titleField: cfTitleField.trim() || "title",
+          bodyField: cfBodyField.trim() || "body",
+          locale: cfLocale.trim() || "en-US",
+          title: engagement!.title,
+          body: engagement!.draft,
+          publish: true,
+        },
+      });
+      if (!res.ok) {
+        toast.error(res.error ?? "Failed to post to Contentful");
+      } else if (res.published) {
+        toast.success("Published to Contentful");
+        setContentfulOpen(false);
+      } else {
+        toast.success(`Draft created in Contentful${res.error ? " (not published)" : ""}`);
+        if (res.error) toast.message(res.error);
+        setContentfulOpen(false);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to post");
+    } finally {
+      setPosting(false);
+    }
+  }
+
   const reasons = [
     opening?.whyItMatters,
     engagement.missingProofAddressed
@@ -330,61 +391,80 @@ function DraftPage() {
             </div>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm">
-                <Download className="h-3 w-3" /> Export
-                <ChevronDown className="h-3 w-3 opacity-70" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem
-                onClick={() => {
-                  downloadText(`${slug}.md`, markdown, "text/markdown");
-                  toast.success("Exported as Markdown");
-                }}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                Markdown (.md)
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  downloadText(
-                    `${slug}.txt`,
-                    `${engagement.title}\n\n${engagement.draft}\n`,
-                    "text/plain",
-                  );
-                  toast.success("Exported as Text");
-                }}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                Plain text (.txt)
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  downloadDoc(`${slug}.doc`, engagement.title, engagement.draft);
-                  toast.success("Exported as Word");
-                }}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                Word (.doc)
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  try {
-                    downloadPdf(`${slug}.pdf`, engagement.title, engagement.draft);
-                    toast.success("Exported as PDF");
-                  } catch (err) {
-                    console.error(err);
-                    toast.error("PDF export failed");
-                  }
-                }}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                PDF (.pdf)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-1.5">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setContentfulOpen(true)}
+              className="gap-1.5"
+            >
+              <img
+                src={contentfulLogo}
+                alt="Contentful"
+                width={16}
+                height={16}
+                loading="lazy"
+                className="h-4 w-4 rounded-sm object-contain"
+              />
+              Post
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm">
+                  <Download className="h-3 w-3" /> Export
+                  <ChevronDown className="h-3 w-3 opacity-70" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem
+                  onClick={() => {
+                    downloadText(`${slug}.md`, markdown, "text/markdown");
+                    toast.success("Exported as Markdown");
+                  }}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  Markdown (.md)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    downloadText(
+                      `${slug}.txt`,
+                      `${engagement.title}\n\n${engagement.draft}\n`,
+                      "text/plain",
+                    );
+                    toast.success("Exported as Text");
+                  }}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  Plain text (.txt)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    downloadDoc(`${slug}.doc`, engagement.title, engagement.draft);
+                    toast.success("Exported as Word");
+                  }}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  Word (.doc)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    try {
+                      downloadPdf(`${slug}.pdf`, engagement.title, engagement.draft);
+                      toast.success("Exported as PDF");
+                    } catch (err) {
+                      console.error(err);
+                      toast.error("PDF export failed");
+                    }
+                  }}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  PDF (.pdf)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
         <article className="mx-auto max-w-prose px-8 py-10">
           <h1 className="font-serif text-3xl leading-tight text-foreground">
@@ -419,6 +499,118 @@ function DraftPage() {
           Mark as submitted
         </Button>
       </div>
+
+      <Dialog open={contentfulOpen} onOpenChange={setContentfulOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <img
+                src={contentfulLogo}
+                alt=""
+                width={20}
+                height={20}
+                className="h-5 w-5 rounded-sm object-contain"
+              />
+              Post to Contentful
+            </DialogTitle>
+            <DialogDescription>
+              Publishes this draft as a new entry in your Contentful space using your
+              connected Contentful account.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <div className="grid gap-1.5">
+              <Label htmlFor="cf-space">Space ID</Label>
+              <Input
+                id="cf-space"
+                value={cfSpaceId}
+                onChange={(e) => setCfSpaceId(e.target.value)}
+                placeholder="abc123xyz"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="cf-env">Environment</Label>
+                <Input
+                  id="cf-env"
+                  value={cfEnv}
+                  onChange={(e) => setCfEnv(e.target.value)}
+                  placeholder="master"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="cf-locale">Locale</Label>
+                <Input
+                  id="cf-locale"
+                  value={cfLocale}
+                  onChange={(e) => setCfLocale(e.target.value)}
+                  placeholder="en-US"
+                />
+              </div>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="cf-ct">Content type ID</Label>
+              <Input
+                id="cf-ct"
+                value={cfContentType}
+                onChange={(e) => setCfContentType(e.target.value)}
+                placeholder="blogPost"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="cf-title-field">Title field</Label>
+                <Input
+                  id="cf-title-field"
+                  value={cfTitleField}
+                  onChange={(e) => setCfTitleField(e.target.value)}
+                  placeholder="title"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="cf-body-field">Body field</Label>
+                <Input
+                  id="cf-body-field"
+                  value={cfBodyField}
+                  onChange={(e) => setCfBodyField(e.target.value)}
+                  placeholder="body"
+                />
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Requires the Contentful connector to be linked in Lovable. Connect via
+              OAuth in your workspace connectors before posting.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setContentfulOpen(false)}
+              disabled={posting}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handlePostToContentful} disabled={posting}>
+              {posting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Posting…
+                </>
+              ) : (
+                <>
+                  <img
+                    src={contentfulLogo}
+                    alt=""
+                    width={16}
+                    height={16}
+                    className="h-4 w-4 rounded-sm object-contain"
+                  />
+                  Publish to Contentful
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
