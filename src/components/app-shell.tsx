@@ -14,7 +14,7 @@ const steps = [
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const demoMode = useAppStore((s) => s.demoMode);
+  
   const connected = useAppStore((s) => s.connected);
   const location = useLocation();
 
