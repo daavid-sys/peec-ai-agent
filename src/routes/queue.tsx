@@ -370,7 +370,7 @@ function QueuePage() {
                     )}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <h2 className="text-lg font-semibold leading-tight tracking-tight text-foreground sm:text-xl">
+                    <h2 className="break-words text-base font-semibold leading-tight tracking-tight text-foreground sm:text-xl">
                       {dynamicTitle}
                     </h2>
                   </div>
