@@ -418,26 +418,38 @@ function PromptsPage() {
           </div>
           {tableOpen && (
             <div className="flex items-center gap-4 text-[12px] text-muted-foreground">
-              <span>
+              <span className="inline-flex items-center gap-1.5">
                 Visibility{" "}
-                <span className="font-semibold text-foreground tabular-nums">
-                  {tableAgg.visibility}%
-                </span>
+                {tableLoading ? (
+                  <Skeleton className="h-3 w-8" />
+                ) : (
+                  <span className="font-semibold text-foreground tabular-nums">
+                    {tableAgg.visibility}%
+                  </span>
+                )}
               </span>
               <span className="text-border">|</span>
               <span className="inline-flex items-center gap-1.5">
                 Sentiment{" "}
-                <span className="inline-flex items-center gap-1 font-semibold text-foreground tabular-nums">
-                  <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                  {tableAgg.sentiment}
-                </span>
+                {tableLoading ? (
+                  <Skeleton className="h-3 w-10" />
+                ) : (
+                  <span className="inline-flex items-center gap-1 font-semibold text-foreground tabular-nums">
+                    <span className="h-1.5 w-1.5 rounded-full bg-success" />
+                    {tableAgg.sentiment}
+                  </span>
+                )}
               </span>
               <span className="text-border">|</span>
-              <span>
+              <span className="inline-flex items-center gap-1.5">
                 Position{" "}
-                <span className="font-semibold text-foreground tabular-nums">
-                  # {tableAgg.position.toFixed(1)}
-                </span>
+                {tableLoading ? (
+                  <Skeleton className="h-3 w-10" />
+                ) : (
+                  <span className="font-semibold text-foreground tabular-nums">
+                    # {tableAgg.position.toFixed(1)}
+                  </span>
+                )}
               </span>
             </div>
           )}
