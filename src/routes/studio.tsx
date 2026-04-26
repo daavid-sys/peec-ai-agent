@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Favicon } from "@/components/favicon";
 import { useAppStore } from "@/lib/store";
 import { CHANNELS } from "@/lib/channel";
 import {
@@ -367,8 +368,15 @@ function SideContext({
         </div>
         <div className="mt-3 text-sm font-medium leading-snug">{draft.title}</div>
         {draft.competitor && (
-          <div className="mt-1 text-xs text-muted-foreground">
-            Targeting competitor: <span className="font-mono">{draft.competitor}</span>
+          <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span>Targeting competitor:</span>
+            <Favicon
+              name={draft.competitor}
+              kind="brand"
+              size={12}
+              className="rounded-sm"
+            />
+            <span className="font-mono">{draft.competitor}</span>
           </div>
         )}
       </Card>
