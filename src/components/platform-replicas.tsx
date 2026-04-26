@@ -619,6 +619,7 @@ function OwnedReplica({ draft, cps, onDone, ownBrand }: Props) {
 /* ------------------------------- GENERIC ------------------------------- */
 function GenericReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 240, onDone);
+  const headline = realisticHeadline(draft);
   return (
     <ReplicaShell chromeColor="#64748b" channel={draft.channel} domain={draft.source.domain}>
       <div className="bg-white p-6 text-zinc-900">
