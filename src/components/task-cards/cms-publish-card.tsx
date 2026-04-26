@@ -56,14 +56,14 @@ export function CmsPublishCard({
     <div className="space-y-3">
       {/* Article preview — looks like a CMS preview */}
       <Card className="overflow-hidden border-border bg-background p-0">
-        <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-between gap-2 border-b border-border bg-muted/30 px-4 py-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <div className="flex items-center gap-1.5 shrink-0">
             <Globe className="h-3 w-3" />
             Article preview
           </div>
-          <div className="inline-flex items-center gap-1.5">
+          <div className="inline-flex min-w-0 items-center gap-1.5">
             <Favicon name={host} kind="brand" size={12} />
-            <span className="font-mono lowercase">{host}</span>
+            <span className="truncate font-mono lowercase">{host}</span>
           </div>
         </div>
         <article className="prose-invert max-w-none px-4 py-5 sm:px-8 sm:py-8">
