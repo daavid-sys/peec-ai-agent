@@ -14,6 +14,8 @@ import {
   Lightbulb,
   type LucideIcon,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScoreBar } from "@/components/score-bar";
