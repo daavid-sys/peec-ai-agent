@@ -144,20 +144,31 @@ function PromptsPage() {
   }, [project.ownBrand.name, selected.id]);
 
   const selectedStats = recommendation?.prompt;
+  const ownBrandMetric = brandMetrics?.find(
+    (metric) => metric.is_own || metric.brand_name === project.ownBrand.name,
+  );
+  const topCompetitorMetric = brandMetrics
+    ?.filter(
+      (metric) => !metric.is_own && metric.brand_name !== project.ownBrand.name,
+    )
+    .slice()
+    .sort((a, b) => b.visibility - a.visibility)[0];
   const cardMetrics = {
-    ownVisibility: selectedStats?.ownVisibility ?? selected.ownVisibility,
-    topCompetitor: selectedStats?.topCompetitor ?? selected.topCompetitor,
+    ownVisibility:
+      selectedStats?.ownVisibility ??
+      (ownBrandMetric ? Math.round(ownBrandMetric.visibility * 100) : null),
+    topCompetitor:
+      selectedStats?.topCompetitor ?? topCompetitorMetric?.brand_name ?? null,
     topCompetitorVisibility:
-      selectedStats?.topCompetitorVisibility ?? selected.topCompetitorVisibility,
-    visibilityGap: selectedStats?.visibilityGap ?? selected.visibilityGap,
-    opportunityScore: selectedStats?.opportunityScore ?? selected.opportunityScore,
+      selectedStats?.topCompetitorVisibility ??
+      (topCompetitorMetric
+        ? Math.round(topCompetitorMetric.visibility * 100)
+        : null),
+    visibilityGap: selectedStats?.visibilityGap ?? null,
+    opportunityScore: selectedStats?.opportunityScore ?? null,
   };
-  const cardCounts = recommendation?.counts ?? {
-    sources: selected.sourcesFound,
-    qfos: selected.hiddenQuestionsFound,
-    openings: selected.openingsFound,
-  };
-  const cardReasons = recommendation?.reasons ?? selected.reasons ?? [];
+  const cardCounts = recommendation?.counts ?? null;
+  const cardReasons = recommendation?.reasons ?? [];
   const previewOpenings = recommendation?.openingPreviews ?? [];
 
 
