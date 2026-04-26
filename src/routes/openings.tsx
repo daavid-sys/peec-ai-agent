@@ -200,10 +200,8 @@ function OpeningsPage() {
         Step 1: Action plan
       </h1>
 
-      <div className="mt-6 rounded-lg border border-border bg-card px-6 py-5 text-center">
-        <p className="text-lg font-semibold tracking-tight text-foreground">
-          &ldquo;{promptText}&rdquo;
-        </p>
+      <div className="mt-6">
+        <PromptRowCard text={promptText} row={promptRow} />
       </div>
 
       {!loading && allOpenings.length > 0 && (
