@@ -349,24 +349,6 @@ function ResultsPage() {
         </div>
       </Card>
 
-      <div className="mt-8 rounded-md border border-dashed border-border bg-secondary/30 p-5 text-center text-xs text-muted-foreground">
-        Visibility tracking starts after actions are marked as published. {sent}{" "}
-        action{sent === 1 ? "" : "s"} approved so far in this session.
-      </div>
-
-      <Card className="mt-8 border-primary/20 bg-primary-soft p-6">
-        <div className="flex items-start gap-3">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 text-primary" />
-          <div>
-            <div className="text-sm font-semibold">The Peec loop is closed.</div>
-            <p className="mt-1 text-sm text-foreground">
-              Peec measures AI visibility. Our Agent helps you act on it. New
-              mentions land in Peec, and the next-best actions surfaces
-              automatically.
-            </p>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }
