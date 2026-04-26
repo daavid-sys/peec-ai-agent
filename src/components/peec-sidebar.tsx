@@ -21,6 +21,12 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import peecLogo from "@/assets/peec-logo.png";
 
 type Item = {
@@ -70,7 +76,13 @@ const company: Item[] = [
 function Section({ title, items, badge }: { title: string; items: Item[]; badge?: string }) {
   return (
     <div className="px-3 pt-4">
-      <div className="mb-1 flex items-center gap-1.5 px-2 text-[11px] font-medium text-muted-foreground">
+      <div
+        className={cn(
+          "mb-1 flex items-center gap-1.5 px-2 text-[11px] font-medium text-muted-foreground",
+          // Whole section header dimmed unless any item is active
+          !items.some((i) => i.active) && "opacity-40",
+        )}
+      >
         {title}
         {badge && (
           <span className="rounded border border-border bg-muted/50 px-1 py-px text-[9px] font-normal text-muted-foreground">
@@ -88,7 +100,7 @@ function Section({ title, items, badge }: { title: string; items: Item[]; badge?
                 it.active
                   ? "bg-muted text-foreground"
                   : "text-foreground/80 hover:bg-muted/60",
-                !it.active && "cursor-not-allowed opacity-90",
+                !it.active && "cursor-not-allowed opacity-40 hover:opacity-60",
               )}
             >
               <Icon className="h-[15px] w-[15px] text-foreground/70" />
@@ -101,14 +113,23 @@ function Section({ title, items, badge }: { title: string; items: Item[]; badge?
               {it.active && it.to ? (
                 <Link to={it.to}>{content}</Link>
               ) : (
-                <div
-                  aria-disabled
-                  onClick={(e) => e.preventDefault()}
-                  role="button"
-                  tabIndex={-1}
-                >
-                  {content}
-                </div>
+                <TooltipProvider delayDuration={150}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        aria-disabled
+                        onClick={(e) => e.preventDefault()}
+                        role="button"
+                        tabIndex={-1}
+                      >
+                        {content}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-[220px] text-xs">
+                      This is a demo for the Openings section only.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </li>
           );
