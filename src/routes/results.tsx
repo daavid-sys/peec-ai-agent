@@ -16,6 +16,7 @@ import { ScoreBar } from "@/components/score-bar";
 import { Favicon } from "@/components/favicon";
 import { PromptHeaderCard } from "@/components/prompt-header-card";
 import { useAppStore } from "@/lib/store";
+import { CHANNELS } from "@/lib/channel";
 import {
   getStudioDrafts,
   type StudioDraft,
@@ -304,32 +305,46 @@ function ResultsPage() {
               No sources tracked for this prompt yet.
             </p>
           ) : (
-            metrics.sources.map((s) => (
-              <div key={s.id}>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <Favicon name={s.domain} kind="brand" size={14} />
-                    <span className="truncate font-medium">{s.domain}</span>
-                    <span className="ml-1 truncate text-xs text-muted-foreground">
-                      {s.action}
+            metrics.sources.map((s) => {
+              const meta = CHANNELS[s.channel];
+              const cls = s.classification ?? s.channel;
+              return (
+                <div key={s.id}>
+                  <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Favicon name={s.domain} kind="brand" size={14} />
+                      <span className="truncate font-medium">{s.domain}</span>
+                      <span
+                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-2 py-0.5 text-[10px] font-medium text-foreground"
+                      >
+                        <span
+                          aria-hidden
+                          className="h-1.5 w-1.5 rounded-full"
+                          style={{ backgroundColor: meta.accent }}
+                        />
+                        {toTitleCase(cls)}
+                      </span>
+                      <span className="ml-1 truncate text-xs text-muted-foreground">
+                        {s.action}
+                      </span>
+                    </div>
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {s.current}% → {s.target}%
                     </span>
                   </div>
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {s.current}% → {s.target}%
-                  </span>
+                  <ScoreBar
+                    value={s.target}
+                    tone={
+                      s.target === 0
+                        ? "destructive"
+                        : s.completed
+                          ? "success"
+                          : "primary"
+                    }
+                  />
                 </div>
-                <ScoreBar
-                  value={s.target}
-                  tone={
-                    s.target === 0
-                      ? "destructive"
-                      : s.completed
-                        ? "success"
-                        : "primary"
-                  }
-                />
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </Card>
@@ -354,6 +369,15 @@ function ResultsPage() {
       </Card>
     </div>
   );
+}
+
+function toTitleCase(input: string) {
+  return input
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .split(/\s+/)
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
 }
 
 function CollapsibleSection({

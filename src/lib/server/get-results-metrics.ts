@@ -1,10 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { classifyChannel, type Channel } from "@/lib/channel";
 
 export type SourceProgress = {
   id: string;
   domain: string;
   classification: string | null;
+  channel: Channel;
   /** Current visibility for own brand on this source (0 or 100). */
   current: number;
   /** Projected visibility after the queued action lands (0–100). */
@@ -41,7 +43,7 @@ export const getResultsMetrics = createServerFn({ method: "GET" })
     }) => input,
   )
   .handler(async ({ data }): Promise<ResultsMetrics> => {
-    const { promptId } = data;
+    const { promptId, ownDomain } = data;
     const completedSet = new Set(data.completedOpeningIds ?? []);
 
     const [promptRes, sourcesRes, openingsRes, qfosRes] = await Promise.all([
@@ -120,10 +122,17 @@ export const getResultsMetrics = createServerFn({ method: "GET" })
       // Once the related action is marked complete, project source coverage to 100%.
       // Otherwise the target sits at current (no projected lift on that source yet).
       const target = completed ? 100 : current;
+      const channel = classifyChannel({
+        actionType: related[0]?.actionType ?? null,
+        classification: s.classification ?? null,
+        domain: s.domain ?? null,
+        ownDomain: ownDomain ?? null,
+      });
       return {
         id: s.id,
         domain: s.domain ?? "—",
         classification: s.classification ?? null,
+        channel,
         current,
         target,
         action: actionLabel(related[0]?.actionType ?? null, hasDraft),
