@@ -4,7 +4,6 @@ import {
   ArrowRight,
   ExternalLink,
   Loader2,
-  RefreshCw,
   Sparkles,
 } from "lucide-react";
 import {
