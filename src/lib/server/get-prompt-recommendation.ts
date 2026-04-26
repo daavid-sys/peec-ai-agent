@@ -516,6 +516,13 @@ export const getPromptRecommendation = createServerFn({ method: "GET" })
             ),
         ),
       ).slice(0, 4),
+      qfoModels: Array.from(
+        new Set(
+          (qfosRes.data ?? [])
+            .map((q: { model_id: string | null }) => q.model_id)
+            .filter((m): m is string => typeof m === "string" && m.length > 0),
+        ),
+      ),
       openingPreviews,
     };
   });
