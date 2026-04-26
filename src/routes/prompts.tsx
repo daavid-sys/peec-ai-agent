@@ -130,11 +130,11 @@ function ReasonCardItem({
   ).slice(0, 4);
 
   const cardInner = (
-    <div className="group flex h-full flex-col items-stretch justify-center gap-2 rounded-lg border border-border bg-background p-3 transition-colors hover:border-foreground/20 hover:bg-card">
-      <div className="flex items-center gap-2 text-left">
+    <div className="group flex h-full flex-col gap-3 rounded-lg border border-border bg-background p-3.5 transition-colors hover:border-foreground/20 hover:bg-card">
+      <div className="flex items-start gap-2.5">
         <div
           className={cn(
-            "flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md ring-1",
+            "flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md ring-1",
             !isDestructive && toneStyle.iconBg,
             !isDestructive && toneStyle.ring,
           )}
@@ -150,21 +150,21 @@ function ReasonCardItem({
           }
         >
           {card.platformDomain ? (
-            <Favicon name={card.platformDomain} size={16} />
+            <Favicon name={card.platformDomain} size={18} />
           ) : (
             <Icon
-              className={cn("h-3.5 w-3.5", !isDestructive && toneStyle.iconColor)}
+              className={cn("h-4 w-4", !isDestructive && toneStyle.iconColor)}
               style={isDestructive ? { color: "var(--destructive)" } : undefined}
             />
           )}
         </div>
-        <div className="min-w-0 text-[13px] font-semibold leading-snug text-foreground">
+        <div className="min-w-0 flex-1 text-[13px] font-semibold leading-snug text-foreground text-balance">
           {card.headline}
         </div>
       </div>
 
       {competitorDomains.length > 0 && (
-        <div className="flex items-center justify-center gap-1">
+        <div className="mt-auto flex items-center gap-1.5 border-t border-border/60 pt-2">
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">
             vs
           </span>
