@@ -95,7 +95,7 @@ function PromptsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10">
+    <div className="mx-auto w-full max-w-[1600px] px-6 py-10 2xl:px-10">
       <div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
         Step 1 · Recommended Opening
         {selected.id !== recommended.id && (
@@ -115,7 +115,7 @@ function PromptsPage() {
 
       {/* Hero recommended-prompt card */}
       <Card className="mt-8 overflow-hidden border-border p-0">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr]">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
           <div className="border-b border-border p-7 lg:border-b-0 lg:border-r">
             <div className="flex items-center gap-2 text-xs font-medium text-primary">
               <Sparkles className="h-3.5 w-3.5" /> Recommended prompt
@@ -479,7 +479,7 @@ function BrandsTable({
 
       <div className="mt-3 overflow-hidden rounded-lg border border-border bg-background">
         {/* Header row */}
-        <div className="grid grid-cols-[28px_1fr_90px_70px_90px_70px] items-center gap-3 bg-secondary/40 px-4 py-2.5 text-[11px] font-medium text-muted-foreground">
+        <div className="grid grid-cols-[24px_minmax(0,1fr)_64px_56px_72px_56px] items-center gap-2 bg-secondary/40 px-4 py-2.5 text-[11px] font-medium text-muted-foreground">
           <div>#</div>
           <div>Brand</div>
           <div className="text-right">Visibility</div>
@@ -493,7 +493,7 @@ function BrandsTable({
             {Array.from({ length: 5 }).map((_, i) => (
               <li
                 key={i}
-                className="grid grid-cols-[28px_1fr_90px_70px_90px_70px] items-center gap-3 px-4 py-3"
+                className="grid grid-cols-[24px_minmax(0,1fr)_64px_56px_72px_56px] items-center gap-2 px-3 py-3"
               >
                 <Skeleton className="h-3 w-4" />
                 <div className="flex items-center gap-2">
@@ -519,7 +519,7 @@ function BrandsTable({
                 <li
                   key={m.brand_id}
                   className={cn(
-                    "grid grid-cols-[28px_1fr_90px_70px_90px_70px] items-center gap-3 px-4 py-3 text-sm",
+                    "grid grid-cols-[24px_minmax(0,1fr)_64px_56px_72px_56px] items-center gap-2 px-3 py-3 text-sm",
                     isOwn && "bg-primary-soft/40",
                   )}
                 >

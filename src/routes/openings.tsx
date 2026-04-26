@@ -70,7 +70,7 @@ function OpeningsPage() {
   const promptText = plan?.prompt?.text ?? localPrompt?.text ?? "Selected prompt";
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10">
+    <div className="mx-auto w-full max-w-[1600px] px-6 py-10 2xl:px-10">
       <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
         Action Plan
       </div>
