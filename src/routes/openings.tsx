@@ -46,6 +46,7 @@ function OpeningsPage() {
   const [loading, setLoading] = useState(true);
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>("all");
   const [competitorFilter, setCompetitorFilter] = useState<CompetitorFilter>("all");
+  const [promptRow, setPromptRow] = useState<PromptTableRow | null>(null);
 
   const enqueuingRef = useRef(false);
 
