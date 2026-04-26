@@ -11,7 +11,9 @@ import {
   getPromptBrandMetrics,
   type PromptBrandMetric,
 } from "@/lib/server/get-prompt-brand-metrics";
-import { PromptsTable } from "@/components/prompts-table";
+import { PromptsTable, computePromptAggregates } from "@/components/prompts-table";
+import { Input } from "@/components/ui/input";
+import { Search as SearchIcon } from "lucide-react";
 import { ModelLogo } from "@/components/qfos-table";
 import {
   getPromptTable,
