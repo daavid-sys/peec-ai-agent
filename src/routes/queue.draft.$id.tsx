@@ -239,6 +239,8 @@ function DraftPage() {
   const slug = slugify(engagement.title);
 
   const postFn = useServerFn(postToContentful);
+  const sendGmailFn = useServerFn(sendGmail);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [contentfulOpen, setContentfulOpen] = useState(false);
   const [posting, setPosting] = useState(false);
   const [cfSpaceId, setCfSpaceId] = useState("");
