@@ -73,13 +73,14 @@ export function PromptsTable({
   loading,
   selectedId,
   onSelect,
+  query = "",
 }: {
   rows: PromptTableRow[] | null;
   loading: boolean;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  query?: string;
 }) {
-  const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
     if (!rows) return [];
     if (!query) return rows;
@@ -88,67 +89,8 @@ export function PromptsTable({
     );
   }, [rows, query]);
 
-  // Aggregates
-  const agg = useMemo(() => {
-    if (!rows || rows.length === 0)
-      return { visibility: 0, sentiment: 0, position: 0 };
-    const vis =
-      rows.reduce((s, r) => s + (r.visibility ?? 0), 0) / rows.length;
-    const sentRows = rows.filter((r) => r.sentiment !== null);
-    const sent =
-      sentRows.length === 0
-        ? 0
-        : sentRows.reduce((s, r) => s + (r.sentiment ?? 0), 0) /
-          sentRows.length;
-    const posRows = rows.filter((r) => r.position !== null);
-    const pos =
-      posRows.length === 0
-        ? 0
-        : posRows.reduce((s, r) => s + (r.position ?? 0), 0) / posRows.length;
-    return {
-      visibility: Math.round(vis),
-      sentiment: Math.round(sent),
-      position: Math.round(pos * 10) / 10,
-    };
-  }, [rows]);
-
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-background">
-      {/* Header strip with search + aggregates */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-secondary/30 px-3 py-2.5">
-        <div className="relative w-72">
-          <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search"
-            className="h-8 pl-8 text-[13px]"
-          />
-        </div>
-        <div className="flex items-center gap-4 text-[12px] text-muted-foreground">
-          <span>
-            Visibility{" "}
-            <span className="font-semibold text-foreground tabular-nums">
-              {agg.visibility}%
-            </span>
-          </span>
-          <span className="text-border">|</span>
-          <span className="inline-flex items-center gap-1.5">
-            Sentiment{" "}
-            <span className="inline-flex items-center gap-1 font-semibold text-foreground tabular-nums">
-              <span className="h-1.5 w-1.5 rounded-full bg-success" />
-              {agg.sentiment}
-            </span>
-          </span>
-          <span className="text-border">|</span>
-          <span>
-            Position{" "}
-            <span className="font-semibold text-foreground tabular-nums">
-              # {agg.position.toFixed(1)}
-            </span>
-          </span>
-        </div>
-      </div>
 
       {/* Column headers */}
       <div className="grid grid-cols-[24px_minmax(0,1fr)_70px_70px_70px_120px_70px_140px_70px_60px] items-center gap-3 border-b border-border bg-background px-3 py-2 text-[11px] font-medium text-muted-foreground">
