@@ -66,20 +66,20 @@ export function CmsPublishCard({
             <span className="font-mono lowercase">{host}</span>
           </div>
         </div>
-        <article className="prose-invert max-w-none px-6 py-6 sm:px-8 sm:py-8">
+        <article className="prose-invert max-w-none px-4 py-5 sm:px-8 sm:py-8">
           <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-primary">
             {ownBrand.name} blog
           </div>
-          <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-3xl">
+          <h2 className="mt-2 text-xl font-semibold leading-tight tracking-tight text-foreground break-words sm:text-3xl">
             {draft.title}
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+          <p className="mt-4 break-words text-sm leading-relaxed text-muted-foreground sm:text-base">
             {lead}
           </p>
           {body.length > 0 && (
             <div className="mt-4 space-y-3 text-sm leading-relaxed text-foreground/90">
               {body.slice(0, 4).map((p, i) => (
-                <p key={i}>{p}</p>
+                <p key={i} className="break-words">{p}</p>
               ))}
               {body.length > 4 && (
                 <p className="text-xs italic text-muted-foreground">
