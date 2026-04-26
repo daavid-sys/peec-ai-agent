@@ -199,39 +199,39 @@ function PromptsPage() {
             <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
               <Stat
                 label="Your visibility"
-                value={`${selected.ownVisibility}%`}
+                value={recommendationLoading ? "…" : `${cardMetrics.ownVisibility}%`}
                 tone="destructive"
               />
               <Stat
-                label={`${selected.topCompetitor} visibility`}
-                value={`${selected.topCompetitorVisibility}%`}
+                label={`${cardMetrics.topCompetitor ?? "Top competitor"} visibility`}
+                value={recommendationLoading ? "…" : `${cardMetrics.topCompetitorVisibility}%`}
               />
               <Stat
                 label="Visibility gap"
-                value={`${selected.visibilityGap}%`}
+                value={recommendationLoading ? "…" : `${cardMetrics.visibilityGap}%`}
                 tone="destructive"
                 icon={TrendingDown}
               />
               <Stat
                 label="Opportunity score"
-                value={`${selected.opportunityScore}/100`}
+                value={recommendationLoading ? "…" : `${cardMetrics.opportunityScore}/100`}
                 tone="primary"
               />
             </div>
 
             <div className="mt-6 grid grid-cols-3 gap-3 text-xs">
-              <Mini label="Sources found" value={selected.sourcesFound} />
-              <Mini label="Query fanouts" value={selected.hiddenQuestionsFound} />
-              <Mini label="Openings found" value={selected.openingsFound} />
+              <Mini label="Sources found" value={recommendationLoading ? "…" : cardCounts.sources} />
+              <Mini label="Query fanouts" value={recommendationLoading ? "…" : cardCounts.qfos} />
+              <Mini label="Openings found" value={recommendationLoading ? "…" : cardCounts.openings} />
             </div>
 
-            {selected.reasons && selected.reasons.length > 0 && (
+            {cardReasons.length > 0 && (
               <div className="mt-6 space-y-2">
                 <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Why this prompt
                 </div>
                 <ul className="space-y-1.5">
-                  {selected.reasons.map((r) => (
+                  {cardReasons.map((r) => (
                     <li
                       key={r}
                       className="flex items-start gap-2 text-sm text-foreground"
@@ -284,7 +284,7 @@ function PromptsPage() {
               Sneak peek · openings for this prompt
             </h2>
             <p className="text-xs text-muted-foreground">
-              The first {previewOpenings.length} of {selected.openingsFound}{" "}
+              The first {previewOpenings.length} of {cardCounts.openings}{" "}
               openings already drafted by the agent.
             </p>
           </div>
