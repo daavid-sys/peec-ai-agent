@@ -479,7 +479,7 @@ function BrandsTable({
 
       <div className="mt-3 overflow-hidden rounded-lg border border-border bg-background">
         {/* Header row */}
-        <div className="grid grid-cols-[28px_1fr_90px_70px_90px_70px] items-center gap-3 bg-secondary/40 px-4 py-2.5 text-[11px] font-medium text-muted-foreground">
+        <div className="grid grid-cols-[24px_minmax(0,1fr)_64px_56px_72px_56px] items-center gap-2 bg-secondary/40 px-4 py-2.5 text-[11px] font-medium text-muted-foreground">
           <div>#</div>
           <div>Brand</div>
           <div className="text-right">Visibility</div>
@@ -493,7 +493,7 @@ function BrandsTable({
             {Array.from({ length: 5 }).map((_, i) => (
               <li
                 key={i}
-                className="grid grid-cols-[28px_1fr_90px_70px_90px_70px] items-center gap-3 px-4 py-3"
+                className="grid grid-cols-[24px_minmax(0,1fr)_64px_56px_72px_56px] items-center gap-2 px-3 py-3"
               >
                 <Skeleton className="h-3 w-4" />
                 <div className="flex items-center gap-2">
@@ -519,7 +519,7 @@ function BrandsTable({
                 <li
                   key={m.brand_id}
                   className={cn(
-                    "grid grid-cols-[28px_1fr_90px_70px_90px_70px] items-center gap-3 px-4 py-3 text-sm",
+                    "grid grid-cols-[24px_minmax(0,1fr)_64px_56px_72px_56px] items-center gap-2 px-3 py-3 text-sm",
                     isOwn && "bg-primary-soft/40",
                   )}
                 >
