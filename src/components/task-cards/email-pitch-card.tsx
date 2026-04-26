@@ -60,8 +60,6 @@ export function EmailPitchCard({
   hideMarkButton?: boolean;
 }) {
   const email = useMemo(() => buildEmail(draft, ownBrand.name), [draft, ownBrand.name]);
-  const sendGmailFn = useServerFn(sendGmail);
-  const [sending, setSending] = useState(false);
 
   const attachments: Attachment[] = useMemo(
     () => [
