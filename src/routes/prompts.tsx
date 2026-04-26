@@ -13,8 +13,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Favicon } from "@/components/favicon";
 import { store, useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { demoOpenings } from "@/lib/demo-data";
-import type { Opening } from "@/lib/types";
 import {
   getPromptBrandMetrics,
   type PromptBrandMetric,
@@ -29,6 +27,10 @@ import {
   getPromptTable,
   type PromptTableRow,
 } from "@/lib/server/get-prompt-table";
+import {
+  getPromptRecommendation,
+  type PromptRecommendation,
+} from "@/lib/server/get-prompt-recommendation";
 
 export const Route = createFileRoute("/prompts")({
   head: () => ({ meta: [{ title: "Recommended Prompt — Peec AI Openings" }] }),
@@ -55,12 +57,6 @@ function PromptsPage() {
     prompts.find((p) => p.status === "best_opportunity") ?? prompts[0];
   const selected = prompts.find((p) => p.id === selectedId) ?? recommended;
 
-  // Openings preview for the currently selected prompt (with sensible fallback)
-  const previewOpenings: Opening[] = useMemo(() => {
-    const matched = demoOpenings.filter((o) => o.promptId === selected.id);
-    return (matched.length ? matched : demoOpenings).slice(0, 3);
-  }, [selected.id]);
-
   // Brand metrics for the currently selected prompt (real Peec data)
   const [brandMetrics, setBrandMetrics] = useState<PromptBrandMetric[] | null>(
     null,
@@ -68,6 +64,9 @@ function PromptsPage() {
   const [brandMetricsLoading, setBrandMetricsLoading] = useState(true);
   const [qfos, setQfos] = useState<PromptQfo[] | null>(null);
   const [qfosLoading, setQfosLoading] = useState(true);
+  const [recommendation, setRecommendation] =
+    useState<PromptRecommendation | null>(null);
+  const [recommendationLoading, setRecommendationLoading] = useState(true);
   const [tableRows, setTableRows] = useState<PromptTableRow[] | null>(null);
   const [tableLoading, setTableLoading] = useState(true);
   useEffect(() => {
@@ -96,6 +95,23 @@ function PromptsPage() {
     setBrandMetrics(null);
     setQfosLoading(true);
     setQfos(null);
+    setRecommendationLoading(true);
+    setRecommendation(null);
+    getPromptRecommendation({
+      data: { promptId: selected.id, ownBrandName: project.ownBrand.name },
+    })
+      .then((data) => {
+        if (cancelled) return;
+        setRecommendation(data);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setRecommendation(null);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setRecommendationLoading(false);
+      });
     getPromptBrandMetrics({ data: { promptId: selected.id } })
       .then((rows) => {
         if (cancelled) return;
@@ -125,7 +141,37 @@ function PromptsPage() {
     return () => {
       cancelled = true;
     };
-  }, [selected.id]);
+  }, [project.ownBrand.name, selected.id]);
+
+  const selectedStats = recommendation?.prompt;
+  const ownBrandMetric = brandMetrics?.find(
+    (metric) => metric.is_own || metric.brand_name === project.ownBrand.name,
+  );
+  const topCompetitorMetric = brandMetrics
+    ?.filter(
+      (metric) => !metric.is_own && metric.brand_name !== project.ownBrand.name,
+    )
+    .slice()
+    .sort((a, b) => b.visibility - a.visibility)[0];
+  const cardMetrics = {
+    ownVisibility:
+      selectedStats?.ownVisibility ??
+      (ownBrandMetric ? Math.round(ownBrandMetric.visibility * 100) : null),
+    topCompetitor:
+      selectedStats?.topCompetitor ?? topCompetitorMetric?.brand_name ?? null,
+    topCompetitorVisibility:
+      selectedStats?.topCompetitorVisibility ??
+      (topCompetitorMetric
+        ? Math.round(topCompetitorMetric.visibility * 100)
+        : null),
+    visibilityGap: selectedStats?.visibilityGap ?? null,
+    opportunityScore: selectedStats?.opportunityScore ?? null,
+  };
+  const cardCounts = recommendation?.counts ?? null;
+  const cardReasons = recommendation?.reasons ?? [];
+  const previewOpenings = recommendation?.openingPreviews ?? [];
+  const formatMetric = (value: number | null, suffix = "%") =>
+    recommendationLoading ? "…" : value === null ? "—" : `${value}${suffix}`;
 
 
   const startFlow = () => {
@@ -166,39 +212,39 @@ function PromptsPage() {
             <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
               <Stat
                 label="Your visibility"
-                value={`${selected.ownVisibility}%`}
+                value={formatMetric(cardMetrics.ownVisibility)}
                 tone="destructive"
               />
               <Stat
-                label={`${selected.topCompetitor} visibility`}
-                value={`${selected.topCompetitorVisibility}%`}
+                label={`${cardMetrics.topCompetitor ?? "Top competitor"} visibility`}
+                value={formatMetric(cardMetrics.topCompetitorVisibility)}
               />
               <Stat
                 label="Visibility gap"
-                value={`${selected.visibilityGap}%`}
+                value={formatMetric(cardMetrics.visibilityGap)}
                 tone="destructive"
                 icon={TrendingDown}
               />
               <Stat
                 label="Opportunity score"
-                value={`${selected.opportunityScore}/100`}
+                value={formatMetric(cardMetrics.opportunityScore, "/100")}
                 tone="primary"
               />
             </div>
 
             <div className="mt-6 grid grid-cols-3 gap-3 text-xs">
-              <Mini label="Sources found" value={selected.sourcesFound} />
-              <Mini label="Query fanouts" value={selected.hiddenQuestionsFound} />
-              <Mini label="Openings found" value={selected.openingsFound} />
+              <Mini label="Sources found" value={recommendationLoading ? "…" : (cardCounts?.sources ?? "—")} />
+              <Mini label="Query fanouts" value={recommendationLoading ? "…" : (cardCounts?.qfos ?? "—")} />
+              <Mini label="Openings found" value={recommendationLoading ? "…" : (cardCounts?.openings ?? "—")} />
             </div>
 
-            {selected.reasons && selected.reasons.length > 0 && (
+            {cardReasons.length > 0 && (
               <div className="mt-6 space-y-2">
                 <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Why this prompt
                 </div>
                 <ul className="space-y-1.5">
-                  {selected.reasons.map((r) => (
+                  {cardReasons.map((r) => (
                     <li
                       key={r}
                       className="flex items-start gap-2 text-sm text-foreground"
@@ -251,7 +297,7 @@ function PromptsPage() {
               Sneak peek · openings for this prompt
             </h2>
             <p className="text-xs text-muted-foreground">
-              The first {previewOpenings.length} of {selected.openingsFound}{" "}
+              The first {previewOpenings.length} of {cardCounts?.openings ?? "—"}{" "}
               openings already drafted by the agent.
             </p>
           </div>
@@ -299,7 +345,7 @@ function OpeningPreviewCard({
   opening,
   onOpen,
 }: {
-  opening: Opening;
+  opening: PromptRecommendation["openingPreviews"][number];
   onOpen: () => void;
 }) {
   let host = "";
@@ -373,7 +419,7 @@ function Stat({
   );
 }
 
-function Mini({ label, value }: { label: string; value: number }) {
+function Mini({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-md border border-border bg-background px-3 py-2">
       <div className="text-[11px] text-muted-foreground">{label}</div>
