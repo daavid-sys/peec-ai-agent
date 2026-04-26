@@ -53,7 +53,14 @@ const BRAND_DOMAINS: Record<string, string> = {
   Capterra: "capterra.com",
 };
 
+function looksLikeDomain(value: string) {
+  // matches things like example.com, sub.example.co.uk
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(value.trim());
+}
+
 function domainFor(name: string, kind: "model" | "brand") {
+  // If the caller already passed a domain (e.g. "articsledge.com"), use it directly
+  if (looksLikeDomain(name)) return name.trim().toLowerCase();
   const map = kind === "model" ? MODEL_DOMAINS : BRAND_DOMAINS;
   if (map[name]) return map[name];
   // try fuzzy match
@@ -77,10 +84,11 @@ export function Favicon({
   className?: string;
 }) {
   const domain = domainFor(name, kind);
-  const src = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  const primary = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  const fallback = `https://icons.duckduckgo.com/ip3/${domain}.ico`;
   return (
     <img
-      src={src}
+      src={primary}
       alt=""
       width={size}
       height={size}
@@ -88,7 +96,13 @@ export function Favicon({
       className={cn("inline-block rounded-sm object-contain", className)}
       style={{ width: size, height: size }}
       onError={(e) => {
-        (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
+        const img = e.currentTarget as HTMLImageElement;
+        if (img.dataset.fallback !== "1") {
+          img.dataset.fallback = "1";
+          img.src = fallback;
+        } else {
+          img.style.visibility = "hidden";
+        }
       }}
     />
   );
