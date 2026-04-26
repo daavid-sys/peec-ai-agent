@@ -401,7 +401,15 @@ function PromptsPage() {
             </div>
 
             <div className="mt-6 grid grid-cols-3 gap-3 text-xs">
-              <Mini label="Sources found" value={cardCounts?.sources ?? "—"} loading={recommendationLoading} />
+              <Mini
+                label="Sources found"
+                value={cardCounts?.sources ?? "—"}
+                loading={recommendationLoading}
+                favicons={recommendation?.topSources
+                  ?.map((s) => s.domain)
+                  .filter((d): d is string => !!d && d !== "default.com")
+                  .slice(0, 4)}
+              />
               <Mini label="Query fanouts" value={cardCounts?.qfos ?? "—"} loading={recommendationLoading} />
               <Mini label="Openings found" value={cardCounts?.openings ?? "—"} loading={recommendationLoading} />
             </div>
