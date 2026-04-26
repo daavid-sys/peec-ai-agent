@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Favicon } from "@/components/favicon";
+import { PromptHeaderCard } from "@/components/prompt-header-card";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
 import { CHANNELS, type Channel } from "@/lib/channel";
