@@ -124,8 +124,12 @@ export function PeecSidebar() {
       {/* Project switcher */}
       <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
         <div className="flex min-w-0 items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-foreground">
-            <img src={peecLogo} alt="Peec" className="h-3.5 w-auto invert" />
+          <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md border border-border bg-background">
+            <img
+              src="https://www.google.com/s2/favicons?domain=attio.com&sz=64"
+              alt="Attio"
+              className="h-5 w-5"
+            />
           </div>
           <span className="truncate text-[13px] font-semibold">Project 2 - Att…</span>
         </div>
