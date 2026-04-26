@@ -204,6 +204,21 @@ export const analyzePrompt = createServerFn({ method: "POST" })
         continue;
       }
 
+      // Track which (action_type) we've already inserted for this source so we
+      // don't write duplicates targeting different competitors — one post can
+      // call out many competitors at once.
+      const insertedActionsForSource = new Set<string>();
+
+      // Pre-load existing action_types on this source so re-runs also skip dupes.
+      const { data: existingForSource } = await supabaseAdmin
+        .from("action_openings")
+        .select("action_type")
+        .eq("prompt_id", promptId)
+        .eq("source_id", src.id);
+      for (const e of existingForSource ?? []) {
+        if (e.action_type) insertedActionsForSource.add(e.action_type);
+      }
+
       for (const m of mentions) {
         const { data: ins, error: mErr } = await supabaseAdmin
           .from("competitor_mentions")
@@ -220,6 +235,13 @@ export const analyzePrompt = createServerFn({ method: "POST" })
           console.error("mention insert", mErr);
           continue;
         }
+        // Skip duplicate openings — same source + same action_type just for a
+        // different competitor would re-create the duplication this fixes.
+        if (insertedActionsForSource.has(m.action_type)) {
+          void ins;
+          continue;
+        }
+        insertedActionsForSource.add(m.action_type);
         await supabaseAdmin.from("action_openings").insert({
           prompt_id: promptId,
           source_id: src.id,

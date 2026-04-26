@@ -584,13 +584,13 @@ function ComparisonReplica({ draft, cps, onDone, ownBrand }: Props) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200">
-                {draft.competitor && (
-                  <tr className="opacity-70">
-                    <td className="px-3 py-2 font-semibold">{draft.competitor}</td>
+                {draft.competitors.map((c) => (
+                  <tr key={c} className="opacity-70">
+                    <td className="px-3 py-2 font-semibold">{c}</td>
                     <td className="px-3 py-2">existing row</td>
                     <td className="px-3 py-2">…</td>
                   </tr>
-                )}
+                ))}
                 <tr className="bg-[#0d9488]/5">
                   <td className="px-3 py-2 align-top font-semibold text-[#0d9488]">
                     <span className="inline-flex items-center gap-2">

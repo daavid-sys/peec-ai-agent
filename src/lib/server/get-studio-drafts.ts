@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { CHANNELS, classifyChannel, type Channel } from "@/lib/channel";
+import { dedupeOpenings } from "@/lib/server/dedupe-openings";
 
 export type StudioDraft = {
   id: string;
@@ -10,7 +11,8 @@ export type StudioDraft = {
   channelAccent: string;
   title: string;
   actionType: string;
-  competitor: string | null;
+  /** All competitors targeted by this single post. */
+  competitors: string[];
   rationale: string | null;
   impactScore: number;
   source: {
@@ -115,11 +117,30 @@ export const getStudioDrafts = createServerFn({ method: "GET" })
       if (s.source_id) scrapeBySource.set(s.source_id, s);
     }
 
+    // Collapse rows that are the same post targeting different competitors.
+    const merged = dedupeOpenings(
+      openings.map((o) => ({
+        ...o,
+        impact_score: o.impact_score ?? 0,
+      })),
+    );
+
     const drafts: StudioDraft[] = [];
     let pendingCount = 0;
 
-    for (const o of openings) {
-      const draft = draftByOpening.get(o.id);
+    for (const m of merged) {
+      const o = m.canonical;
+      // Pick the best ready draft across the merged group; otherwise fall back
+      // to the canonical row's status to drive pendingCount correctly.
+      let draft: DraftRow | null = null;
+      for (const id of m.groupIds) {
+        const d = draftByOpening.get(id);
+        if (d?.status === "ready" && d.full_draft) {
+          draft = d;
+          break;
+        }
+        if (!draft && d) draft = d;
+      }
       const source = o.source_id ? sourceById.get(o.source_id) ?? null : null;
       const scrape = o.source_id ? scrapeBySource.get(o.source_id) ?? null : null;
       const channel = classifyChannel({
@@ -130,7 +151,12 @@ export const getStudioDrafts = createServerFn({ method: "GET" })
       });
 
       if (!draft || draft.status !== "ready" || !draft.full_draft) {
-        if (!draft || draft.status === "pending" || draft.status === "drafting" || draft.status === "missing") {
+        if (
+          !draft ||
+          draft.status === "pending" ||
+          draft.status === "drafting" ||
+          (draft.status as string) === "missing"
+        ) {
           pendingCount += 1;
         }
         continue;
@@ -145,7 +171,7 @@ export const getStudioDrafts = createServerFn({ method: "GET" })
         channelAccent: meta.accent,
         title: o.title,
         actionType: o.action_type,
-        competitor: o.competitor,
+        competitors: m.competitors,
         rationale: o.rationale,
         impactScore: o.impact_score ?? 50,
         source: {
@@ -161,34 +187,10 @@ export const getStudioDrafts = createServerFn({ method: "GET" })
       });
     }
 
-    // Deduplicate drafts that would render as the same post on the same
-    // platform (same channel + title + source URL + competitor + draft body
-    // prefix). Multiple openings can target the same source/title with the
-    // same action template, which previously surfaced as visible duplicates.
-    const seen = new Set<string>();
-    const uniqueDrafts: StudioDraft[] = [];
-    for (const d of drafts) {
-      const bodyKey = (d.fullDraft ?? "")
-        .replace(/\s+/g, " ")
-        .trim()
-        .slice(0, 200)
-        .toLowerCase();
-      const key = [
-        d.channel,
-        (d.title ?? "").trim().toLowerCase(),
-        (d.source.url ?? "").toLowerCase(),
-        (d.competitor ?? "").toLowerCase(),
-        bodyKey,
-      ].join("|");
-      if (seen.has(key)) continue;
-      seen.add(key);
-      uniqueDrafts.push(d);
-    }
-
     return {
       promptId,
       promptText: promptRes.data?.text ?? null,
-      drafts: uniqueDrafts,
+      drafts,
       pendingCount,
     };
   });

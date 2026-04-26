@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { classifyChannel, type Channel } from "@/lib/channel";
+import { dedupeOpenings } from "@/lib/server/dedupe-openings";
 
 const MODEL = "google/gemini-3-flash-preview";
 const MAX_PER_CALL = 8;
@@ -14,6 +15,15 @@ type OpeningRow = {
   competitor: string | null;
   prompt_id: string;
   source_id: string | null;
+  impact_score: number | null;
+};
+
+/** A merged opening to draft for: canonical row + the full competitor list. */
+type DraftJob = {
+  opening: OpeningRow;
+  competitors: string[];
+  /** All opening_ids in the merged group (so we can mark them all done). */
+  groupIds: string[];
 };
 
 type SourceRow = {
@@ -46,11 +56,16 @@ async function callLovableAi(args: {
   ownBrand: string;
   channel: Channel;
   opening: OpeningRow;
+  competitors: string[];
   source: SourceRow | null;
   scrape: ScrapeRow | null;
 }): Promise<DraftJson> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) throw new Error("LOVABLE_API_KEY missing");
+
+  // Up to 4 named competitors keeps drafts strong without rambling.
+  const namedCompetitors = args.competitors.slice(0, 4);
+  const remainingCompetitors = Math.max(0, args.competitors.length - 4);
 
   const evidence = {
     promptText: args.promptText,
@@ -61,7 +76,10 @@ async function callLovableAi(args: {
       actionType: args.opening.action_type,
       rationale: args.opening.rationale,
       recommendedEngagement: args.opening.recommended_engagement,
-      competitor: args.opening.competitor,
+      // ONE post can target many competitors at once — name them all in the draft.
+      competitors: namedCompetitors,
+      additionalCompetitors:
+        remainingCompetitors > 0 ? `and ${remainingCompetitors} others` : null,
     },
     source: args.source
       ? {
@@ -157,7 +175,7 @@ async function callLovableAi(args: {
 }
 
 async function generateDraftFor(
-  opening: OpeningRow,
+  job: DraftJob,
   ctx: {
     promptText: string;
     ownBrand: string;
@@ -166,6 +184,7 @@ async function generateDraftFor(
     scrapeBySource: Map<string, ScrapeRow>;
   },
 ) {
+  const opening = job.opening;
   const source = opening.source_id ? ctx.sourceById.get(opening.source_id) ?? null : null;
   const scrape = opening.source_id ? ctx.scrapeBySource.get(opening.source_id) ?? null : null;
   const channel = classifyChannel({
@@ -175,19 +194,18 @@ async function generateDraftFor(
     ownDomain: ctx.ownDomain,
   });
 
-  // Mark drafting
-  await supabaseAdmin
-    .from("opening_drafts")
-    .upsert(
-      {
-        opening_id: opening.id,
-        platform: channel,
-        status: "drafting",
-        model: MODEL,
-        error: null,
-      },
-      { onConflict: "opening_id" },
-    );
+  // Mark every duplicate row in this group as drafting so concurrent callers
+  // don't double-do work and the overview reflects in-flight status correctly.
+  await supabaseAdmin.from("opening_drafts").upsert(
+    job.groupIds.map((id) => ({
+      opening_id: id,
+      platform: channel,
+      status: "drafting",
+      model: MODEL,
+      error: null,
+    })),
+    { onConflict: "opening_id" },
+  );
 
   try {
     const draft = await callLovableAi({
@@ -195,37 +213,37 @@ async function generateDraftFor(
       ownBrand: ctx.ownBrand,
       channel,
       opening,
+      competitors: job.competitors,
       source,
       scrape,
     });
-    await supabaseAdmin
-      .from("opening_drafts")
-      .upsert(
-        {
-          opening_id: opening.id,
-          platform: channel,
-          status: "ready",
-          brief: draft.brief,
-          full_draft: draft.full_draft,
-          model: MODEL,
-          generated_at: new Date().toISOString(),
-          error: null,
-        },
-        { onConflict: "opening_id" },
-      );
+    const generatedAt = new Date().toISOString();
+    // Mirror the same draft to every duplicate row so historical dupes resolve
+    // as "ready" everywhere — the overview reader picks one canonical row.
+    await supabaseAdmin.from("opening_drafts").upsert(
+      job.groupIds.map((id) => ({
+        opening_id: id,
+        platform: channel,
+        status: "ready",
+        brief: draft.brief,
+        full_draft: draft.full_draft,
+        model: MODEL,
+        generated_at: generatedAt,
+        error: null,
+      })),
+      { onConflict: "opening_id" },
+    );
   } catch (err) {
-    await supabaseAdmin
-      .from("opening_drafts")
-      .upsert(
-        {
-          opening_id: opening.id,
-          platform: channel,
-          status: "failed",
-          error: err instanceof Error ? err.message : String(err),
-          model: MODEL,
-        },
-        { onConflict: "opening_id" },
-      );
+    await supabaseAdmin.from("opening_drafts").upsert(
+      job.groupIds.map((id) => ({
+        opening_id: id,
+        platform: channel,
+        status: "failed",
+        error: err instanceof Error ? err.message : String(err),
+        model: MODEL,
+      })),
+      { onConflict: "opening_id" },
+    );
   }
 }
 
@@ -262,7 +280,7 @@ export const enqueueOpeningDrafts = createServerFn({ method: "POST" })
     const openingsRes = await supabaseAdmin
       .from("action_openings")
       .select(
-        "id, title, action_type, rationale, recommended_engagement, competitor, prompt_id, source_id",
+        "id, title, action_type, rationale, recommended_engagement, competitor, prompt_id, source_id, impact_score",
       )
       .eq("prompt_id", promptId)
       .order("impact_score", { ascending: false });
@@ -279,6 +297,16 @@ export const enqueueOpeningDrafts = createServerFn({ method: "POST" })
       };
     }
 
+    // Collapse duplicates: one draft per (source, action_type), targeting many.
+    const merged = dedupeOpenings(
+      openings.map((o) => ({ ...o, impact_score: o.impact_score ?? 0 })),
+    );
+    const allJobs: DraftJob[] = merged.map((m) => ({
+      opening: m.canonical,
+      competitors: m.competitors,
+      groupIds: m.groupIds,
+    }));
+
     const draftsRes = await supabaseAdmin
       .from("opening_drafts")
       .select("opening_id, status")
@@ -291,10 +319,14 @@ export const enqueueOpeningDrafts = createServerFn({ method: "POST" })
       haveDraft.set(d.opening_id, d.status ?? "pending");
     }
 
-    // We re-try failed drafts but skip ready / drafting (someone else is on it).
-    const todo = openings.filter((o) => {
-      const s = haveDraft.get(o.id);
-      return !s || s === "pending" || s === "failed";
+    // A merged job is "done" if ANY row in the group is ready/drafting.
+    // Re-try only when every row is missing/pending/failed.
+    const todo = allJobs.filter((job) => {
+      const groupStatuses = job.groupIds.map((id) => haveDraft.get(id));
+      const anyDone = groupStatuses.some(
+        (s) => s === "ready" || s === "drafting",
+      );
+      return !anyDone;
     });
 
     if (todo.length === 0) {
@@ -309,20 +341,25 @@ export const enqueueOpeningDrafts = createServerFn({ method: "POST" })
 
     const batch = todo.slice(0, MAX_PER_CALL);
 
-    // Mark all of them pending immediately so concurrent callers don't double-do work.
+    // Mark every row in every group's batch as pending so concurrent callers
+    // don't double-do work.
+    const pendingRows = batch.flatMap((job) =>
+      job.groupIds.map((id) => ({
+        opening_id: id,
+        platform: "other",
+        status: "pending",
+      })),
+    );
     await supabaseAdmin
       .from("opening_drafts")
-      .upsert(
-        batch.map((o) => ({
-          opening_id: o.id,
-          platform: "other",
-          status: "pending",
-        })),
-        { onConflict: "opening_id" },
-      );
+      .upsert(pendingRows, { onConflict: "opening_id" });
 
     const sourceIds = Array.from(
-      new Set(batch.map((o) => o.source_id).filter((x): x is string => !!x)),
+      new Set(
+        batch
+          .map((job) => job.opening.source_id)
+          .filter((x): x is string => !!x),
+      ),
     );
     const [sourcesRes, scrapesRes] = await Promise.all([
       sourceIds.length
@@ -346,8 +383,8 @@ export const enqueueOpeningDrafts = createServerFn({ method: "POST" })
     }
 
     await Promise.all(
-      batch.map((o) =>
-        generateDraftFor(o, {
+      batch.map((job) =>
+        generateDraftFor(job, {
           promptText,
           ownBrand,
           ownDomain,

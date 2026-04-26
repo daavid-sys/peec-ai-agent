@@ -419,16 +419,25 @@ function SideContext({
           {meta.description}
         </div>
         <div className="mt-3 text-sm font-medium leading-snug">{draft.title}</div>
-        {draft.competitor && (
-          <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span>Targeting competitor:</span>
-            <Favicon
-              name={draft.competitor}
-              kind="brand"
-              size={12}
-              className="rounded-sm"
-            />
-            <span className="font-mono">{draft.competitor}</span>
+        {draft.competitors.length > 0 && (
+          <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+            <span>
+              Targeting competitor{draft.competitors.length === 1 ? "" : "s"}:
+            </span>
+            {draft.competitors.slice(0, 4).map((c) => (
+              <span key={c} className="inline-flex items-center gap-1">
+                <Favicon
+                  name={c}
+                  kind="brand"
+                  size={12}
+                  className="rounded-sm"
+                />
+                <span className="font-mono">{c}</span>
+              </span>
+            ))}
+            {draft.competitors.length > 4 && (
+              <span>+{draft.competitors.length - 4}</span>
+            )}
           </div>
         )}
       </Card>
