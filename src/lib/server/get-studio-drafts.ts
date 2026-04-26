@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { CHANNELS, classifyChannel, type Channel } from "@/lib/channel";
+import { dedupeOpenings } from "@/lib/server/dedupe-openings";
 
 export type StudioDraft = {
   id: string;
