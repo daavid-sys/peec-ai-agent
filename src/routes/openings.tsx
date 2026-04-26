@@ -436,16 +436,6 @@ function GapCard({
         <div className="text-xs text-muted-foreground">No competitor mentioned</div>
       )}
 
-      {/* Rationale — hidden by default, slides in on hover */}
-      {gapText ? (
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-1 rounded-b-lg border-t border-border/60 bg-card/95 px-5 py-3 opacity-0 shadow-lg backdrop-blur-sm transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100"
-        >
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            {gapText}
-          </p>
-        </div>
-      ) : null}
     </Card>
   );
 
