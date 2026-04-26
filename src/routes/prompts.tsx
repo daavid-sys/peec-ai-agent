@@ -191,37 +191,11 @@ function PromptsPage() {
           </div>
 
           <div className="bg-secondary/40 p-7">
-            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Visibility breakdown
-            </div>
-            <div className="mt-4 space-y-3">
-              {selected.competitorBreakdown?.map((c) => (
-                <div key={c.brand}>
-                  <div className="mb-1 flex items-center justify-between text-xs">
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1.5",
-                        c.brand === project.ownBrand.name
-                          ? "font-semibold text-primary"
-                          : "text-foreground",
-                      )}
-                    >
-                      <Favicon name={c.brand} kind="brand" size={12} />
-                      {c.brand}
-                    </span>
-                    <span className="font-mono text-muted-foreground">
-                      {c.visibility}%
-                    </span>
-                  </div>
-                  <ScoreBar
-                    value={c.visibility}
-                    tone={
-                      c.brand === project.ownBrand.name ? "primary" : "destructive"
-                    }
-                  />
-                </div>
-              ))}
-            </div>
+            <BrandsTable
+              metrics={brandMetrics}
+              loading={brandMetricsLoading}
+              ownBrandName={project.ownBrand.name}
+            />
 
             {selected.hiddenQuestions && selected.hiddenQuestions.length > 0 && (
               <>
