@@ -302,9 +302,9 @@ function QueuePage() {
                 className="w-full space-y-4"
               >
                 {/* Dynamic task title */}
-                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-3">
                   <span
-                    className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full"
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full"
                     style={{
                       backgroundColor: `color-mix(in oklab, ${TASK_META[currentType].tone} 15%, transparent)`,
                       color: TASK_META[currentType].tone,
