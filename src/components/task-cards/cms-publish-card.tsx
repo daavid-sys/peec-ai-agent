@@ -17,10 +17,12 @@ export function CmsPublishCard({
   draft,
   ownBrand,
   onDone,
+  hideMarkButton = false,
 }: {
   draft: StudioDraft;
   ownBrand: { name: string; domain: string };
   onDone: () => void;
+  hideMarkButton?: boolean;
 }) {
   const connected = isContentfulConfigured();
   const host = draft.source.domain ?? ownBrand.domain;
@@ -106,9 +108,11 @@ export function CmsPublishCard({
         <Button variant="secondary" onClick={copyMarkdown} className="gap-1.5">
           <Copy className="h-4 w-4" /> Copy markdown
         </Button>
-        <Button variant="outline" onClick={onDone} className="ml-auto">
-          Mark as published
-        </Button>
+        {!hideMarkButton && (
+          <Button variant="outline" onClick={onDone} className="ml-auto">
+            Mark as published
+          </Button>
+        )}
       </div>
     </div>
   );
