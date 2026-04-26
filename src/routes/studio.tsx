@@ -254,9 +254,28 @@ function StudioPage() {
         >
           ← Back to Action Plan
         </Link>
-        <Button size="lg" onClick={() => navigate({ to: "/queue" })}>
-          Next <ArrowRight className="h-4 w-4" />
-        </Button>
+        {(() => {
+          const stillDrafting = (response?.pendingCount ?? 0) > 0;
+          return (
+            <Button
+              size="lg"
+              onClick={() => navigate({ to: "/queue" })}
+              disabled={stillDrafting}
+              className={stillDrafting ? "opacity-50 cursor-not-allowed" : ""}
+              title={stillDrafting ? "Agent is still drafting resources…" : undefined}
+            >
+              {stillDrafting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Drafting…
+                </>
+              ) : (
+                <>
+                  Next <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          );
+        })()}
       </div>
 
       {/* Header */}
