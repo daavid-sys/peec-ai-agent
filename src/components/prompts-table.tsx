@@ -1,4 +1,4 @@
-import { Search as SearchIcon, Check } from "lucide-react";
+import { Search as SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -204,14 +204,16 @@ export function PromptsTable({
               >
                 <div
                   className={cn(
-                    "flex h-3.5 w-3.5 items-center justify-center rounded border",
+                    "flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 transition-colors",
                     isActive
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-muted-foreground/40",
+                      ? "border-primary"
+                      : "border-muted-foreground/40 group-hover:border-muted-foreground/60",
                   )}
                   aria-hidden
                 >
-                  {isActive && <Check className="h-2.5 w-2.5" />}
+                  {isActive && (
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  )}
                 </div>
                 <div className="min-w-0">
                   <div className="truncate text-foreground" title={p.text}>
