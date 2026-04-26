@@ -552,3 +552,162 @@ function BriefSkeleton() {
 
 // Keep export so accidental imports don't break — not used in new layout.
 void BriefSkeleton;
+
+function VolumeBars({ volume }: { volume: string | null }) {
+  const map: Record<string, number> = {
+    "very low": 1,
+    low: 2,
+    medium: 3,
+    high: 4,
+    "very high": 5,
+  };
+  const level = map[(volume ?? "").toLowerCase()] ?? 0;
+  return (
+    <div className="flex h-4 items-end gap-[2px]" title={volume ?? "unknown volume"}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <span
+          key={n}
+          className={cn(
+            "w-[3px] rounded-[1px]",
+            n <= level ? "bg-foreground" : "bg-muted",
+          )}
+          style={{ height: `${4 + n * 2}px` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function SentimentDot({ value }: { value: number | null }) {
+  if (value === null) return <span className="text-muted-foreground">—</span>;
+  let color = "bg-success";
+  if (value < 50) color = "bg-destructive";
+  else if (value < 70) color = "bg-warning";
+  return (
+    <span className="inline-flex items-center gap-1.5 tabular-nums">
+      <span className={cn("h-1.5 w-1.5 rounded-full", color)} />
+      {value}
+    </span>
+  );
+}
+
+function classifyTags(text: string): string[] {
+  const t = text.toLowerCase();
+  const tags: string[] = [];
+  tags.push(/\battio\b/.test(t) ? "branded" : "non-branded");
+  if (/\bvs\b|compare|alternative|best |top |which/.test(t))
+    tags.push("transactional");
+  else tags.push("informational");
+  return tags;
+}
+
+const TAG_STYLES: Record<string, string> = {
+  branded:
+    "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-900",
+  "non-branded":
+    "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-900",
+  transactional:
+    "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-900",
+  informational:
+    "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-900",
+};
+
+function PromptRowCard({
+  text,
+  row,
+}: {
+  text: string;
+  row: PromptTableRow | null;
+}) {
+  const tags = classifyTags(text);
+  return (
+    <div className="overflow-hidden rounded-lg border border-border bg-background">
+      {/* Column headers — match prompts table exactly */}
+      <div className="grid grid-cols-[minmax(0,1fr)_70px_70px_70px_120px_70px_140px_70px_60px] items-center gap-3 border-b border-border bg-secondary/30 px-3 py-2 text-[11px] font-medium text-muted-foreground">
+        <div>Prompt</div>
+        <div>Visibility</div>
+        <div>Sentiment</div>
+        <div>Position</div>
+        <div>Mentions</div>
+        <div>Volume</div>
+        <div>Tags</div>
+        <div>Location</div>
+        <div className="text-right">SOV</div>
+      </div>
+
+      {/* Single row */}
+      <div className="grid grid-cols-[minmax(0,1fr)_70px_70px_70px_120px_70px_140px_70px_60px] items-center gap-3 px-3 py-3 text-[13px]">
+        <div className="min-w-0">
+          <div className="truncate font-medium text-foreground" title={text}>
+            {text}
+          </div>
+        </div>
+        <div className="tabular-nums text-foreground">
+          {row?.visibility ?? "—"}
+          {row?.visibility != null && "%"}
+        </div>
+        <div className="text-foreground">
+          <SentimentDot value={row?.sentiment ?? null} />
+        </div>
+        <div className="tabular-nums text-foreground">
+          {row?.position == null ? (
+            <span className="text-muted-foreground">—</span>
+          ) : (
+            <>#&nbsp;{row.position.toFixed(1)}</>
+          )}
+        </div>
+        <div className="flex items-center -space-x-1.5 text-muted-foreground">
+          {!row || row.mentioned_competitors.length === 0 ? (
+            <span className="text-[11px] text-muted-foreground/70">—</span>
+          ) : (
+            <>
+              {row.mentioned_competitors.slice(0, 4).map((c) => (
+                <span
+                  key={c.name}
+                  className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-border bg-background ring-1 ring-background"
+                  title={`${c.name} · ${c.mention_count} mention${c.mention_count === 1 ? "" : "s"}`}
+                >
+                  <Favicon
+                    name={c.name}
+                    kind="brand"
+                    size={14}
+                    className="rounded-full"
+                  />
+                </span>
+              ))}
+              {row.mentioned_competitors.length > 4 && (
+                <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full border border-border bg-background px-1 text-[10px] font-medium text-muted-foreground ring-1 ring-background">
+                  +{row.mentioned_competitors.length - 4}
+                </span>
+              )}
+            </>
+          )}
+        </div>
+        <div>
+          <VolumeBars volume={row?.volume ?? null} />
+        </div>
+        <div className="flex flex-wrap items-center gap-1">
+          {tags.map((t) => (
+            <Badge
+              key={t}
+              variant="outline"
+              className={cn(
+                "h-5 rounded-md px-1.5 text-[10px] font-normal",
+                TAG_STYLES[t],
+              )}
+            >
+              {t}
+            </Badge>
+          ))}
+        </div>
+        <div className="inline-flex items-center gap-1.5 text-muted-foreground">
+          <span aria-hidden>🇺🇸</span>
+          <span>US</span>
+        </div>
+        <div className="text-right tabular-nums text-foreground">
+          {row?.share_of_voice == null ? "—" : `${row.share_of_voice}%`}
+        </div>
+      </div>
+    </div>
+  );
+}
