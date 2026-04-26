@@ -22,6 +22,8 @@ import {
   type PromptRecommendation,
 } from "@/lib/server/get-prompt-recommendation";
 import { enqueueOpeningDrafts } from "@/lib/server/enqueue-opening-drafts";
+import { getOpeningsOverview } from "@/lib/server/get-openings-overview";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/prompts")({
   head: () => ({ meta: [{ title: "Your openings — Peec AI" }] }),
