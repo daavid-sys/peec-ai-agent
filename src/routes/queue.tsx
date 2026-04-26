@@ -304,13 +304,17 @@ function QueuePage() {
                 {/* Dynamic task title */}
                 <div className="flex items-start gap-3">
                   <span
-                    className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                    className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full"
                     style={{
                       backgroundColor: `color-mix(in oklab, ${TASK_META[currentType].tone} 15%, transparent)`,
                       color: TASK_META[currentType].tone,
                     }}
                   >
-                    <TypeIcon className="h-4 w-4" />
+                    {currentType === "platform_post" && current.source.domain ? (
+                      <Favicon name={current.source.domain} kind="brand" size={18} className="rounded-sm" />
+                    ) : (
+                      <TypeIcon className="h-4 w-4" />
+                    )}
                   </span>
                   <div className="min-w-0 flex-1">
                     <h2 className="text-lg font-semibold leading-tight tracking-tight text-foreground sm:text-xl">
