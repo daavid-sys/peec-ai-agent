@@ -313,6 +313,7 @@ function DraftPage() {
   const mailto = `mailto:?subject=${encodeURIComponent(
     emailSubject,
   )}&body=${encodeURIComponent(emailBody)}`;
+  const recipientEmail = `editorial@${host}`;
 
   const markdown = `# ${engagement.title}\n\n${engagement.draft}\n`;
 
