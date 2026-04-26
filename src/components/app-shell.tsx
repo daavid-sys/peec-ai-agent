@@ -18,9 +18,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="text-muted-foreground transition-colors hover:text-foreground"
             >
               Openings
-            </Link>{" "}
-            <span className="mx-1 text-border">/</span>{" "}
-            <span className="text-foreground">Find where to show up next</span>
+            </Link>
           </div>
           <div className="flex items-center gap-4">
             {connected && (
