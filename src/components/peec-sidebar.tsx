@@ -152,7 +152,7 @@ export function PeecSidebar() {
               className="h-5 w-5"
             />
           </div>
-          <span className="truncate text-[13px] font-semibold">Project 2 - Att…</span>
+          <span className="truncate text-[13px] font-semibold">Attio</span>
         </div>
         <ChevronDown className="h-4 w-4 text-muted-foreground" />
       </div>
