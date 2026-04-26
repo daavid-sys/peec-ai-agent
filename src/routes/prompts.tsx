@@ -226,30 +226,45 @@ function PromptsPage() {
           </div>
 
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-2xl font-semibold leading-snug tracking-tight text-balance">
-              &ldquo;{selected.text}&rdquo;
-            </h2>
+            {recommendationLoading ? (
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-7 w-11/12" />
+                <Skeleton className="h-7 w-2/3" />
+              </div>
+            ) : (
+              <h2 className="text-2xl font-semibold leading-snug tracking-tight text-balance">
+                &ldquo;{selected.text}&rdquo;
+              </h2>
+            )}
             <ArrowUpRight className="h-5 w-5 shrink-0 text-muted-foreground" />
           </div>
 
           <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
-            <KPI label="Your visibility" value={fmt(ownVis)} tone="destructive" />
+            <KPI
+              label="Your visibility"
+              value={fmt(ownVis)}
+              tone="destructive"
+              loading={recommendationLoading}
+            />
             <KPI
               label={
-                <span className="inline-flex items-center gap-1.5">
-                  <Favicon name={compName} kind="brand" size={14} className="rounded-sm" />
-                  <span>{compName} visibility</span>
-                </span>
+                recommendationLoading ? (
+                  <Skeleton className="h-3 w-28" />
+                ) : (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Favicon name={compName} kind="brand" size={14} className="rounded-sm" />
+                    <span>{compName} visibility</span>
+                  </span>
+                )
               }
               value={fmt(compVis)}
+              loading={recommendationLoading}
             />
             <KPI
               label="Visibility gap"
               value={
                 visGap === null
-                  ? recommendationLoading
-                    ? "…"
-                    : "—"
+                  ? "—"
                   : `${visGap > 0 ? "+" : ""}${visGap}%`
               }
               tone={visGap !== null && visGap < 0 ? "destructive" : undefined}
@@ -258,6 +273,7 @@ function PromptsPage() {
                   <TrendingDown className="h-4 w-4" />
                 ) : undefined
               }
+              loading={recommendationLoading}
             />
           </div>
 
@@ -431,24 +447,30 @@ function KPI({
   value,
   tone,
   icon,
+  loading,
 }: {
   label: React.ReactNode;
   value: string;
   tone?: "destructive";
   icon?: React.ReactNode;
+  loading?: boolean;
 }) {
   return (
     <div>
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div
-        className={cn(
-          "mt-1 flex items-center gap-1 text-3xl font-semibold tabular-nums",
-          tone === "destructive" ? "text-destructive" : "text-foreground",
-        )}
-      >
-        {icon}
-        {value}
-      </div>
+      {loading ? (
+        <Skeleton className="mt-2 h-8 w-20" />
+      ) : (
+        <div
+          className={cn(
+            "mt-1 flex items-center gap-1 text-3xl font-semibold tabular-nums",
+            tone === "destructive" ? "text-destructive" : "text-foreground",
+          )}
+        >
+          {icon}
+          {value}
+        </div>
+      )}
     </div>
   );
 }
