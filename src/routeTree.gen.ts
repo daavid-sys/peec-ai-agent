@@ -15,6 +15,7 @@ import { Route as QueueRouteImport } from './routes/queue'
 import { Route as PromptsRouteImport } from './routes/prompts'
 import { Route as OpeningsRouteImport } from './routes/openings'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as QueueDraftIdRouteImport } from './routes/queue.draft.$id'
 import { Route as ApiTavilyExtractRouteImport } from './routes/api/tavily/extract'
 import { Route as ApiPublicBulkScrapeRouteImport } from './routes/api/public/bulk-scrape'
 import { Route as ApiPublicAnalyzePromptRouteImport } from './routes/api/public/analyze-prompt'
@@ -52,6 +53,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QueueDraftIdRoute = QueueDraftIdRouteImport.update({
+  id: '/draft/$id',
+  path: '/draft/$id',
+  getParentRoute: () => QueueRoute,
+} as any)
 const ApiTavilyExtractRoute = ApiTavilyExtractRouteImport.update({
   id: '/api/tavily/extract',
   path: '/api/tavily/extract',
@@ -88,7 +94,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/openings': typeof OpeningsRoute
   '/prompts': typeof PromptsRoute
-  '/queue': typeof QueueRoute
+  '/queue': typeof QueueRouteWithChildren
   '/results': typeof ResultsRoute
   '/studio': typeof StudioRoute
   '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
@@ -97,12 +103,13 @@ export interface FileRoutesByFullPath {
   '/api/public/analyze-prompt': typeof ApiPublicAnalyzePromptRoute
   '/api/public/bulk-scrape': typeof ApiPublicBulkScrapeRoute
   '/api/tavily/extract': typeof ApiTavilyExtractRoute
+  '/queue/draft/$id': typeof QueueDraftIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/openings': typeof OpeningsRoute
   '/prompts': typeof PromptsRoute
-  '/queue': typeof QueueRoute
+  '/queue': typeof QueueRouteWithChildren
   '/results': typeof ResultsRoute
   '/studio': typeof StudioRoute
   '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
@@ -111,13 +118,14 @@ export interface FileRoutesByTo {
   '/api/public/analyze-prompt': typeof ApiPublicAnalyzePromptRoute
   '/api/public/bulk-scrape': typeof ApiPublicBulkScrapeRoute
   '/api/tavily/extract': typeof ApiTavilyExtractRoute
+  '/queue/draft/$id': typeof QueueDraftIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/openings': typeof OpeningsRoute
   '/prompts': typeof PromptsRoute
-  '/queue': typeof QueueRoute
+  '/queue': typeof QueueRouteWithChildren
   '/results': typeof ResultsRoute
   '/studio': typeof StudioRoute
   '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/api/public/analyze-prompt': typeof ApiPublicAnalyzePromptRoute
   '/api/public/bulk-scrape': typeof ApiPublicBulkScrapeRoute
   '/api/tavily/extract': typeof ApiTavilyExtractRoute
+  '/queue/draft/$id': typeof QueueDraftIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/api/public/analyze-prompt'
     | '/api/public/bulk-scrape'
     | '/api/tavily/extract'
+    | '/queue/draft/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/api/public/analyze-prompt'
     | '/api/public/bulk-scrape'
     | '/api/tavily/extract'
+    | '/queue/draft/$id'
   id:
     | '__root__'
     | '/'
@@ -170,13 +181,14 @@ export interface FileRouteTypes {
     | '/api/public/analyze-prompt'
     | '/api/public/bulk-scrape'
     | '/api/tavily/extract'
+    | '/queue/draft/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OpeningsRoute: typeof OpeningsRoute
   PromptsRoute: typeof PromptsRoute
-  QueueRoute: typeof QueueRoute
+  QueueRoute: typeof QueueRouteWithChildren
   ResultsRoute: typeof ResultsRoute
   StudioRoute: typeof StudioRoute
   ApiAgentsFindOpeningsRoute: typeof ApiAgentsFindOpeningsRoute
@@ -231,6 +243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/queue/draft/$id': {
+      id: '/queue/draft/$id'
+      path: '/draft/$id'
+      fullPath: '/queue/draft/$id'
+      preLoaderRoute: typeof QueueDraftIdRouteImport
+      parentRoute: typeof QueueRoute
+    }
     '/api/tavily/extract': {
       id: '/api/tavily/extract'
       path: '/api/tavily/extract'
@@ -276,11 +295,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface QueueRouteChildren {
+  QueueDraftIdRoute: typeof QueueDraftIdRoute
+}
+
+const QueueRouteChildren: QueueRouteChildren = {
+  QueueDraftIdRoute: QueueDraftIdRoute,
+}
+
+const QueueRouteWithChildren = QueueRoute._addFileChildren(QueueRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OpeningsRoute: OpeningsRoute,
   PromptsRoute: PromptsRoute,
-  QueueRoute: QueueRoute,
+  QueueRoute: QueueRouteWithChildren,
   ResultsRoute: ResultsRoute,
   StudioRoute: StudioRoute,
   ApiAgentsFindOpeningsRoute: ApiAgentsFindOpeningsRoute,
