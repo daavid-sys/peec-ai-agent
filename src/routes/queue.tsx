@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Check, Copy, ExternalLink, Send } from "lucide-react";
+import { ArrowRight, Check, Copy, Download, ExternalLink, Mail, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
