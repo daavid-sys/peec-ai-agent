@@ -553,64 +553,6 @@ function BriefSkeleton() {
 // Keep export so accidental imports don't break — not used in new layout.
 void BriefSkeleton;
 
-function VolumeBars({ volume }: { volume: string | null }) {
-  const map: Record<string, number> = {
-    "very low": 1,
-    low: 2,
-    medium: 3,
-    high: 4,
-    "very high": 5,
-  };
-  const level = map[(volume ?? "").toLowerCase()] ?? 0;
-  return (
-    <div className="flex h-4 items-end gap-[2px]" title={volume ?? "unknown volume"}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <span
-          key={n}
-          className={cn(
-            "w-[3px] rounded-[1px]",
-            n <= level ? "bg-foreground" : "bg-muted",
-          )}
-          style={{ height: `${4 + n * 2}px` }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function SentimentDot({ value }: { value: number | null }) {
-  if (value === null) return <span className="text-muted-foreground">—</span>;
-  let color = "bg-success";
-  if (value < 50) color = "bg-destructive";
-  else if (value < 70) color = "bg-warning";
-  return (
-    <span className="inline-flex items-center gap-1.5 tabular-nums">
-      <span className={cn("h-1.5 w-1.5 rounded-full", color)} />
-      {value}
-    </span>
-  );
-}
-
-function classifyTags(text: string): string[] {
-  const t = text.toLowerCase();
-  const tags: string[] = [];
-  tags.push(/\battio\b/.test(t) ? "branded" : "non-branded");
-  if (/\bvs\b|compare|alternative|best |top |which/.test(t))
-    tags.push("transactional");
-  else tags.push("informational");
-  return tags;
-}
-
-const TAG_STYLES: Record<string, string> = {
-  branded:
-    "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-900",
-  "non-branded":
-    "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-900",
-  transactional:
-    "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-900",
-  informational:
-    "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-900",
-};
 
 function PromptRowCard({
   text,
