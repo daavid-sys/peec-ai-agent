@@ -1,12 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { toast } from "sonner";
-import { useServerFn } from "@tanstack/react-start";
-import { Download, FileText, FileSpreadsheet, Loader2, Paperclip, Send } from "lucide-react";
+import { Download, FileText, FileSpreadsheet, Paperclip, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Favicon } from "@/components/favicon";
 import { GmailIcon } from "@/components/icons/gmail-icon";
-import { sendGmail } from "@/lib/server/send-gmail.functions";
 import type { StudioDraft } from "@/lib/server/get-studio-drafts";
 
 type Attachment = {
@@ -62,8 +60,6 @@ export function EmailPitchCard({
   hideMarkButton?: boolean;
 }) {
   const email = useMemo(() => buildEmail(draft, ownBrand.name), [draft, ownBrand.name]);
-  const sendGmailFn = useServerFn(sendGmail);
-  const [sending, setSending] = useState(false);
 
   const attachments: Attachment[] = useMemo(
     () => [
@@ -180,26 +176,24 @@ export function EmailPitchCard({
       {/* Actions */}
       <div className="flex flex-wrap gap-2">
         <Button
-          onClick={async () => {
-            setSending(true);
-            try {
-              await sendGmailFn({ data: { to: email.to, subject: email.subject, body: email.body } });
-              toast.success(`Email sent to ${email.to}`);
-              if (!hideMarkButton) onDone();
-            } catch (e) {
-              toast.error(e instanceof Error ? e.message : "Failed to send email");
-            } finally {
-              setSending(false);
+          onClick={() => {
+            // Download all attachments so they're ready in the user's Downloads folder
+            for (const att of attachments) {
+              downloadBlob(att.name, att.mime, att.build());
             }
+            // Open Gmail compose with recipient, subject, and body pre-filled
+            const composeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+              email.to,
+            )}&su=${encodeURIComponent(email.subject)}&body=${encodeURIComponent(email.body)}`;
+            window.open(composeUrl, "_blank", "noopener,noreferrer");
+            toast.success(
+              `Gmail draft opened — ${attachments.length} attachments downloaded, drag them into the draft`,
+            );
+            if (!hideMarkButton) onDone();
           }}
-          disabled={sending}
           className="gap-2"
         >
-          {sending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <GmailIcon className="h-4 w-4" />
-          )}
+          <GmailIcon className="h-4 w-4" />
           Send email
         </Button>
         <Button variant="secondary" onClick={exportAll} className="gap-1.5">

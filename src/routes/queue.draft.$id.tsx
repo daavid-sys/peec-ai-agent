@@ -360,26 +360,18 @@ function DraftPage() {
             </Button>
             <Button
               size="sm"
-              disabled={sendingEmail}
-              onClick={async () => {
-                setSendingEmail(true);
-                try {
-                  await sendGmailFn({
-                    data: { to: recipientEmail, subject: emailSubject, body: emailBody },
-                  });
-                  toast.success(`Email sent to ${recipientEmail}`);
-                } catch (e) {
-                  toast.error(e instanceof Error ? e.message : "Failed to send email");
-                } finally {
-                  setSendingEmail(false);
-                }
+              onClick={() => {
+                // Download the draft so it's ready in the user's Downloads folder
+                downloadText(`${slug}.md`, markdown, "text/markdown");
+                // Open Gmail compose with recipient, subject, and body pre-filled
+                const composeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+                  recipientEmail,
+                )}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+                window.open(composeUrl, "_blank", "noopener,noreferrer");
+                toast.success("Gmail draft opened — drag the downloaded draft into the email");
               }}
             >
-              {sendingEmail ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <GmailIcon className="h-3 w-3" />
-              )}
+              <GmailIcon className="h-3 w-3" />
               Send email
             </Button>
           </div>
