@@ -499,6 +499,118 @@ function DraftPage() {
           Mark as submitted
         </Button>
       </div>
+
+      <Dialog open={contentfulOpen} onOpenChange={setContentfulOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <img
+                src={contentfulLogo}
+                alt=""
+                width={20}
+                height={20}
+                className="h-5 w-5 rounded-sm object-contain"
+              />
+              Post to Contentful
+            </DialogTitle>
+            <DialogDescription>
+              Publishes this draft as a new entry in your Contentful space using your
+              connected Contentful account.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <div className="grid gap-1.5">
+              <Label htmlFor="cf-space">Space ID</Label>
+              <Input
+                id="cf-space"
+                value={cfSpaceId}
+                onChange={(e) => setCfSpaceId(e.target.value)}
+                placeholder="abc123xyz"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="cf-env">Environment</Label>
+                <Input
+                  id="cf-env"
+                  value={cfEnv}
+                  onChange={(e) => setCfEnv(e.target.value)}
+                  placeholder="master"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="cf-locale">Locale</Label>
+                <Input
+                  id="cf-locale"
+                  value={cfLocale}
+                  onChange={(e) => setCfLocale(e.target.value)}
+                  placeholder="en-US"
+                />
+              </div>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="cf-ct">Content type ID</Label>
+              <Input
+                id="cf-ct"
+                value={cfContentType}
+                onChange={(e) => setCfContentType(e.target.value)}
+                placeholder="blogPost"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="cf-title-field">Title field</Label>
+                <Input
+                  id="cf-title-field"
+                  value={cfTitleField}
+                  onChange={(e) => setCfTitleField(e.target.value)}
+                  placeholder="title"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="cf-body-field">Body field</Label>
+                <Input
+                  id="cf-body-field"
+                  value={cfBodyField}
+                  onChange={(e) => setCfBodyField(e.target.value)}
+                  placeholder="body"
+                />
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Requires the Contentful connector to be linked in Lovable. Connect via
+              OAuth in your workspace connectors before posting.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setContentfulOpen(false)}
+              disabled={posting}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handlePostToContentful} disabled={posting}>
+              {posting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Posting…
+                </>
+              ) : (
+                <>
+                  <img
+                    src={contentfulLogo}
+                    alt=""
+                    width={16}
+                    height={16}
+                    className="h-4 w-4 rounded-sm object-contain"
+                  />
+                  Publish to Contentful
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
