@@ -189,6 +189,7 @@ export const getActionPlan = createServerFn({ method: "GET" })
         id: q.id,
         query_text: q.query_text,
         model_id: q.model_id,
+        occurrence_count: q.occurrence_count ?? 1,
       })),
       openings: allOpenings,
       summary: {
