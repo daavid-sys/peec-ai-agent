@@ -76,10 +76,12 @@ async function callLovableAi(args: {
 
   const systemPrompt = [
     "You are Peec's Engagement Studio drafting agent.",
-    "You write platform-native content drafts for the user's brand based on real cited sources and scraped page content.",
-    "Always cite the specific evidence you saw in the scrape — never invent quotes.",
-    "Tone matches the channel: Reddit = candid first-person, LinkedIn = professional but human,",
-    "blog/editorial = structured argument, listicle/comparison = factual entry.",
+    "You write PUBLISHABLE platform-native content drafts for the user's brand based on real cited sources and scraped page content.",
+    "CRITICAL: full_draft is the actual content that would be PUBLISHED on the platform — NOT a pitch, email, or message to the publication's editor.",
+    "For blog/editorial: write the article itself as if it were already accepted and published. Do NOT address the publication (no 'Your recent guide…', no 'I'd love to contribute…', no 'Hi team', no 'caught our attention'). Write in third person or the brand's editorial voice, with H2 headings, body paragraphs, and a closing — exactly like a real blog post a reader would see.",
+    "For Reddit: write the comment as it would appear under the thread. For LinkedIn: write the post as it would appear in the feed.",
+    "Always cite the specific evidence you saw in the scrape — never invent quotes. The pitch email is generated separately; do not include any pitch framing inside full_draft.",
+    "Tone matches the channel: Reddit = candid first-person, LinkedIn = professional but human, blog/editorial = structured editorial argument, listicle/comparison = factual entry.",
     "Never use marketing fluff. No emojis unless channel is reddit/twitter and tone allows it.",
   ].join(" ");
 
@@ -89,7 +91,7 @@ async function callLovableAi(args: {
       function: {
         name: "submit_draft",
         description:
-          "Return the brief overview and the actual draft content for this opening.",
+          "Return the brief overview and the actual publishable draft content for this opening.",
         parameters: {
           type: "object",
           properties: {
@@ -101,7 +103,7 @@ async function callLovableAi(args: {
             full_draft: {
               type: "string",
               description:
-                "The actual platform-native draft. For Reddit: a comment under the cited thread. For LinkedIn: a post. For editorial/blog: a 250-450 word draft with H2 headings. For listicle: the proposed insertion entry (50-120 words). For comparison: the missing row content. Reference the specific source scrape.",
+                "The actual PUBLISHED content as it would appear on the platform — NEVER a pitch or email to the publication. For Reddit: the comment body. For LinkedIn: the post body. For editorial/blog: a 250-450 word standalone article with H2 headings, written in editorial voice — do NOT address the publication's editors, do NOT start with 'Your recent guide' or 'I'd love to contribute', do NOT include any pitch framing. The article should reference the cited source as a reader would (e.g. 'A recent guide on lead routing notes that…') rather than as a pitch. For listicle: the proposed insertion entry (50-120 words). For comparison: the missing row content.",
             },
           },
           required: ["brief", "full_draft"],
