@@ -426,22 +426,6 @@ function GapCard({
         {trimmedGap}
       </p>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between border-t border-border pt-3">
-        <div className="flex items-center gap-2 text-[11px]">
-          <span className="font-mono tabular-nums text-foreground">
-            Impact {opening.impactScore}
-          </span>
-          <DraftStatusPill status={status} />
-        </div>
-        {draftReady ? (
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-primary group-hover:underline">
-            Open draft <ArrowRight className="h-3 w-3" />
-          </span>
-        ) : (
-          <span className="text-xs text-muted-foreground">—</span>
-        )}
-      </div>
     </Card>
   );
 
