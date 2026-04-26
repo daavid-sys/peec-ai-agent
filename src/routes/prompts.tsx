@@ -542,9 +542,7 @@ function PromptsPage() {
           selectedId={selected.id}
           onSelect={(id) => {
             store.selectPrompt(id);
-            document
-              .getElementById("prompt-switcher")
-              ?.scrollIntoView({ behavior: "smooth", block: "start" });
+            window.scrollTo({ top: 0, behavior: "smooth" });
           }}
         />
       </div>
