@@ -29,7 +29,6 @@ import { store, useAppStore } from "@/lib/store";
 import { postToContentful } from "@/lib/server/post-to-contentful";
 import contentfulLogo from "@/assets/contentful-logo.png";
 import { GmailIcon } from "@/components/icons/gmail-icon";
-import { sendGmail } from "@/lib/server/send-gmail.functions";
 
 export const Route = createFileRoute("/queue/draft/$id")({
   head: () => ({
@@ -239,7 +238,6 @@ function DraftPage() {
   const slug = slugify(engagement.title);
 
   const postFn = useServerFn(postToContentful);
-  const sendGmailFn = useServerFn(sendGmail);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [contentfulOpen, setContentfulOpen] = useState(false);
   const [posting, setPosting] = useState(false);
@@ -360,19 +358,17 @@ function DraftPage() {
             </Button>
             <Button
               size="sm"
-              onClick={() => {
-                // Download the draft so it's ready in the user's Downloads folder
-                downloadText(`${slug}.md`, markdown, "text/markdown");
-                // Open Gmail compose with recipient, subject, and body pre-filled
-                const composeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
-                  recipientEmail,
-                )}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-                window.open(composeUrl, "_blank", "noopener,noreferrer");
-                toast.success("Gmail draft opened — drag the downloaded draft into the email");
+              disabled={sendingEmail}
+              onClick={async () => {
+                setSendingEmail(true);
+                // Mock send — simulate latency
+                await new Promise((r) => setTimeout(r, 900));
+                setSendingEmail(false);
+                toast.success(`Email sent to ${recipientEmail}`);
               }}
             >
               <GmailIcon className="h-3 w-3" />
-              Send email
+              {sendingEmail ? "Sending…" : "Send email"}
             </Button>
           </div>
         </div>

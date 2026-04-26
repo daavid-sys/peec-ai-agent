@@ -176,19 +176,10 @@ export function EmailPitchCard({
       {/* Actions */}
       <div className="flex flex-wrap gap-2">
         <Button
-          onClick={() => {
-            // Download all attachments so they're ready in the user's Downloads folder
-            for (const att of attachments) {
-              downloadBlob(att.name, att.mime, att.build());
-            }
-            // Open Gmail compose with recipient, subject, and body pre-filled
-            const composeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
-              email.to,
-            )}&su=${encodeURIComponent(email.subject)}&body=${encodeURIComponent(email.body)}`;
-            window.open(composeUrl, "_blank", "noopener,noreferrer");
-            toast.success(
-              `Gmail draft opened — ${attachments.length} attachments downloaded, drag them into the draft`,
-            );
+          onClick={async () => {
+            // Mock send — simulate API latency
+            await new Promise((r) => setTimeout(r, 900));
+            toast.success(`Email sent to ${email.to}`);
             if (!hideMarkButton) onDone();
           }}
           className="gap-2"
