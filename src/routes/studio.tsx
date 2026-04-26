@@ -252,11 +252,6 @@ function StudioPage() {
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">
             Watch the agent write each draft on its real platform
           </h1>
-          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-            One tile per opening. Each renders the actual platform UI you&rsquo;ll
-            publish to (Reddit thread, LinkedIn feed, editorial column, etc.) and
-            streams the draft into place. Use ← / → or the buttons to swipe through.
-          </p>
         </div>
         <Button
           size="lg"
