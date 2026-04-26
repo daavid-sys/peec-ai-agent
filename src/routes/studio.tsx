@@ -44,7 +44,7 @@ function StudioPage() {
             Source-specific drafts, generated with Gemini
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Each draft targets the exact source, hidden questions, and missing
+            Each draft targets the exact source, query fanouts, and missing
             proof. Quality checks block spam before it reaches your queue.
           </p>
         </div>
@@ -158,7 +158,7 @@ function DraftCard({ engagement }: { engagement: Engagement }) {
           <Separator className="my-5" />
 
           <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Target hidden questions
+            Target query fanouts
           </div>
           <ul className="mt-2 space-y-1">
             {engagement.targetQuestions.map((q) => (

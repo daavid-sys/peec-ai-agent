@@ -117,7 +117,7 @@ function PromptsPage() {
 
             <div className="mt-6 grid grid-cols-3 gap-3 text-xs">
               <Mini label="Sources found" value={selected.sourcesFound} />
-              <Mini label="Hidden questions" value={selected.hiddenQuestionsFound} />
+              <Mini label="Query fanouts" value={selected.hiddenQuestionsFound} />
               <Mini label="Openings found" value={selected.openingsFound} />
             </div>
 
@@ -194,7 +194,7 @@ function PromptsPage() {
             {selected.hiddenQuestions && selected.hiddenQuestions.length > 0 && (
               <>
                 <div className="mt-7 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Hidden questions AI checks
+                  Query fanouts AI engines run
                 </div>
                 <ul className="mt-3 space-y-1.5">
                   {selected.hiddenQuestions.map((q) => (
@@ -323,7 +323,7 @@ function PromptRow({
             <span>·</span>
             <span>{prompt.openingsFound} openings</span>
             <span>·</span>
-            <span>{prompt.hiddenQuestionsFound} hidden Qs</span>
+            <span>{prompt.hiddenQuestionsFound} fanouts</span>
           </div>
         </div>
 
