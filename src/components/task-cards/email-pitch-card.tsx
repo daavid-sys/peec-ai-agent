@@ -177,10 +177,33 @@ export function EmailPitchCard({
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2">
-        <Button onClick={exportAll} className="gap-1.5">
+        <Button
+          onClick={async () => {
+            setSending(true);
+            try {
+              await sendGmailFn({ data: { to: email.to, subject: email.subject, body: email.body } });
+              toast.success(`Email sent to ${email.to}`);
+              if (!hideMarkButton) onDone();
+            } catch (e) {
+              toast.error(e instanceof Error ? e.message : "Failed to send email");
+            } finally {
+              setSending(false);
+            }
+          }}
+          disabled={sending}
+          className="gap-2"
+        >
+          {sending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <GmailIcon className="h-4 w-4" />
+          )}
+          Send email
+        </Button>
+        <Button variant="secondary" onClick={exportAll} className="gap-1.5">
           <Download className="h-4 w-4" /> Export all
         </Button>
-        <Button variant="secondary" onClick={copyEmail} className="gap-1.5">
+        <Button variant="ghost" onClick={copyEmail} className="gap-1.5">
           <Paperclip className="h-4 w-4" /> Copy email
         </Button>
         {!hideMarkButton && (
