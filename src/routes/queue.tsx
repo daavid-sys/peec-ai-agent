@@ -286,6 +286,59 @@ function QueuePage() {
         </div>
       </div>
 
+      {/* Task rail — quick navigation to any task */}
+      <div className="mt-5 flex items-center gap-2 overflow-x-auto pb-2">
+        {classified.map(({ draft: d, type }, i) => {
+          const isCurrent = i === index;
+          const isCompleted = completed.has(d.id);
+          const Icon = TASK_META[type].icon;
+          const tone = TASK_META[type].tone;
+          const showFavicon = type === "platform_post" && d.source.domain;
+          return (
+            <button
+              key={d.id}
+              onClick={() => {
+                setDirection(i > index ? 1 : -1);
+                setIndex(i);
+              }}
+              className={`group relative flex flex-shrink-0 items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm transition ${
+                isCurrent
+                  ? "border-primary bg-primary-soft text-foreground shadow-sm ring-1 ring-primary/20"
+                  : isCompleted
+                    ? "border-success/40 bg-success/5 text-foreground hover:border-success/60 hover:bg-success/10"
+                    : "border-border bg-card text-foreground hover:border-foreground/30 hover:bg-muted/40"
+              }`}
+              title={getTaskTitle(d, type, ownBrand.domain)}
+            >
+              <span
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full"
+                style={{
+                  backgroundColor: `color-mix(in oklab, ${tone} 15%, transparent)`,
+                  color: tone,
+                }}
+              >
+                {showFavicon ? (
+                  <Favicon name={d.source.domain!} kind="brand" size={16} className="rounded-sm" />
+                ) : (
+                  <Icon className="h-3.5 w-3.5" />
+                )}
+              </span>
+              <div className="flex min-w-0 flex-col items-start leading-tight">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {TASK_META[type].label}
+                </span>
+                <span className="max-w-[160px] truncate text-[12px] font-medium">
+                  {d.source.domain ?? d.channelLabel}
+                </span>
+              </div>
+              {isCompleted && (
+                <Check className="h-4 w-4 shrink-0 text-success" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Stage */}
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         {/* Task card */}
@@ -357,41 +410,6 @@ function QueuePage() {
             >
               <ChevronRight className="h-5 w-5" />
             </button>
-          </div>
-
-          {/* Thumbnail rail */}
-          <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
-            {classified.map(({ draft: d, type }, i) => {
-              const isCurrent = i === index;
-              const isCompleted = completed.has(d.id);
-              const Icon = TASK_META[type].icon;
-              return (
-                <button
-                  key={d.id}
-                  onClick={() => {
-                    setDirection(i > index ? 1 : -1);
-                    setIndex(i);
-                  }}
-                  className={`group flex flex-shrink-0 items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] transition ${
-                    isCurrent
-                      ? "border-primary bg-primary-soft text-foreground"
-                      : isCompleted
-                        ? "border-success/40 bg-success/5 text-foreground"
-                        : "border-border bg-card text-muted-foreground"
-                  }`}
-                  title={getTaskTitle(d, type, ownBrand.domain)}
-                >
-                  <Icon
-                    className="h-3 w-3"
-                    style={{ color: TASK_META[type].tone }}
-                  />
-                  <span className="max-w-[140px] truncate">
-                    {TASK_META[type].label} · {d.source.domain ?? d.channelLabel}
-                  </span>
-                  {isCompleted && <Check className="h-3 w-3 text-success" />}
-                </button>
-              );
-            })}
           </div>
         </div>
 
