@@ -215,7 +215,7 @@ function PromptsPage() {
     <div className="mx-auto w-full max-w-[1500px] px-6 py-10 2xl:px-10">
       <h1 className="text-3xl font-semibold tracking-tight">Let our agent increase your visibility</h1>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        Turn signals into actions. Select a prompt you want to work on
+        Our agent uses all the sources and query fanout&rsquo;s on a per-prompt basis to identify and fill all the content gaps for your brand.
       </p>
 
       <div className="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
