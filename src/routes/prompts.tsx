@@ -5,6 +5,13 @@ import {
   Check,
   Sparkles,
   TrendingDown,
+  Target,
+  Users,
+  FileSearch,
+  Zap,
+  Trophy,
+  Lightbulb,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
