@@ -264,7 +264,7 @@ function PromptsPage() {
               <Mini label="Openings found" value={cardCounts?.openings ?? "—"} loading={recommendationLoading} />
             </div>
 
-            <div className="mt-6 space-y-2">
+            <div className="my-auto space-y-2 py-6">
               <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Why this prompt
               </div>
@@ -295,7 +295,7 @@ function PromptsPage() {
               ) : null}
             </div>
 
-            <div className="mt-auto pt-7 flex flex-wrap items-center gap-3">
+            <div className="pt-2 flex flex-wrap items-center gap-3">
               <Button size="lg" onClick={startFlow}>
                 Start flow with this prompt{" "}
                 <ArrowRight className="h-4 w-4" />
