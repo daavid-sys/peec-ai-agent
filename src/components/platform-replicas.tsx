@@ -143,6 +143,7 @@ function TypedMarkdown({
   className?: string;
   showCaret?: boolean;
 }) {
+  const caretEnabled = useContext(CaretContext);
   return (
     <div className={cn("prose prose-zinc max-w-none", className)}>
       <ReactMarkdown
