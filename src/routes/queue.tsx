@@ -13,15 +13,68 @@ export const Route = createFileRoute("/queue")({
 });
 
 const columns = [
-  { key: "ready", title: "Ready to publish", desc: "Approved & safe" },
+  { key: "ready", title: "Ready to publish", desc: "Owned channels — approved & safe" },
+  {
+    key: "ready_to_submit",
+    title: "Ready to submit",
+    desc: "Third-party site — file exported & email drafted",
+  },
   { key: "needs_input", title: "Needs input", desc: "Resolve before sending" },
   { key: "blocked", title: "Blocked", desc: "Safety guardrail triggered" },
 ] as const;
 
-function bucket(e: Engagement): (typeof columns)[number]["key"] {
+// Channels we own and can publish to directly. Anything else (guest posts on
+// salesforce.com, third-party blogs, partner sites, etc.) needs to be packaged
+// up and emailed to the site owner for review & publishing.
+const OWNED_DOMAINS = ["attio.com"];
+const OWNED_OPENING_TYPES: ReadonlyArray<string> = [
+  "Reddit comment opportunity",
+  "LinkedIn founder comment",
+  "FAQ/schema update",
+  "Community/forum reply",
+  "Owned comparison page",
+];
+
+function isThirdPartySubmission(e: Engagement, sourceUrl?: string, openingType?: string) {
+  if (e.format === "pitch_email" || e.format === "creator_pitch") return true;
+  if (openingType && !OWNED_OPENING_TYPES.includes(openingType)) {
+    if (
+      openingType === "Blog/editorial update pitch" ||
+      openingType === "YouTube creator pitch" ||
+      openingType === "Review request campaign"
+    ) {
+      return true;
+    }
+  }
+  if (sourceUrl) {
+    try {
+      const host = new URL(sourceUrl).hostname.replace(/^www\./, "");
+      if (!OWNED_DOMAINS.some((d) => host === d || host.endsWith(`.${d}`))) {
+        // External host + a pitch-style opening means we need to submit, not publish
+        if (
+          openingType === "Blog/editorial update pitch" ||
+          openingType === "YouTube creator pitch" ||
+          openingType === "Review request campaign"
+        ) {
+          return true;
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  return false;
+}
+
+function bucket(
+  e: Engagement,
+  sourceUrl?: string,
+  openingType?: string,
+): (typeof columns)[number]["key"] {
   if (e.status === "blocked") return "blocked";
   const hasFail = e.qualityChecks.some((c) => c.status === "fail");
   if (hasFail) return "needs_input";
+  if (isThirdPartySubmission(e, sourceUrl, openingType)) return "ready_to_submit";
   return "ready";
 }
 
