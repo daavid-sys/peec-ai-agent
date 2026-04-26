@@ -11,7 +11,8 @@ export type OpeningOverviewItem = {
   recommendedEngagement: string | null;
   impactScore: number;
   riskLevel: string;
-  competitor: string | null;
+  /** All competitors targeted by this single opening (post can call out many at once). */
+  competitors: string[];
   source: {
     id: string | null;
     url: string | null;
