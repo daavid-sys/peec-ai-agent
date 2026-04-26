@@ -359,6 +359,23 @@ function LinkedInReplica({ draft, cps, onDone, ownBrand }: Props) {
 }
 
 /* ----------------------------- EDITORIAL ----------------------------- */
+const EDITORIAL_EYEBROW: Record<string, string> = {
+  blog_pitch: "Pitched guest article",
+  guest_post: "Guest article",
+  owned_listicle: "Editorial feature",
+  listicle_addition: "Inclusion in roundup",
+  comparison_pitch: "Comparison feature",
+  alternative_page: "Alternatives explainer",
+  faq_schema: "FAQ explainer",
+  outreach_email: "Sponsored explainer",
+};
+function editorialEyebrow(actionType: string) {
+  return (
+    EDITORIAL_EYEBROW[actionType] ??
+    actionType.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  );
+}
+
 function EditorialReplica({ draft, cps, onDone, ownBrand }: Props) {
   const typed = useTyped(draft, cps ?? 260, onDone);
   return (
@@ -369,7 +386,7 @@ function EditorialReplica({ draft, cps, onDone, ownBrand }: Props) {
             {draft.source.domain && <Favicon name={draft.source.domain} kind="brand" size={14} />}
             <span>{draft.source.domain ?? "Editorial"}</span>
             <span>·</span>
-            <span>Guest contributor draft</span>
+            <span>{editorialEyebrow(draft.actionType)}</span>
           </div>
           <h1 className="mt-3 font-serif text-[34px] leading-[1.15] tracking-tight text-zinc-900">
             {draft.title}
