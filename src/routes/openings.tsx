@@ -388,7 +388,16 @@ function OpeningRow({
               {opening.competitor && (
                 <>
                   <span>·</span>
-                  <span>vs {opening.competitor}</span>
+                  <span className="inline-flex items-center gap-1">
+                    vs
+                    <Favicon
+                      name={opening.competitor}
+                      kind="brand"
+                      size={12}
+                      className="rounded-sm"
+                    />
+                    {opening.competitor}
+                  </span>
                 </>
               )}
               <span>·</span>
