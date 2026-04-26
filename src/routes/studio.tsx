@@ -190,7 +190,7 @@ function StudioPage() {
     );
   }
 
-  const progressPct = Math.round(((index + 1) / Math.max(drafts.length, 1)) * 100);
+  
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-6 py-8 2xl:px-10">
