@@ -252,50 +252,27 @@ function PromptsPage() {
 
       {/* Prompt switcher */}
       <div id="prompt-switcher" className="mt-12">
-        <div className="mb-3 flex items-end justify-between">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">
-              Or pick a different prompt
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Selecting a prompt instantly updates the recommendation and the
-              openings preview above — no reload.
-            </p>
-          </div>
-          <div className="relative w-72">
-            <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search prompts"
-              className="h-8 pl-8 text-[13px]"
-            />
-          </div>
+        <div className="mb-3">
+          <h2 className="text-lg font-semibold tracking-tight">
+            Or pick a different prompt
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Selecting a prompt instantly updates the recommendation and the
+            openings preview above — no reload.
+          </p>
         </div>
 
-        <Card className="overflow-hidden border-border p-0">
-          <ul className="divide-y divide-border">
-            {filteredPrompts.map((p) => (
-              <PromptRow
-                key={p.id}
-                prompt={p}
-                active={p.id === selected.id}
-                isOwn={(b) => b === project.ownBrand.name}
-                onSelect={() => {
-                  store.selectPrompt(p.id);
-                  document
-                    .getElementById("prompt-switcher")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-              />
-            ))}
-            {filteredPrompts.length === 0 && (
-              <li className="px-4 py-6 text-center text-sm text-muted-foreground">
-                No prompts match &ldquo;{query}&rdquo;.
-              </li>
-            )}
-          </ul>
-        </Card>
+        <PromptsTable
+          rows={tableRows}
+          loading={tableLoading}
+          selectedId={selected.id}
+          onSelect={(id) => {
+            store.selectPrompt(id);
+            document
+              .getElementById("prompt-switcher")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+        />
       </div>
     </div>
   );
