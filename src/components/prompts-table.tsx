@@ -2,7 +2,7 @@ import { Search as SearchIcon, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { ModelLogo } from "@/components/qfos-table";
+import { Favicon } from "@/components/favicon";
 import { cn } from "@/lib/utils";
 import type { PromptTableRow } from "@/lib/server/get-prompt-table";
 import { useMemo, useState } from "react";
@@ -231,20 +231,34 @@ export function PromptsTable({
                     <>#&nbsp;{p.position.toFixed(1)}</>
                   )}
                 </div>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  {p.model_ids.slice(0, 3).map((m) => (
-                    <span
-                      key={m}
-                      className="inline-flex h-5 w-5 items-center justify-center rounded-md border border-border bg-background"
-                      title={m}
-                    >
-                      <ModelLogo modelId={m} />
+                <div className="flex items-center -space-x-1.5 text-muted-foreground">
+                  {p.mentioned_competitors.length === 0 ? (
+                    <span className="text-[11px] text-muted-foreground/70">
+                      —
                     </span>
-                  ))}
-                  {p.model_ids.length > 3 && (
-                    <span className="text-[11px] text-muted-foreground">
-                      +{p.model_ids.length - 3}
-                    </span>
+                  ) : (
+                    <>
+                      {p.mentioned_competitors.slice(0, 4).map((c) => (
+                        <span
+                          key={c.name}
+                          className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-border bg-background ring-1 ring-background"
+                          title={`${c.name} · ${c.mention_count} mention${c.mention_count === 1 ? "" : "s"}`}
+                        >
+                          <Favicon name={c.name} kind="brand" size={14} className="rounded-full" />
+                        </span>
+                      ))}
+                      {p.mentioned_competitors.length > 4 && (
+                        <span
+                          className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full border border-border bg-background px-1 text-[10px] font-medium text-muted-foreground ring-1 ring-background"
+                          title={p.mentioned_competitors
+                            .slice(4)
+                            .map((c) => c.name)
+                            .join(", ")}
+                        >
+                          +{p.mentioned_competitors.length - 4}
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
                 <div>
