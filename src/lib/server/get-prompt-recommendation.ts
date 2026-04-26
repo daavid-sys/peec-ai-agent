@@ -1,6 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
+export type ReasonCardPayload = {
+  /** Action-oriented headline, e.g. "Get mentioned on LinkedIn" or "Beat HubSpot on G2". */
+  headline: string;
+  /** Markdown-formatted explanation aimed at the business owner. May contain **bold** brand/platform names. */
+  body: string;
+  /** Domain of the platform/source this card is about (used to render a favicon next to the headline). */
+  platformDomain?: string | null;
+  /** Domains of competitors mentioned in the body (used to render small favicons inline). */
+  competitorDomains?: string[];
+  /** Optional category hint for icon/tone selection. */
+  category?: "platform" | "competitor" | "content" | "speed" | "win" | "gap";
+};
+
 export type PromptRecommendation = {
   prompt: {
     id: string;
@@ -18,7 +31,7 @@ export type PromptRecommendation = {
     qfos: number;
     openings: number;
   };
-  reasons: string[];
+  reasons: ReasonCardPayload[];
   topSourceDomains: string[];
   openingPreviews: {
     id: string;
