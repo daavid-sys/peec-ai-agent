@@ -431,24 +431,30 @@ function KPI({
   value,
   tone,
   icon,
+  loading,
 }: {
   label: React.ReactNode;
   value: string;
   tone?: "destructive";
   icon?: React.ReactNode;
+  loading?: boolean;
 }) {
   return (
     <div>
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div
-        className={cn(
-          "mt-1 flex items-center gap-1 text-3xl font-semibold tabular-nums",
-          tone === "destructive" ? "text-destructive" : "text-foreground",
-        )}
-      >
-        {icon}
-        {value}
-      </div>
+      {loading ? (
+        <Skeleton className="mt-2 h-8 w-20" />
+      ) : (
+        <div
+          className={cn(
+            "mt-1 flex items-center gap-1 text-3xl font-semibold tabular-nums",
+            tone === "destructive" ? "text-destructive" : "text-foreground",
+          )}
+        >
+          {icon}
+          {value}
+        </div>
+      )}
     </div>
   );
 }
