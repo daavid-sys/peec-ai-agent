@@ -358,10 +358,29 @@ function DraftPage() {
             >
               <Copy className="h-3 w-3" /> Copy
             </Button>
-            <Button size="sm" asChild>
-              <a href={mailto}>
-                <Mail className="h-3 w-3" /> Open in mail
-              </a>
+            <Button
+              size="sm"
+              disabled={sendingEmail}
+              onClick={async () => {
+                setSendingEmail(true);
+                try {
+                  await sendGmailFn({
+                    data: { to: recipientEmail, subject: emailSubject, body: emailBody },
+                  });
+                  toast.success(`Email sent to ${recipientEmail}`);
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Failed to send email");
+                } finally {
+                  setSendingEmail(false);
+                }
+              }}
+            >
+              {sendingEmail ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <GmailIcon className="h-3 w-3" />
+              )}
+              Send email
             </Button>
           </div>
         </div>
