@@ -391,61 +391,80 @@ function DraftPage() {
             </div>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm">
-                <Download className="h-3 w-3" /> Export
-                <ChevronDown className="h-3 w-3 opacity-70" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem
-                onClick={() => {
-                  downloadText(`${slug}.md`, markdown, "text/markdown");
-                  toast.success("Exported as Markdown");
-                }}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                Markdown (.md)
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  downloadText(
-                    `${slug}.txt`,
-                    `${engagement.title}\n\n${engagement.draft}\n`,
-                    "text/plain",
-                  );
-                  toast.success("Exported as Text");
-                }}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                Plain text (.txt)
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  downloadDoc(`${slug}.doc`, engagement.title, engagement.draft);
-                  toast.success("Exported as Word");
-                }}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                Word (.doc)
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  try {
-                    downloadPdf(`${slug}.pdf`, engagement.title, engagement.draft);
-                    toast.success("Exported as PDF");
-                  } catch (err) {
-                    console.error(err);
-                    toast.error("PDF export failed");
-                  }
-                }}
-              >
-                <FileText className="h-3.5 w-3.5" />
-                PDF (.pdf)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-1.5">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setContentfulOpen(true)}
+              className="gap-1.5"
+            >
+              <img
+                src={contentfulLogo}
+                alt="Contentful"
+                width={16}
+                height={16}
+                loading="lazy"
+                className="h-4 w-4 rounded-sm object-contain"
+              />
+              Post
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm">
+                  <Download className="h-3 w-3" /> Export
+                  <ChevronDown className="h-3 w-3 opacity-70" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem
+                  onClick={() => {
+                    downloadText(`${slug}.md`, markdown, "text/markdown");
+                    toast.success("Exported as Markdown");
+                  }}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  Markdown (.md)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    downloadText(
+                      `${slug}.txt`,
+                      `${engagement.title}\n\n${engagement.draft}\n`,
+                      "text/plain",
+                    );
+                    toast.success("Exported as Text");
+                  }}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  Plain text (.txt)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    downloadDoc(`${slug}.doc`, engagement.title, engagement.draft);
+                    toast.success("Exported as Word");
+                  }}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  Word (.doc)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    try {
+                      downloadPdf(`${slug}.pdf`, engagement.title, engagement.draft);
+                      toast.success("Exported as PDF");
+                    } catch (err) {
+                      console.error(err);
+                      toast.error("PDF export failed");
+                    }
+                  }}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  PDF (.pdf)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
         <article className="mx-auto max-w-prose px-8 py-10">
           <h1 className="font-serif text-3xl leading-tight text-foreground">
