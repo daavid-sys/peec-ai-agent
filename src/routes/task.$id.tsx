@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Mail, Globe, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Favicon } from "@/components/favicon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAppStore } from "@/lib/store";
 import {
