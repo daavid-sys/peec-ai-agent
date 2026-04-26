@@ -198,9 +198,6 @@ function StudioPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-6">
         <div className="min-w-0">
-          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Engagement studio · live drafting
-          </div>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">
             Watch the agent write each draft on its real platform
           </h1>
