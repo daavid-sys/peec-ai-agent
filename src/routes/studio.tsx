@@ -217,17 +217,20 @@ function StudioPage() {
       {/* Progress strip */}
       <div className="mt-6 flex items-center gap-4">
         <div className="text-xs font-medium tabular-nums text-muted-foreground">
-          {index + 1} <span className="text-border">/</span> {drafts.length}
+          <span className="text-foreground">{Math.min(index + 1, drafts.length)}</span>
+          <span className="text-border"> / </span>
+          {total}
+          <span className="ml-2 text-success">{completed.size} done</span>
           {total > drafts.length && (
             <span className="ml-1 text-muted-foreground/70">
-              ({total - drafts.length} more drafting)
+              · {total - drafts.length} drafting
             </span>
           )}
         </div>
         <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
           <div
             className="absolute inset-y-0 left-0 bg-primary transition-[width] duration-500"
-            style={{ width: `${progressPct}%` }}
+            style={{ width: `${Math.round(((index + 1) / Math.max(total, 1)) * 100)}%` }}
           />
         </div>
         {response && response.pendingCount > 0 && (
