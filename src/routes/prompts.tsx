@@ -16,6 +16,12 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScoreBar } from "@/components/score-bar";
@@ -123,7 +129,7 @@ function ReasonCardItem({
     new Set((card.competitorDomains ?? []).filter(Boolean)),
   ).slice(0, 4);
 
-  return (
+  const cardInner = (
     <div className="group flex h-full flex-col rounded-lg border border-border bg-background p-3 transition-colors hover:border-foreground/20 hover:bg-card">
       <div className="flex items-center gap-2">
         <div
@@ -157,19 +163,6 @@ function ReasonCardItem({
         </div>
       </div>
 
-      {card.body && (
-        <div
-          className={cn(
-            "mt-1.5 text-[11.5px] leading-relaxed text-muted-foreground",
-            "[&_p]:m-0 [&_p+p]:mt-1 [&_strong]:font-semibold [&_strong]:text-foreground",
-            "[&_a]:text-foreground [&_a]:underline [&_a]:underline-offset-2",
-            "line-clamp-5",
-          )}
-        >
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{card.body}</ReactMarkdown>
-        </div>
-      )}
-
       {competitorDomains.length > 0 && (
         <div className="mt-auto flex items-center gap-1 pt-2">
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">
@@ -189,6 +182,32 @@ function ReasonCardItem({
         </div>
       )}
     </div>
+  );
+
+  if (!card.body) return cardInner;
+
+  return (
+    <TooltipProvider delayDuration={120}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="h-full">{cardInner}</div>
+        </TooltipTrigger>
+        <TooltipContent
+          side="right"
+          align="start"
+          className="max-w-xs text-[12px] leading-relaxed"
+        >
+          <div
+            className={cn(
+              "[&_p]:m-0 [&_p+p]:mt-1 [&_strong]:font-semibold",
+              "[&_a]:underline [&_a]:underline-offset-2",
+            )}
+          >
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{card.body}</ReactMarkdown>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
