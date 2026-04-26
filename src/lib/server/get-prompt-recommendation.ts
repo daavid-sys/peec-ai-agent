@@ -321,7 +321,21 @@ async function generateReasons(evidence: RationaleEvidence): Promise<ReasonCardP
       .filter((c): c is ReasonCardPayload => c !== null)
       .slice(0, 4);
 
-    return cards.length ? cards : fallbackReasons(evidence);
+    if (!cards.length) return fallbackReasons(evidence);
+
+    // Always pad to exactly 4 cards using fallback content the LLM didn't already cover.
+    if (cards.length < 4) {
+      const usedHeadlines = new Set(cards.map((c) => c.headline.toLowerCase()));
+      for (const fb of fallbackReasons(evidence)) {
+        if (cards.length >= 4) break;
+        if (!usedHeadlines.has(fb.headline.toLowerCase())) {
+          cards.push(fb);
+          usedHeadlines.add(fb.headline.toLowerCase());
+        }
+      }
+    }
+
+    return cards.slice(0, 4);
   } catch {
     return fallbackReasons(evidence);
   }
