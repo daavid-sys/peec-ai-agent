@@ -227,12 +227,6 @@ function ReplicaShell({
           <Globe className="h-3 w-3" />
           <span className="truncate font-mono">{domain ?? "—"}</span>
         </div>
-        <span
-          className="ml-2 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white"
-          style={{ backgroundColor: chromeColor }}
-        >
-          {channelHints[channel]}
-        </span>
       </div>
       {children}
     </div>
