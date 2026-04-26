@@ -498,35 +498,6 @@ function PromptsPage() {
         </div>
       </Card>
 
-      {/* Sneak peek of openings */}
-      <div className="mt-12">
-        <div className="mb-3 flex items-end justify-between">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">
-              Sneak peek · openings for this prompt
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              {recommendationLoading
-                ? "Loading openings…"
-                : `The first ${previewOpenings.length} of ${cardCounts?.openings ?? "—"} openings already drafted by the agent.`}
-            </p>
-          </div>
-          <Button variant="outline" size="sm" onClick={startFlow}>
-            See all openings <ArrowRight className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          {recommendationLoading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <OpeningPreviewSkeleton key={i} />
-              ))
-            : previewOpenings.map((o) => (
-                <OpeningPreviewCard key={o.id} opening={o} onOpen={startFlow} />
-              ))}
-        </div>
-      </div>
-
       {/* Prompt switcher */}
       <div id="prompt-switcher" className="mt-12">
         <div className="mb-3">
@@ -534,8 +505,7 @@ function PromptsPage() {
             Or pick a different prompt
           </h2>
           <p className="text-xs text-muted-foreground">
-            Selecting a prompt instantly updates the recommendation and the
-            openings preview above — no reload.
+            Selecting a prompt instantly updates the recommendation — no reload.
           </p>
         </div>
 
