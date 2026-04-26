@@ -60,7 +60,7 @@ const agent: Item[] = [
 ];
 
 const project: Item[] = [
-  { label: "Profile", icon: User, trailing: <span className="h-1.5 w-1.5 rounded-full bg-primary" /> },
+  { label: "Profile", icon: User, trailing: <span className="relative inline-flex h-1.5 w-1.5"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" /><span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" /></span> },
   { label: "Brands", icon: Building2, trailing: <span className="text-xs text-muted-foreground">10+</span> },
   { label: "Tags", icon: Tag },
 ];
