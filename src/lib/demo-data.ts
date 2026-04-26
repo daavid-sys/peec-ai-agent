@@ -145,7 +145,7 @@ export const demoProject: Project = {
       "used_total": 117
     }
   ],
-  "lastSyncedAt": "2026-04-26T05:30:26.790Z"
+  "lastSyncedAt": "2026-04-26T05:30:55.590Z"
 };
 
 export const demoPrompts: PromptOpportunity[] = [
@@ -168,6 +168,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 65
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 50
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 30
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 25
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for crm automation teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -189,6 +218,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 63
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 52
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 32
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 27
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for revenue operations teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -210,6 +268,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 66
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 49
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 29
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 24
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for product-led growth teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -231,6 +318,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 63
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 52
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 32
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 27
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for crm automation teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -252,6 +368,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 68
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 47
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 27
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 22
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for ai in sales teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -273,6 +418,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 73
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 42
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 32
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 29
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for ai in sales teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -294,6 +468,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 62
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 53
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 33
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 28
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for revenue operations teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -315,6 +518,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 63
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 52
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 32
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 27
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for ai in sales teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -336,6 +568,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 67
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 48
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 28
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 23
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for revenue operations teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -357,6 +618,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 69
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 46
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 26
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 21
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for data integration teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -378,6 +668,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 70
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 45
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 35
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 20
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for ai in sales teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -399,6 +718,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 72
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 43
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 33
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 30
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for product-led growth teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -420,6 +768,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 65
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 50
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 30
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 25
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for crm automation teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -441,6 +818,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 74
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 41
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 31
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 28
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for revenue operations teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -462,6 +868,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 65
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 50
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 30
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 25
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for data integration teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -483,6 +918,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 66
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 49
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 29
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 24
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for ai in sales teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -504,6 +968,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 66
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 49
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 29
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 24
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for crm automation teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -525,6 +1018,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 76
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 39
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 29
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 26
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for revenue operations teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -546,6 +1068,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 64
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 51
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 31
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 26
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for ai in sales teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -567,6 +1118,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 62
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 53
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 33
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 28
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for revenue operations teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -588,6 +1168,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: low.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 67
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 48
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 28
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 23
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for crm automation teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -609,6 +1218,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 95% of mentions for this query.",
       "Search volume bucket: low.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 63
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 52
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 32
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 27
+      },
+      {
+        "brand": "Attio",
+        "visibility": 0
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for data integration teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -630,6 +1268,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 88% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 68
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 47
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 27
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 22
+      },
+      {
+        "brand": "Attio",
+        "visibility": 13
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for product-led growth teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -651,6 +1318,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 88% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 68
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 47
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 27
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 22
+      },
+      {
+        "brand": "Attio",
+        "visibility": 13
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for data integration teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -672,6 +1368,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 87% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 69
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 46
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 26
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 21
+      },
+      {
+        "brand": "Attio",
+        "visibility": 14
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for crm automation teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -693,6 +1418,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 87% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 76
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 39
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 29
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 26
+      },
+      {
+        "brand": "Attio",
+        "visibility": 14
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for data integration teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -714,6 +1468,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 87% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 78
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 37
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 27
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 24
+      },
+      {
+        "brand": "Attio",
+        "visibility": 14
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for ai in sales teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -735,6 +1518,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 86% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 64
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 51
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 31
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 26
+      },
+      {
+        "brand": "Attio",
+        "visibility": 17
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for data integration teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -756,6 +1568,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 86% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 67
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 48
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 28
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 23
+      },
+      {
+        "brand": "Attio",
+        "visibility": 17
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for crm automation teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -777,6 +1618,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 86% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 79
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 36
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 26
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 23
+      },
+      {
+        "brand": "Attio",
+        "visibility": 17
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for data integration teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -798,6 +1668,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 81% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 67
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 48
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 28
+      },
+      {
+        "brand": "Attio",
+        "visibility": 25
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 23
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for revenue operations teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -819,6 +1718,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 81% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 71
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 44
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 34
+      },
+      {
+        "brand": "Attio",
+        "visibility": 25
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 19
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for product-led growth teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -840,6 +1768,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 81% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 61
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 54
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 34
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 29
+      },
+      {
+        "brand": "Attio",
+        "visibility": 25
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for product-led growth teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -861,6 +1818,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "HubSpot captures roughly 79% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 61
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 54
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 34
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 29
+      },
+      {
+        "brand": "Attio",
+        "visibility": 29
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for product-led growth teams",
+      "HubSpot alternatives for fast-changing startups",
+      "Cheaper alternative to HubSpot",
+      "CRM with flexible data model",
+      "Modern CRM that isn't HubSpot"
     ]
   },
   {
@@ -882,6 +1868,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 77% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 70
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 45
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 35
+      },
+      {
+        "brand": "Attio",
+        "visibility": 33
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 20
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for product-led growth teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -903,6 +1918,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 74% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 77
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 38
+      },
+      {
+        "brand": "Attio",
+        "visibility": 38
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 28
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 25
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for revenue operations teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -924,6 +1968,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 68% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 67
+      },
+      {
+        "brand": "Attio",
+        "visibility": 50
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 48
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 28
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 23
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for data integration teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -945,6 +2018,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 64% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 75
+      },
+      {
+        "brand": "Attio",
+        "visibility": 56
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 40
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 30
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 27
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for product-led growth teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -966,6 +2068,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 62% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 67
+      },
+      {
+        "brand": "Attio",
+        "visibility": 60
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 48
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 28
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 23
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for crm automation teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -987,6 +2118,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 40% of mentions for this query.",
       "Search volume bucket: low.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "Attio",
+        "visibility": 100
+      },
+      {
+        "brand": "HubSpot",
+        "visibility": 79
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 36
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 26
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 23
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for data integration teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -1008,6 +2168,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 40% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "Attio",
+        "visibility": 100
+      },
+      {
+        "brand": "HubSpot",
+        "visibility": 67
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 48
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 28
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 23
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for revenue operations teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -1029,6 +2218,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 47% of mentions for this query.",
       "Search volume bucket: low.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "Attio",
+        "visibility": 88
+      },
+      {
+        "brand": "HubSpot",
+        "visibility": 71
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 44
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 34
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 19
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for product-led growth teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -1050,6 +2268,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 40% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "Attio",
+        "visibility": 100
+      },
+      {
+        "brand": "HubSpot",
+        "visibility": 66
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 49
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 29
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 24
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for revenue operations teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -1071,6 +2318,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 40% of mentions for this query.",
       "Search volume bucket: low.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "Attio",
+        "visibility": 100
+      },
+      {
+        "brand": "HubSpot",
+        "visibility": 69
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 46
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 26
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 21
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for product-led growth teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -1092,6 +2368,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 40% of mentions for this query.",
       "Search volume bucket: low.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "Attio",
+        "visibility": 100
+      },
+      {
+        "brand": "HubSpot",
+        "visibility": 61
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 54
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 34
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 29
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for data integration teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -1113,6 +2418,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 40% of mentions for this query.",
       "Search volume bucket: low.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "Attio",
+        "visibility": 100
+      },
+      {
+        "brand": "HubSpot",
+        "visibility": 65
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 50
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 30
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 25
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for ai in sales teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -1134,6 +2468,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 40% of mentions for this query.",
       "Search volume bucket: low.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "Attio",
+        "visibility": 100
+      },
+      {
+        "brand": "HubSpot",
+        "visibility": 71
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 44
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 34
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 19
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for crm automation teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -1155,6 +2518,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 40% of mentions for this query.",
       "Search volume bucket: low.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "Attio",
+        "visibility": 100
+      },
+      {
+        "brand": "HubSpot",
+        "visibility": 78
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 37
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 27
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 24
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for crm automation teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -1176,6 +2568,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 54% of mentions for this query.",
       "Search volume bucket: medium.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "HubSpot",
+        "visibility": 78
+      },
+      {
+        "brand": "Attio",
+        "visibility": 75
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 37
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 27
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 24
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for ai in sales teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   },
   {
@@ -1197,6 +2618,35 @@ export const demoPrompts: PromptOpportunity[] = [
       "Salesforce captures roughly 40% of mentions for this query.",
       "Search volume bucket: low.",
       "AI engines repeatedly cite the same listicles — fixable openings exist."
+    ],
+    "competitorBreakdown": [
+      {
+        "brand": "Attio",
+        "visibility": 100
+      },
+      {
+        "brand": "HubSpot",
+        "visibility": 79
+      },
+      {
+        "brand": "Salesforce",
+        "visibility": 36
+      },
+      {
+        "brand": "Pipedrive",
+        "visibility": 26
+      },
+      {
+        "brand": "Zoho",
+        "visibility": 23
+      }
+    ],
+    "hiddenQuestions": [
+      "Best CRM for ai in sales teams",
+      "Salesforce alternatives for fast-changing startups",
+      "Cheaper alternative to Salesforce",
+      "CRM with flexible data model",
+      "Modern CRM that isn't Salesforce"
     ]
   }
 ];
