@@ -317,11 +317,13 @@ function Mini({
   value,
   loading,
   favicons,
+  modelIds,
 }: {
   label: string;
   value: number | string;
   loading?: boolean;
   favicons?: string[];
+  modelIds?: string[];
 }) {
   return (
     <div className="rounded-md border border-border bg-background px-3 py-2.5">
@@ -344,6 +346,19 @@ function Mini({
                   loading="lazy"
                   className="h-5 w-5 rounded-full border border-border bg-background object-contain p-0.5"
                 />
+              ))}
+            </div>
+          )}
+          {modelIds && modelIds.length > 0 && (
+            <div className="flex -space-x-1.5">
+              {modelIds.slice(0, 4).map((id) => (
+                <div
+                  key={id}
+                  title={id}
+                  className="flex h-5 w-5 items-center justify-center rounded-full border border-border bg-background text-foreground/80"
+                >
+                  <ModelLogo modelId={id} />
+                </div>
               ))}
             </div>
           )}
