@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Favicon } from "@/components/favicon";
 import { useAppStore } from "@/lib/store";
 import { CHANNELS } from "@/lib/channel";
 import {
