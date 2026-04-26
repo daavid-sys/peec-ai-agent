@@ -2,7 +2,7 @@ import { useLocation } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
-  { path: "/prompts", label: "Recommended prompt" },
+  { path: "/prompts", label: "Choose a prompt" },
   { path: "/openings", label: "Action plan" },
   { path: "/studio", label: "Engagement studio" },
   { path: "/queue", label: "Approval queue" },
