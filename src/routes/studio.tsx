@@ -246,21 +246,23 @@ function StudioPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-6 py-8 2xl:px-10">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-6">
-        <div className="min-w-0">
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-            Watch our agents get you brand mentions
-          </h1>
-        </div>
-        <Button
-          size="lg"
-          className="h-14 shrink-0 px-8 text-base"
-          onClick={() => navigate({ to: "/queue" })}
+      {/* Top nav */}
+      <div className="flex items-center justify-between gap-4">
+        <Link
+          to="/openings"
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          Next <ArrowRight className="h-5 w-5" />
+          ← Back to Action Plan
+        </Link>
+        <Button size="lg" onClick={() => navigate({ to: "/queue" })}>
+          Next <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
+
+      {/* Header */}
+      <h1 className="mt-6 text-3xl font-semibold tracking-tight">
+        Step 2: Agent is working
+      </h1>
 
       {/* Progress strip */}
       <div className="mt-6 flex items-center gap-4">
