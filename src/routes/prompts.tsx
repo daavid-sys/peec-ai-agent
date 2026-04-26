@@ -401,7 +401,12 @@ function PromptsPage() {
             </div>
 
             <div className="mt-6 grid grid-cols-3 gap-3 text-xs">
-              <Mini label="Sources found" value={cardCounts?.sources ?? "—"} loading={recommendationLoading} />
+              <Mini
+                label="Sources found"
+                value={cardCounts?.sources ?? "—"}
+                loading={recommendationLoading}
+                favicons={recommendation?.topSourceDomains}
+              />
               <Mini label="Query fanouts" value={cardCounts?.qfos ?? "—"} loading={recommendationLoading} />
               <Mini label="Openings found" value={cardCounts?.openings ?? "—"} loading={recommendationLoading} />
             </div>
@@ -647,10 +652,12 @@ function Mini({
   label,
   value,
   loading,
+  favicons,
 }: {
   label: string;
   value: number | string;
   loading?: boolean;
+  favicons?: string[];
 }) {
   return (
     <div className="rounded-md border border-border bg-background px-3 py-2">
@@ -658,7 +665,23 @@ function Mini({
       {loading ? (
         <Skeleton className="mt-1 h-5 w-10" />
       ) : (
-        <div className="font-mono text-base font-medium">{value}</div>
+        <div className="mt-1 flex items-center justify-between gap-2">
+          <div className="font-mono text-base font-medium leading-none">{value}</div>
+          {favicons && favicons.length > 0 && (
+            <div className="flex -space-x-1.5">
+              {favicons.slice(0, 4).map((domain) => (
+                <img
+                  key={domain}
+                  src={`https://www.google.com/s2/favicons?sz=32&domain=${domain}`}
+                  alt={domain}
+                  title={domain}
+                  loading="lazy"
+                  className="h-5 w-5 rounded-full border border-border bg-background object-contain p-0.5"
+                />
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
