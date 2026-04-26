@@ -437,19 +437,21 @@ function GapCard({
         )}
       </div>
 
-      {/* Vs competitor */}
-      {opening.competitor ? (
-        <div className="flex items-center gap-1.5 text-xs">
+      {/* Vs competitors (one post can target many) */}
+      {opening.competitors.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs">
           <span className="text-muted-foreground">vs</span>
-          <Favicon
-            name={opening.competitor}
-            kind="brand"
-            size={14}
-            className="rounded-sm"
-          />
-          <span className="font-medium text-foreground">
-            {opening.competitor}
-          </span>
+          {opening.competitors.slice(0, 3).map((c) => (
+            <span key={c} className="inline-flex items-center gap-1">
+              <Favicon name={c} kind="brand" size={14} className="rounded-sm" />
+              <span className="font-medium text-foreground">{c}</span>
+            </span>
+          ))}
+          {opening.competitors.length > 3 && (
+            <span className="text-muted-foreground">
+              +{opening.competitors.length - 3}
+            </span>
+          )}
         </div>
       ) : (
         <div className="text-xs text-muted-foreground">No competitor mentioned</div>
