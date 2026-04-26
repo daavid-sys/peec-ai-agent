@@ -1,70 +1,126 @@
-## Goal
+# Restructure the Openings flow UX
 
-Replace the 4-column Kanban on `/queue` with a single linear **task queue** that mirrors the studio's preview UX. Each task has a dynamic title and an action card matched to the kind of work needed.
+Goal: make the 5-step flow match the uploaded screenshots — calmer, more minimal, with a clear sequential header on every step and predictable Back/Next navigation.
 
-## Three task types (auto-classified per draft)
-
-We classify each draft using `channel`, `source.domain`, and the project's own domain:
-
-1. **Pitch via email** — for sources we don't control (competitor blogs, third-party editorial, listicles, comparison sites, YouTube creators).
-   - Title pattern: `Email <domain> editor to pitch insertion`
-   - Action card: rendered email draft (To / Subject / Body) with **attachments chips** (auto-generated: `pitch-brief.md`, `draft.md`, `data-points.csv`)
-   - Buttons: **Export all (.zip)**, **Copy email**, **Mark as sent**
-
-2. **Publish to owned blog (Contentful)** — for sources on the project's own domain that are blog/editorial content.
-   - Title pattern: `Publish "<title>" to <ownDomain>`
-   - Action card: full article preview (title, intro, body) styled like a CMS preview
-   - Buttons: **Connect to Contentful to publish** (primary, calls `standard_connectors--connect` flow on click; once linked, swaps to **Publish to Contentful**), **Copy markdown**, **Mark as published**
-
-3. **Post on platform** — for Reddit, LinkedIn, X, YouTube, Medium, forums, owned listicle/comparison pages we run, etc.
-   - Title pattern dynamic per channel: `Post Reddit reply on r/<sub>`, `Publish LinkedIn post`, `Reply on <host>`, etc.
-   - Action card: existing `PlatformReplica` (Reddit/LinkedIn/Editorial/Listicle/Comparison) — already platform-native
-   - Buttons: **Copy draft**, **Open <platform>**, **Mark as posted**
-
-## Layout (mirrors studio)
+## New flow at a glance
 
 ```text
-┌─────────────────────────────────────────────────────────┬─────────────┐
-│  H1: Review & publish                  [See results →]  │             │
-├─────────────────────────────────────────────────────────┤             │
-│  Progress: 3 / 26 · 5 done  ━━━━━━━━━━━━━━━            │             │
-├─────────────────────────────────────────────────────────┤   Side      │
-│  [<]  TASK CARD                                   [>]   │   panel     │
-│       ─────────                                          │  (brief,    │
-│       <dynamic title>                                    │   source,   │
-│       <action card: email | cms preview | replica>      │   up next)  │
-│       <action buttons>                                   │             │
-│  Thumbnail rail (task-type icons)                       │             │
-└─────────────────────────────────────────────────────────┴─────────────┘
+/prompts          → "Your openings"          (landing — pick a prompt)
+/openings         → "Step 1: Action plan"
+/studio           → "Step 2: Agent is working"
+/queue            → "Step 3: Review and publish"
+/results          → "Step 4: Track Results"
 ```
 
-Same swipe animation, keyboard nav, completed tracking, and `localStorage` persistence as `/studio`.
+The existing routes stay; only their headers, navigation, and (for `/prompts`) layout change.
 
-## Implementation
+---
 
-**New files**
-- `src/lib/task-type.ts` — `classifyTask(draft, ownDomain) -> 'email_pitch' | 'cms_publish' | 'platform_post'` plus `getTaskTitle(draft, type)` for dynamic titles per channel/host.
-- `src/components/task-cards/email-pitch-card.tsx` — email composer view (To/Subject/Body), attachment chips with file icons, Export-all (.zip) button using `JSZip` (already light) or a simple multi-download fallback; auto-generates the 3 attachment blobs from `draft.fullDraft`, `draft.brief`, and a CSV of competitor mentions.
-- `src/components/task-cards/cms-publish-card.tsx` — article preview (cover header bar, H1, lead paragraph, body markdown rendered) with Contentful connect/publish button. On click invokes a stub `connectContentful()` that the host UI hooks into the existing connector flow.
-- `src/components/task-cards/platform-post-card.tsx` — thin wrapper around existing `PlatformReplica` with the platform-specific CTA row.
-- `src/components/task-cards/task-shell.tsx` — shared chrome (title row, swipe container) so all three feel uniform.
+## Screen 1 — `/prompts` "Your openings" (full redesign)
 
-**Edited files**
-- `src/routes/queue.tsx` — full rewrite: drop the 4-column Kanban; reuse studio's drafts source (`getStudioDrafts`) so the queue == the same backlog post-approval; render the task shell + classified card; wire side panel similar to studio.
-- `src/components/platform-replicas.tsx` — no logic changes; we'll just continue to render existing platform replicas inside `platform-post-card`.
+Replace the current dense layout (Brands table, QFOs table, "Why this prompt" reason cards) with the minimal mockup layout.
 
-**Dependencies**
-- Add `jszip` for the email "Export all" zip bundle (small, edge-safe, used client-side only).
+**Top of page**
 
-## Notes on Contentful "connect"
+- H1: "Your openings"
+- Subtitle: "Turn signals into actions. Select a prompt you want to work on"
 
-Per platform conventions we don't pop the connector dialog from arbitrary buttons — we trigger via a presentation action. The CMS card's primary button will:
-- If `import.meta.env.VITE_LOVABLE_CONNECTOR_CONTENTFUL_SPACE_ID` is set → label becomes **Publish to Contentful** and calls a server function stub (`publishToContentful`) that posts the draft as a new entry to the Contentful Delivery API gateway.
-- Otherwise → label is **Connect Contentful to publish** and shows a toast instructing the user to open Connectors → Contentful (no auto-popup from a button click).
+**Two-column hero (left ≈ 2fr, right ≈ 1fr)**
 
-After approval I'll wire the actual connect flow via `standard_connectors--connect` when the user first clicks it.
+Left card — Recommended prompt:
 
-## Out of scope (this pass)
+- Small "Recommended prompt" eyebrow with sparkle icon
+- The prompt text in large quotes with an external-arrow affordance
+- 4-stat row: `Your visibility` · `{TopCompetitor} visibility` · `Visibility gap` · `Opportunity score`
+- 3 mini cards: `Sources found` (with stacked source favicons) · `Query fanouts` · `Openings found`
+- Big black CTA: **"Work on this prompt →"** — calls `store.selectPrompt(...)` then `navigate({ to: "/openings" })`
 
-- Real email sending (requires email infra setup) — we generate the .eml/.zip bundle for the user to forward.
-- Real Contentful publishing handler — scaffolded as a stub; once the user clicks "Connect" we'll add the connector + server function.
+Right card — "Results of prompts you have worked on":
+
+- Header text only (no subtitle)
+- List of compact rows, each = a previously visited prompt (truncated quote + open-arrow)
+- Clicking a row re-selects that prompt and routes to `/openings` so the user can step through the whole flow again
+- Empty state: muted "Prompts you work on will appear here."
+
+**Below the hero**
+
+- Tabs: `Select a prompt` | `Search a prompt` (the existing `PromptsTable` rendered under the first tab; the second tab adds a simple text filter over the same rows)
+- Selecting a row updates the hero in place (current behavior)
+
+**Removed from this page**
+
+- The big `BrandsTable` block
+- The `QfosTable` block
+- The "Why this prompt" reason cards grid
+- `OpeningPreviewCard` / `OpeningPreviewSkeleton` (already unused after the previous edit)
+
+These pieces stay in the codebase (other pages may reuse `BrandsTable`/`QfosTable` later) but are no longer rendered on `/prompts`.
+
+## Screen 2 — `/openings` "Step 1: Action plan"
+
+Mostly already there; tighten the chrome:
+
+- Replace the current H1 ("Here are the openings we'll fix for you") with **"Step 1: Action plan"**
+- Below the title, render the selected prompt text in a centered bordered pill (matches mockup)
+- Top-right: keep the **Next →** button (routes to `/studio`)
+- Top-left: **← Back to prompts** as a quiet text link
+- Keep the Platform + Competitor chip rows and the gap-card grid as-is
+
+## Screen 3 — `/studio` "Step 2: Agent is working"
+
+- Add page header **"Step 2: Agent is working"**
+- Top-left: **← Back to Action Plan** (`/openings`)
+- Top-right: **Next →** (routes to `/queue`)
+- Keep the existing swipeable platform-replica card and right-side brief panel
+
+## Screen 4 — `/queue` "Step 3: Review and publish"
+
+- Add page header **"Step 3: Review and publish"**
+- Top-left: **← Back to Agent Working** (`/studio`)
+- Top-right: **Next task →** (advances to next undone task; on last, routes to `/results`)
+- Keep the existing email-pitch / CMS / platform task cards and right rail (Why this task / Targeting / Cited source)
+
+## Screen 5 — `/results` "Step 4: Track Results"
+
+- Replace current header with **"Step 4: Track Results"**
+- Top-right: quiet text link **"Go back to Openings ↗"** → `/prompts`
+- Selected prompt rendered in a bordered pill below the title
+- Three KPI cards in a row: `Before visibility` · `Projected after 14 days` · `Visibility lift`
+- Collapsible "Completed tasks" section (reuses the data we already pull from the studio drafts response + completed IDs from localStorage)
+- Collapsible "All content drafted" section
+- "Per-source progress" list with `0% → N%` thin progress bars per source
+
+## Cross-cutting changes
+
+**StepDots component** (`src/components/step-dots.tsx`)
+
+- Update the `STEPS` array labels to: `Choose a prompt`, `Step 1 · Action plan`, `Step 2 · Agent working`, `Step 3 · Review & publish`, `Step 4 · Track Results`
+- Numbering inside the component updates automatically
+
+**Visited-prompts tracking** (new in `src/lib/store.ts`)
+
+- Add `visitedPromptIds: string[]` to the store and a `markPromptVisited(id)` action
+- Persist to `localStorage` under `peec:visited-prompts`
+- Call `markPromptVisited(selected.id)` from the "Work on this prompt" CTA on `/prompts` and from the matching CTA on the recent-prompts list
+- The right-hand "Results of prompts you have worked on" panel reads from this list, hydrating each id against `prompts` from the store for the displayed quote text
+
+**No data/schema changes.** Everything reuses existing server functions (`getPromptRecommendation`, `getPromptTable`, `getOpeningsOverview`, `getStudioDrafts`).
+
+---
+
+## Technical notes
+
+Files touched:
+
+- `src/routes/prompts.tsx` — major rewrite of `PromptsPage` JSX; remove unused imports (`BrandsTable`, `QfosTable`, reason-card helpers, `OpeningPreviewCard`)
+- `src/routes/openings.tsx` — header + back link copy
+- `src/routes/studio.tsx` — add header + back/next bar
+- `src/routes/queue.tsx` — add header + back/next bar (reuse existing next-task logic)
+- `src/routes/results.tsx` — header copy, top-right back link, prompt pill
+- `src/components/step-dots.tsx` — relabel steps
+- `src/lib/store.ts` — add `visitedPromptIds` slice + persistence
+
+No new dependencies, no migrations, no edge function changes.  
+  
+  
+also at top right remove the steps navigation with circles and the chip saying "connected via MCP"
