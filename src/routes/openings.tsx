@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Favicon } from "@/components/favicon";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,10 @@ import {
   type OpeningsOverview,
 } from "@/lib/server/get-openings-overview";
 import { enqueueOpeningDrafts } from "@/lib/server/enqueue-opening-drafts";
+import {
+  getPromptTable,
+  type PromptTableRow,
+} from "@/lib/server/get-prompt-table";
 
 export const Route = createFileRoute("/openings")({
   head: () => ({ meta: [{ title: "Content Gaps — Peec AI Openings" }] }),
