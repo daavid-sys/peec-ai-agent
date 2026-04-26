@@ -238,6 +238,27 @@ function OpeningsPage() {
   );
 }
 
+function toTitleCase(input: string) {
+  return input
+    .toLowerCase()
+    .split(/\s+/)
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
+
+function ChannelTag({ accent, label }: { accent: string; label: string }) {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-foreground">
+      <span
+        aria-hidden
+        className="h-2 w-2 shrink-0 rounded-full"
+        style={{ backgroundColor: accent }}
+      />
+      {label}
+    </span>
+  );
+}
+
 function FilterChips({
   channelFilter,
   competitorFilter,
@@ -362,21 +383,12 @@ function GapCard({
       {/* Platform header */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <span
-            aria-hidden
-            className="h-2 w-2 shrink-0 rounded-full"
-            style={{ backgroundColor: meta.accent }}
-          />
-          {host ? (
-            <Favicon name={host} kind="brand" size={14} />
-          ) : null}
+          {host ? <Favicon name={host} kind="brand" size={14} /> : null}
           <span className="truncate font-mono text-xs text-muted-foreground">
             {host || meta.label.toLowerCase()}
           </span>
         </div>
-        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-          {classification}
-        </span>
+        <ChannelTag accent={meta.accent} label={toTitleCase(classification)} />
       </div>
 
       {/* Source title */}
