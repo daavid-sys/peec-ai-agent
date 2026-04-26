@@ -189,7 +189,7 @@ function OpeningsPage() {
         />
       )}
 
-      <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
         {loading ? (
           <>
             <GapCardSkeleton />
@@ -374,12 +374,10 @@ function GapCard({
     opening.source.classification ??
     opening.actionType.replace(/_/g, " ");
   const gapText = opening.rationale ?? opening.title;
-  const trimmedGap =
-    gapText.length > 200 ? `${gapText.slice(0, 200).trimEnd()}…` : gapText;
   const draftReady = status === "ready";
 
   const Inner = (
-    <Card className="group flex h-full flex-col gap-3 border-border bg-card p-4 transition-all hover:border-foreground/30 hover:shadow-sm">
+    <Card className="group relative flex h-full flex-col gap-4 border-border bg-card p-5 transition-all hover:border-foreground/30 hover:shadow-md">
       {/* Platform header */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
@@ -391,23 +389,23 @@ function GapCard({
         <ChannelTag accent={meta.accent} label={toTitleCase(classification)} />
       </div>
 
-      {/* Source title */}
-      <div className="min-w-0">
+      {/* Source title — bigger, more breathing room */}
+      <div className="min-w-0 flex-1">
         {opening.source.url ? (
           <a
             href={opening.source.url}
             target="_blank"
             rel="noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-start gap-1 text-sm font-semibold text-foreground hover:text-primary"
+            className="inline-flex items-start gap-1.5 text-base font-semibold leading-snug text-foreground hover:text-primary"
           >
-            <span className="line-clamp-2">
+            <span className="line-clamp-3">
               {opening.source.title ?? opening.title}
             </span>
-            <ExternalLink className="mt-0.5 h-3 w-3 shrink-0 opacity-50" />
+            <ExternalLink className="mt-1 h-3.5 w-3.5 shrink-0 opacity-50" />
           </a>
         ) : (
-          <div className="line-clamp-2 text-sm font-semibold text-foreground">
+          <div className="line-clamp-3 text-base font-semibold leading-snug text-foreground">
             {opening.source.title ?? opening.title}
           </div>
         )}
@@ -433,11 +431,16 @@ function GapCard({
         <div className="text-xs text-muted-foreground">No competitor mentioned</div>
       )}
 
-      {/* Gap line */}
-      <p className="flex-1 text-xs leading-relaxed text-muted-foreground">
-        {trimmedGap}
-      </p>
-
+      {/* Rationale — hidden by default, slides in on hover */}
+      {gapText ? (
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-1 rounded-b-lg border-t border-border/60 bg-card/95 px-5 py-3 opacity-0 shadow-lg backdrop-blur-sm transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100"
+        >
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            {gapText}
+          </p>
+        </div>
+      ) : null}
     </Card>
   );
 
