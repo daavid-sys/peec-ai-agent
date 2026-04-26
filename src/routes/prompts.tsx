@@ -174,10 +174,15 @@ function PromptsPage() {
             <ArrowUpRight className="h-5 w-5 shrink-0 text-muted-foreground" />
           </div>
 
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
             <KPI label="Your visibility" value={fmt(ownVis)} tone="destructive" />
             <KPI
-              label={`${compName} visibility`}
+              label={
+                <span className="inline-flex items-center gap-1.5">
+                  <Favicon name={compName} kind="brand" size={14} className="rounded-sm" />
+                  <span>{compName} visibility</span>
+                </span>
+              }
               value={fmt(compVis)}
             />
             <KPI
@@ -195,10 +200,6 @@ function PromptsPage() {
                   <TrendingDown className="h-4 w-4" />
                 ) : undefined
               }
-            />
-            <KPI
-              label="Opportunity score"
-              value={opp === null ? (recommendationLoading ? "…" : "—") : `${opp}/100`}
             />
           </div>
 
@@ -289,7 +290,7 @@ function KPI({
   tone,
   icon,
 }: {
-  label: string;
+  label: React.ReactNode;
   value: string;
   tone?: "destructive";
   icon?: React.ReactNode;
