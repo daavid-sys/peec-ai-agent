@@ -1,6 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
+export type ReasonCardPayload = {
+  /** Action-oriented headline, e.g. "Get mentioned on LinkedIn" or "Beat HubSpot on G2". */
+  headline: string;
+  /** Markdown-formatted explanation aimed at the business owner. May contain **bold** brand/platform names. */
+  body: string;
+  /** Domain of the platform/source this card is about (used to render a favicon next to the headline). */
+  platformDomain?: string | null;
+  /** Domains of competitors mentioned in the body (used to render small favicons inline). */
+  competitorDomains?: string[];
+  /** Optional category hint for icon/tone selection. */
+  category?: "platform" | "competitor" | "content" | "speed" | "win" | "gap";
+};
+
 export type PromptRecommendation = {
   prompt: {
     id: string;
@@ -18,7 +31,7 @@ export type PromptRecommendation = {
     qfos: number;
     openings: number;
   };
-  reasons: string[];
+  reasons: ReasonCardPayload[];
   topSourceDomains: string[];
   openingPreviews: {
     id: string;
@@ -39,6 +52,8 @@ type MetricRow = {
 type RationaleEvidence = {
   promptText: string;
   ownBrandName: string;
+  ownBrandDomain: string | null;
+  competitors: { name: string; domain: string | null }[];
   ownVisibility: number;
   topCompetitor: string | null;
   topCompetitorVisibility: number;
@@ -82,32 +97,72 @@ const cleanExcerpt = (value: string | null | undefined) => {
   return cleaned ? cleaned.slice(0, 700) : null;
 };
 
-function fallbackReasons(evidence: RationaleEvidence) {
-  const reasons: string[] = [];
-  if (evidence.topCompetitor) {
-    reasons.push(
-      `${evidence.ownBrandName} is at ${evidence.ownVisibility}% visibility while ${evidence.topCompetitor} is at ${evidence.topCompetitorVisibility}%, so the gap is specific and measurable for this prompt.`,
-    );
+function fallbackReasons(evidence: RationaleEvidence): ReasonCardPayload[] {
+  const cards: ReasonCardPayload[] = [];
+  const brand = evidence.ownBrandName;
+  const competitorDomains = evidence.competitors
+    .map((c) => c.domain)
+    .filter((d): d is string => !!d)
+    .slice(0, 3);
+
+  // 1. Top source / platform play
+  const bestSource = evidence.topSources[0];
+  if (bestSource?.domain) {
+    const compsHere = bestSource.competitorBrands.slice(0, 3);
+    const compsBold = compsHere.map((c) => `**${c}**`).join(", ");
+    cards.push({
+      headline: `Get ${brand} mentioned on ${bestSource.domain}`,
+      body: compsHere.length
+        ? `**${bestSource.domain}** is cited ${bestSource.retrievalCount}× for this prompt and already lists ${compsBold}. Adding ${brand} here puts you in the same answer set as your closest competitors — not as an afterthought.`
+        : `**${bestSource.domain}** is cited ${bestSource.retrievalCount}× for this prompt but doesn't yet mention ${brand}. Getting added here is the single fastest way to start showing up in answers.`,
+      platformDomain: bestSource.domain,
+      competitorDomains: evidence.competitors
+        .filter((c) => compsHere.some((b) => b.toLowerCase() === c.name.toLowerCase()))
+        .map((c) => c.domain)
+        .filter((d): d is string => !!d),
+      category: "platform",
+    });
   }
-  reasons.push(
-    `${evidence.counts.openings} openings are mapped across ${evidence.counts.sources} cited sources and ${evidence.counts.qfos} query fanouts, giving this prompt concrete places to act rather than a generic visibility issue.`,
-  );
+
+  // 2. Visibility gap vs top competitor
+  if (evidence.topCompetitor) {
+    const compDomain =
+      evidence.competitors.find(
+        (c) => c.name.toLowerCase() === evidence.topCompetitor!.toLowerCase(),
+      )?.domain ?? null;
+    cards.push({
+      headline: `Close the gap with ${evidence.topCompetitor}`,
+      body: `**${brand}** shows up ${evidence.ownVisibility}% of the time on this prompt — **${evidence.topCompetitor}** shows up ${evidence.topCompetitorVisibility}%. Every answer they appear in and you don't is a deal you're not even being considered for.`,
+      competitorDomains: compDomain ? [compDomain] : [],
+      category: "competitor",
+    });
+  }
+
+  // 3. Concrete openings exist
   const bestOpening = evidence.topOpenings[0];
   if (bestOpening) {
-    reasons.push(
-      `Fastest win: ${bestOpening.title}${bestOpening.sourceDomain ? ` on ${bestOpening.sourceDomain}` : ""}. ${bestOpening.rationale ?? "It targets a cited source where competitors already appear and Attio can be added with focused proof."}`,
-    );
+    cards.push({
+      headline: bestOpening.sourceDomain
+        ? `Drafted opening on ${bestOpening.sourceDomain}`
+        : `Ready-to-send opening drafted`,
+      body: `${bestOpening.rationale ?? `A specific insertion point is already drafted${bestOpening.sourceDomain ? ` on **${bestOpening.sourceDomain}**` : ""} — no research needed, just review and ship.`}`,
+      platformDomain: bestOpening.sourceDomain,
+      category: "speed",
+    });
   }
-  const bestSource = evidence.topSources[0];
-  if (bestSource) {
-    reasons.push(
-      `${bestSource.title ?? bestSource.domain ?? "The top cited source"} is retrieved ${bestSource.retrievalCount}× and already references ${bestSource.competitorBrands.slice(0, 3).join(", ") || "competitors"}, making it a practical insertion point for a fast visibility lift.`,
-    );
-  }
-  return reasons.slice(0, 4);
+
+  // 4. Coverage breadth
+  cards.push({
+    headline: `${evidence.counts.openings} openings across ${evidence.counts.sources} sources`,
+    body: `This isn't one lucky placement — there are **${evidence.counts.openings} concrete openings** across **${evidence.counts.sources} cited sources** and **${evidence.counts.qfos} query fanouts**. Working this prompt compounds across the whole answer surface.`,
+    competitorDomains: competitorDomains.slice(0, 2),
+    category: "win",
+  });
+
+  return cards.slice(0, 4);
 }
 
-async function generateReasons(evidence: RationaleEvidence) {
+async function generateReasons(evidence: RationaleEvidence): Promise<ReasonCardPayload[]> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) return fallbackReasons(evidence);
 
@@ -119,12 +174,20 @@ async function generateReasons(evidence: RationaleEvidence) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [
           {
             role: "system",
-            content:
-              "You are a Peec analyst. Explain why one prompt is a high-priority opening using only the supplied metrics, source evidence, scrape excerpts, and generated openings. Be specific, concise, and action-oriented.",
+            content: [
+              `You write hyper-personalized "Why this prompt" cards for ${evidence.ownBrandName}, the business owner.`,
+              `Each card explains, in business-owner language, why ${evidence.ownBrandName} should care about this specific prompt.`,
+              `RULES:`,
+              `- Headlines must be ACTION-ORIENTED and reference a specific platform, source, or competitor by name. Examples: "Get mentioned on LinkedIn", "Beat HubSpot on G2", "Own the 'best CRM' listicle on Forbes". NEVER use vague phrases like "Maximum opportunity score", "High visibility gap", or any internal Peec metric name.`,
+              `- Bodies are 1-2 sentences of plain markdown explaining what's at stake for the BUSINESS (deals, awareness, trust) — not for Peec. Use **bold** around every brand name (own brand, competitors) and platform/source domain you mention.`,
+              `- Use the supplied evidence only. Never invent platforms, competitors, or numbers.`,
+              `- Set platformDomain to the source/platform the card is about (bare domain like "linkedin.com" or "g2.com"). Set competitorDomains to the bare domains of any competitors mentioned in the body — match them from the supplied competitor list.`,
+              `- Pick category: "platform" (a specific source/platform play), "competitor" (closing a gap vs a named competitor), "content" (a content piece to publish), "speed" (a fast/easy win), "win" (compounding opportunity), or "gap" (visibility gap).`,
+            ].join("\n"),
           },
           {
             role: "user",
@@ -137,7 +200,7 @@ async function generateReasons(evidence: RationaleEvidence) {
             function: {
               name: "explain_prompt_opportunity",
               description:
-                "Return 3-4 specific reasons this prompt and its openings can create fast wins.",
+                "Return 3-4 hyper-personalized, action-oriented cards explaining why this prompt matters to the business owner.",
               parameters: {
                 type: "object",
                 properties: {
@@ -145,7 +208,24 @@ async function generateReasons(evidence: RationaleEvidence) {
                     type: "array",
                     minItems: 3,
                     maxItems: 4,
-                    items: { type: "string" },
+                    items: {
+                      type: "object",
+                      properties: {
+                        headline: { type: "string" },
+                        body: { type: "string" },
+                        platformDomain: { type: "string" },
+                        competitorDomains: {
+                          type: "array",
+                          items: { type: "string" },
+                        },
+                        category: {
+                          type: "string",
+                          enum: ["platform", "competitor", "content", "speed", "win", "gap"],
+                        },
+                      },
+                      required: ["headline", "body"],
+                      additionalProperties: false,
+                    },
                   },
                 },
                 required: ["reasons"],
@@ -176,20 +256,56 @@ async function generateReasons(evidence: RationaleEvidence) {
     if (!args) return fallbackReasons(evidence);
 
     const parsed = JSON.parse(args) as { reasons?: unknown };
-    const reasons = Array.isArray(parsed.reasons)
-      ? parsed.reasons.filter((reason): reason is string => typeof reason === "string")
-      : [];
-    return reasons.map((reason) => reason.trim()).filter(Boolean).slice(0, 4);
+    if (!Array.isArray(parsed.reasons)) return fallbackReasons(evidence);
+
+    const cards = parsed.reasons
+      .map((r): ReasonCardPayload | null => {
+        if (!r || typeof r !== "object") return null;
+        const raw = r as Record<string, unknown>;
+        const headline = typeof raw.headline === "string" ? raw.headline.trim() : "";
+        const body = typeof raw.body === "string" ? raw.body.trim() : "";
+        if (!headline || !body) return null;
+        const competitorDomains = Array.isArray(raw.competitorDomains)
+          ? raw.competitorDomains.filter((d): d is string => typeof d === "string")
+          : [];
+        return {
+          headline,
+          body,
+          platformDomain:
+            typeof raw.platformDomain === "string" ? raw.platformDomain : null,
+          competitorDomains,
+          category:
+            typeof raw.category === "string"
+              ? (raw.category as ReasonCardPayload["category"])
+              : undefined,
+        };
+      })
+      .filter((c): c is ReasonCardPayload => c !== null)
+      .slice(0, 4);
+
+    return cards.length ? cards : fallbackReasons(evidence);
   } catch {
     return fallbackReasons(evidence);
   }
 }
 
 export const getPromptRecommendation = createServerFn({ method: "GET" })
-  .inputValidator((input: { promptId: string; ownBrandName: string }) => input)
+  .inputValidator(
+    (input: {
+      promptId: string;
+      ownBrandName: string;
+      ownBrandDomain?: string | null;
+      competitors?: { name: string; domain?: string | null }[];
+    }) => input,
+  )
   .handler(async ({ data }): Promise<PromptRecommendation> => {
     const promptId = data.promptId;
     const ownBrandName = data.ownBrandName;
+    const ownBrandDomain = data.ownBrandDomain ?? null;
+    const competitors = (data.competitors ?? []).map((c) => ({
+      name: c.name,
+      domain: c.domain ?? null,
+    }));
 
     const [promptRes, metricsRes, sourcesRes, qfosRes, openingsRes] = await Promise.all([
       supabaseAdmin.from("prompts").select("*").eq("id", promptId).maybeSingle(),
@@ -279,6 +395,8 @@ export const getPromptRecommendation = createServerFn({ method: "GET" })
     const evidence: RationaleEvidence = {
       promptText: prompt?.text ?? promptId,
       ownBrandName,
+      ownBrandDomain,
+      competitors,
       ownVisibility,
       topCompetitor,
       topCompetitorVisibility,

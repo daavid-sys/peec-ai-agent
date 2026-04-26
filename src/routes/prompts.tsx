@@ -14,6 +14,8 @@ import {
   Lightbulb,
   type LucideIcon,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScoreBar } from "@/components/score-bar";
@@ -39,6 +41,7 @@ import {
 import {
   getPromptRecommendation,
   type PromptRecommendation,
+  type ReasonCardPayload,
 } from "@/lib/server/get-prompt-recommendation";
 import { enqueueOpeningDrafts } from "@/lib/server/enqueue-opening-drafts";
 
@@ -47,15 +50,10 @@ export const Route = createFileRoute("/prompts")({
   component: PromptsPage,
 });
 
-type ReasonCard = {
-  icon: LucideIcon;
-  tone: "primary" | "destructive" | "neutral" | "success";
-  headline: string;
-  body: string;
-};
+type ReasonTone = "primary" | "destructive" | "neutral" | "success";
 
 const TONE_STYLES: Record<
-  ReasonCard["tone"],
+  ReasonTone,
   { iconBg: string; iconColor: string; ring: string }
 > = {
   primary: {
@@ -64,10 +62,10 @@ const TONE_STYLES: Record<
     ring: "ring-primary/20",
   },
   destructive: {
-    iconBg: "color-mix(in oklab, var(--destructive) 12%, transparent)",
-    iconColor: "var(--destructive)",
-    ring: "color-mix(in oklab, var(--destructive) 25%, transparent)",
-  } as never,
+    iconBg: "",
+    iconColor: "",
+    ring: "",
+  },
   neutral: {
     iconBg: "bg-muted",
     iconColor: "text-muted-foreground",
@@ -80,109 +78,119 @@ const TONE_STYLES: Record<
   },
 };
 
-// Pull a short headline (first clause / first ~6 words) and use the rest as body.
-function summarizeReason(reason: string): { headline: string; body: string } {
-  const trimmed = reason.replace(/\s+/g, " ").trim();
-
-  // Prefer "Label: rest" patterns the LLM/fallback uses (e.g. "Fastest win: ...")
-  const colon = trimmed.match(/^([^:]{3,40}):\s*(.+)$/);
-  if (colon) {
-    return { headline: colon[1].trim(), body: colon[2].trim() };
+function categoryToVisual(
+  category: ReasonCardPayload["category"],
+  index: number,
+): { icon: LucideIcon; tone: ReasonTone } {
+  switch (category) {
+    case "platform":
+      return { icon: Target, tone: "primary" };
+    case "competitor":
+      return { icon: TrendingDown, tone: "destructive" };
+    case "content":
+      return { icon: FileSearch, tone: "neutral" };
+    case "speed":
+      return { icon: Zap, tone: "success" };
+    case "win":
+      return { icon: Trophy, tone: "primary" };
+    case "gap":
+      return { icon: TrendingDown, tone: "destructive" };
+    default: {
+      const fallback: { icon: LucideIcon; tone: ReasonTone }[] = [
+        { icon: Lightbulb, tone: "primary" },
+        { icon: Users, tone: "neutral" },
+        { icon: Zap, tone: "success" },
+        { icon: Trophy, tone: "primary" },
+      ];
+      return fallback[index % fallback.length];
+    }
   }
-
-  // Otherwise split on first sentence boundary
-  const sentence = trimmed.match(/^(.{20,90}?[.!?])\s+(.*)$/);
-  if (sentence) {
-    return {
-      headline: sentence[1].replace(/[.!?]$/, "").trim(),
-      body: sentence[2].trim(),
-    };
-  }
-
-  // Fallback: take first ~7 words as headline
-  const words = trimmed.split(" ");
-  if (words.length > 9) {
-    return {
-      headline: words.slice(0, 7).join(" ") + "…",
-      body: trimmed,
-    };
-  }
-  return { headline: trimmed, body: "" };
 }
 
-function classifyReason(reason: string, index: number): {
-  icon: LucideIcon;
-  tone: ReasonCard["tone"];
-} {
-  const r = reason.toLowerCase();
-  if (/(gap|behind|lagging|losing|trailing|lower|less than)/.test(r)) {
-    return { icon: TrendingDown, tone: "destructive" };
-  }
-  if (/(competitor|vs\.|versus|compared to|already references|already appear)/.test(r)) {
-    return { icon: Users, tone: "neutral" };
-  }
-  if (/(opening|drafted|insertion point|action|act on|places to)/.test(r)) {
-    return { icon: Target, tone: "primary" };
-  }
-  if (/(source|cited|retrieved|citation|fanout|query)/.test(r)) {
-    return { icon: FileSearch, tone: "neutral" };
-  }
-  if (/(fastest|quick|fast win|easy|low-hanging|momentum)/.test(r)) {
-    return { icon: Zap, tone: "success" };
-  }
-  if (/(win|opportunity|lift|score|impact)/.test(r)) {
-    return { icon: Trophy, tone: "primary" };
-  }
-  // Stable fallback by index
-  const fallback: { icon: LucideIcon; tone: ReasonCard["tone"] }[] = [
-    { icon: Lightbulb, tone: "primary" },
-    { icon: Target, tone: "neutral" },
-    { icon: Zap, tone: "success" },
-    { icon: Trophy, tone: "primary" },
-  ];
-  return fallback[index % fallback.length];
-}
+function ReasonCardItem({
+  card,
+  index,
+}: {
+  card: ReasonCardPayload;
+  index: number;
+}) {
+  const { icon: Icon, tone } = categoryToVisual(card.category, index);
+  const isDestructive = tone === "destructive";
+  const toneStyle = TONE_STYLES[tone];
 
-function ReasonCardItem({ card }: { card: ReasonCard }) {
-  const isDestructive = card.tone === "destructive";
-  const tone = TONE_STYLES[card.tone];
+  // Dedupe domains
+  const competitorDomains = Array.from(
+    new Set((card.competitorDomains ?? []).filter(Boolean)),
+  ).slice(0, 4);
+
   return (
     <div className="group flex h-full flex-col rounded-lg border border-border bg-background p-3 transition-colors hover:border-foreground/20 hover:bg-card">
       <div className="flex items-center gap-2">
         <div
           className={cn(
-            "flex h-7 w-7 shrink-0 items-center justify-center rounded-md ring-1",
-            !isDestructive && tone.iconBg,
-            !isDestructive && tone.ring,
+            "flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md ring-1",
+            !isDestructive && toneStyle.iconBg,
+            !isDestructive && toneStyle.ring,
           )}
           style={
             isDestructive
               ? {
-                  background: "color-mix(in oklab, var(--destructive) 12%, transparent)",
+                  background:
+                    "color-mix(in oklab, var(--destructive) 12%, transparent)",
                   boxShadow:
                     "inset 0 0 0 1px color-mix(in oklab, var(--destructive) 25%, transparent)",
                 }
               : undefined
           }
         >
-          <card.icon
-            className={cn("h-3.5 w-3.5", !isDestructive && tone.iconColor)}
-            style={isDestructive ? { color: "var(--destructive)" } : undefined}
-          />
+          {card.platformDomain ? (
+            <Favicon name={card.platformDomain} size={16} />
+          ) : (
+            <Icon
+              className={cn("h-3.5 w-3.5", !isDestructive && toneStyle.iconColor)}
+              style={isDestructive ? { color: "var(--destructive)" } : undefined}
+            />
+          )}
         </div>
         <div className="min-w-0 text-[13px] font-semibold leading-snug text-foreground">
           {card.headline}
         </div>
       </div>
+
       {card.body && (
-        <div className="mt-1 line-clamp-4 text-[11.5px] leading-relaxed text-muted-foreground">
-          {card.body}
+        <div
+          className={cn(
+            "mt-1.5 text-[11.5px] leading-relaxed text-muted-foreground",
+            "[&_p]:m-0 [&_p+p]:mt-1 [&_strong]:font-semibold [&_strong]:text-foreground",
+            "[&_a]:text-foreground [&_a]:underline [&_a]:underline-offset-2",
+            "line-clamp-5",
+          )}
+        >
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{card.body}</ReactMarkdown>
+        </div>
+      )}
+
+      {competitorDomains.length > 0 && (
+        <div className="mt-auto flex items-center gap-1 pt-2">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">
+            vs
+          </span>
+          <div className="flex -space-x-1">
+            {competitorDomains.map((d) => (
+              <div
+                key={d}
+                className="flex h-4 w-4 items-center justify-center overflow-hidden rounded-sm bg-background ring-1 ring-border"
+                title={d}
+              >
+                <Favicon name={d} size={12} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
 }
-
 
 function PromptsPage() {
   const prompts = useAppStore((s) => s.prompts);
@@ -245,7 +253,15 @@ function PromptsPage() {
     setRecommendationLoading(true);
     setRecommendation(null);
     getPromptRecommendation({
-      data: { promptId: selected.id, ownBrandName: project.ownBrand.name },
+      data: {
+        promptId: selected.id,
+        ownBrandName: project.ownBrand.name,
+        ownBrandDomain: project.ownBrand.domain ?? null,
+        competitors: project.competitors.map((c) => ({
+          name: c.name,
+          domain: c.domain ?? null,
+        })),
+      },
     })
       .then((data) => {
         if (cancelled) return;
@@ -448,21 +464,13 @@ function PromptsPage() {
                     cardReasons.length <= 2 ? "grid-cols-2" : "grid-cols-2",
                   )}
                 >
-                  {cardReasons.map((r, i) => {
-                    const { headline, body } = summarizeReason(r);
-                    const meta = classifyReason(r, i);
-                    return (
-                      <ReasonCardItem
-                        key={r}
-                        card={{
-                          icon: meta.icon,
-                          tone: meta.tone,
-                          headline,
-                          body,
-                        }}
-                      />
-                    );
-                  })}
+                  {cardReasons.map((r, i) => (
+                    <ReasonCardItem
+                      key={`${r.headline}-${i}`}
+                      card={r}
+                      index={i}
+                    />
+                  ))}
                 </div>
               ) : null}
             </div>
