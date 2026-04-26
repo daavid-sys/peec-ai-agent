@@ -5,6 +5,13 @@ import {
   Check,
   Sparkles,
   TrendingDown,
+  Target,
+  Users,
+  FileSearch,
+  Zap,
+  Trophy,
+  Lightbulb,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -38,6 +45,141 @@ export const Route = createFileRoute("/prompts")({
   head: () => ({ meta: [{ title: "Recommended Prompt — Peec AI Openings" }] }),
   component: PromptsPage,
 });
+
+type ReasonCard = {
+  icon: LucideIcon;
+  tone: "primary" | "destructive" | "neutral" | "success";
+  headline: string;
+  body: string;
+};
+
+const TONE_STYLES: Record<
+  ReasonCard["tone"],
+  { iconBg: string; iconColor: string; ring: string }
+> = {
+  primary: {
+    iconBg: "bg-primary/10",
+    iconColor: "text-primary",
+    ring: "ring-primary/20",
+  },
+  destructive: {
+    iconBg: "color-mix(in oklab, var(--destructive) 12%, transparent)",
+    iconColor: "var(--destructive)",
+    ring: "color-mix(in oklab, var(--destructive) 25%, transparent)",
+  } as never,
+  neutral: {
+    iconBg: "bg-muted",
+    iconColor: "text-muted-foreground",
+    ring: "ring-border",
+  },
+  success: {
+    iconBg: "bg-emerald-500/10",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
+    ring: "ring-emerald-500/20",
+  },
+};
+
+// Pull a short headline (first clause / first ~6 words) and use the rest as body.
+function summarizeReason(reason: string): { headline: string; body: string } {
+  const trimmed = reason.replace(/\s+/g, " ").trim();
+
+  // Prefer "Label: rest" patterns the LLM/fallback uses (e.g. "Fastest win: ...")
+  const colon = trimmed.match(/^([^:]{3,40}):\s*(.+)$/);
+  if (colon) {
+    return { headline: colon[1].trim(), body: colon[2].trim() };
+  }
+
+  // Otherwise split on first sentence boundary
+  const sentence = trimmed.match(/^(.{20,90}?[.!?])\s+(.*)$/);
+  if (sentence) {
+    return {
+      headline: sentence[1].replace(/[.!?]$/, "").trim(),
+      body: sentence[2].trim(),
+    };
+  }
+
+  // Fallback: take first ~7 words as headline
+  const words = trimmed.split(" ");
+  if (words.length > 9) {
+    return {
+      headline: words.slice(0, 7).join(" ") + "…",
+      body: trimmed,
+    };
+  }
+  return { headline: trimmed, body: "" };
+}
+
+function classifyReason(reason: string, index: number): {
+  icon: LucideIcon;
+  tone: ReasonCard["tone"];
+} {
+  const r = reason.toLowerCase();
+  if (/(gap|behind|lagging|losing|trailing|lower|less than)/.test(r)) {
+    return { icon: TrendingDown, tone: "destructive" };
+  }
+  if (/(competitor|vs\.|versus|compared to|already references|already appear)/.test(r)) {
+    return { icon: Users, tone: "neutral" };
+  }
+  if (/(opening|drafted|insertion point|action|act on|places to)/.test(r)) {
+    return { icon: Target, tone: "primary" };
+  }
+  if (/(source|cited|retrieved|citation|fanout|query)/.test(r)) {
+    return { icon: FileSearch, tone: "neutral" };
+  }
+  if (/(fastest|quick|fast win|easy|low-hanging|momentum)/.test(r)) {
+    return { icon: Zap, tone: "success" };
+  }
+  if (/(win|opportunity|lift|score|impact)/.test(r)) {
+    return { icon: Trophy, tone: "primary" };
+  }
+  // Stable fallback by index
+  const fallback: { icon: LucideIcon; tone: ReasonCard["tone"] }[] = [
+    { icon: Lightbulb, tone: "primary" },
+    { icon: Target, tone: "neutral" },
+    { icon: Zap, tone: "success" },
+    { icon: Trophy, tone: "primary" },
+  ];
+  return fallback[index % fallback.length];
+}
+
+function ReasonCardItem({ card }: { card: ReasonCard }) {
+  const isDestructive = card.tone === "destructive";
+  const tone = TONE_STYLES[card.tone];
+  return (
+    <div className="group flex h-full flex-col rounded-lg border border-border bg-background p-3 transition-colors hover:border-foreground/20 hover:bg-card">
+      <div
+        className={cn(
+          "flex h-8 w-8 items-center justify-center rounded-md ring-1",
+          !isDestructive && tone.iconBg,
+          !isDestructive && tone.ring,
+        )}
+        style={
+          isDestructive
+            ? {
+                background: "color-mix(in oklab, var(--destructive) 12%, transparent)",
+                boxShadow:
+                  "inset 0 0 0 1px color-mix(in oklab, var(--destructive) 25%, transparent)",
+              }
+            : undefined
+        }
+      >
+        <card.icon
+          className={cn("h-4 w-4", !isDestructive && tone.iconColor)}
+          style={isDestructive ? { color: "var(--destructive)" } : undefined}
+        />
+      </div>
+      <div className="mt-2.5 text-[13px] font-semibold leading-snug text-foreground">
+        {card.headline}
+      </div>
+      {card.body && (
+        <div className="mt-1 line-clamp-4 text-[11.5px] leading-relaxed text-muted-foreground">
+          {card.body}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function PromptsPage() {
   const prompts = useAppStore((s) => s.prompts);
@@ -264,34 +406,47 @@ function PromptsPage() {
               <Mini label="Openings found" value={cardCounts?.openings ?? "—"} loading={recommendationLoading} />
             </div>
 
-            <div className="my-auto space-y-2 py-6">
+            <div className="flex flex-1 flex-col py-6">
               <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Why this prompt
               </div>
               {recommendationLoading ? (
-                <ul className="space-y-2">
+                <div className="mt-3 grid flex-1 grid-cols-2 gap-2.5 auto-rows-fr">
                   {Array.from({ length: 4 }).map((_, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <Skeleton className="mt-1 h-3 w-3 flex-shrink-0 rounded-full" />
-                      <div className="flex-1 space-y-1.5">
-                        <Skeleton className="h-3 w-full" />
-                        <Skeleton className="h-3 w-4/5" />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : cardReasons.length > 0 ? (
-                <ul className="space-y-1.5">
-                  {cardReasons.map((r) => (
-                    <li
-                      key={r}
-                      className="flex items-start gap-2 text-sm text-foreground"
+                    <div
+                      key={i}
+                      className="flex h-full flex-col rounded-lg border border-border bg-background p-3"
                     >
-                      <Check className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
-                      <span>{renderInlineMarkdown(r)}</span>
-                    </li>
+                      <Skeleton className="h-8 w-8 rounded-md" />
+                      <Skeleton className="mt-2.5 h-3.5 w-3/4" />
+                      <Skeleton className="mt-2 h-2.5 w-full" />
+                      <Skeleton className="mt-1.5 h-2.5 w-5/6" />
+                    </div>
                   ))}
-                </ul>
+                </div>
+              ) : cardReasons.length > 0 ? (
+                <div
+                  className={cn(
+                    "mt-3 grid flex-1 gap-2.5 auto-rows-fr",
+                    cardReasons.length <= 2 ? "grid-cols-2" : "grid-cols-2",
+                  )}
+                >
+                  {cardReasons.map((r, i) => {
+                    const { headline, body } = summarizeReason(r);
+                    const meta = classifyReason(r, i);
+                    return (
+                      <ReasonCardItem
+                        key={r}
+                        card={{
+                          icon: meta.icon,
+                          tone: meta.tone,
+                          headline,
+                          body,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
               ) : null}
             </div>
 
