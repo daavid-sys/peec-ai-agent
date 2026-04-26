@@ -256,7 +256,6 @@ function PromptsPage() {
                 </Tooltip>
               </TooltipProvider>
             )}
-            <ArrowUpRight className="h-5 w-5 shrink-0 text-muted-foreground" />
           </div>
 
           <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
