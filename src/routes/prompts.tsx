@@ -32,6 +32,7 @@ import {
   getPromptRecommendation,
   type PromptRecommendation,
 } from "@/lib/server/get-prompt-recommendation";
+import { enqueueOpeningDrafts } from "@/lib/server/enqueue-opening-drafts";
 
 export const Route = createFileRoute("/prompts")({
   head: () => ({ meta: [{ title: "Recommended Prompt — Peec AI Openings" }] }),
