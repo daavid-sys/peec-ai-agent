@@ -155,7 +155,7 @@ function PromptsPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-6 py-10 2xl:px-10">
-      <h1 className="text-3xl font-semibold tracking-tight">Your openings</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">Let our agent increase your visibility</h1>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         Turn signals into actions. Select a prompt you want to work on
       </p>

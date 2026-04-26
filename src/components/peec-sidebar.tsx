@@ -18,6 +18,7 @@ import {
   CreditCard,
   Gift,
   ChevronDown,
+  Bot,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
@@ -50,7 +51,7 @@ const sources: Item[] = [
 const actions: Item[] = [
   { label: "Earned · Off-page", icon: FileText },
   { label: "Owned · On-page", icon: FileSearch },
-  { label: "Openings", icon: Search, active: true, to: "/" },
+  { label: "Agent", icon: Bot, active: true, to: "/" },
   { label: "Impact", icon: LineChart },
 ];
 
