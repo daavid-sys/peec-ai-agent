@@ -280,13 +280,17 @@ function CompletedTaskRow({
         className="group flex items-center gap-3 py-3 transition hover:bg-muted/30 -mx-1 px-1 rounded-md"
       >
         <span
-          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+          className="inline-flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full"
           style={{
             backgroundColor: `color-mix(in oklab, ${tone} 14%, transparent)`,
             color: tone,
           }}
         >
-          <Icon className="h-3.5 w-3.5" />
+          {type === "platform_post" && draft.source.domain ? (
+            <Favicon name={draft.source.domain} kind="brand" size={16} className="rounded-sm" />
+          ) : (
+            <Icon className="h-3.5 w-3.5" />
+          )}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
