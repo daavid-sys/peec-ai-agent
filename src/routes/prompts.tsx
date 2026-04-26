@@ -148,29 +148,31 @@ function ReasonCardItem({ card }: { card: ReasonCard }) {
   const tone = TONE_STYLES[card.tone];
   return (
     <div className="group flex h-full flex-col rounded-lg border border-border bg-background p-3 transition-colors hover:border-foreground/20 hover:bg-card">
-      <div
-        className={cn(
-          "flex h-8 w-8 items-center justify-center rounded-md ring-1",
-          !isDestructive && tone.iconBg,
-          !isDestructive && tone.ring,
-        )}
-        style={
-          isDestructive
-            ? {
-                background: "color-mix(in oklab, var(--destructive) 12%, transparent)",
-                boxShadow:
-                  "inset 0 0 0 1px color-mix(in oklab, var(--destructive) 25%, transparent)",
-              }
-            : undefined
-        }
-      >
-        <card.icon
-          className={cn("h-4 w-4", !isDestructive && tone.iconColor)}
-          style={isDestructive ? { color: "var(--destructive)" } : undefined}
-        />
-      </div>
-      <div className="mt-2.5 text-[13px] font-semibold leading-snug text-foreground">
-        {card.headline}
+      <div className="flex items-center gap-2">
+        <div
+          className={cn(
+            "flex h-7 w-7 shrink-0 items-center justify-center rounded-md ring-1",
+            !isDestructive && tone.iconBg,
+            !isDestructive && tone.ring,
+          )}
+          style={
+            isDestructive
+              ? {
+                  background: "color-mix(in oklab, var(--destructive) 12%, transparent)",
+                  boxShadow:
+                    "inset 0 0 0 1px color-mix(in oklab, var(--destructive) 25%, transparent)",
+                }
+              : undefined
+          }
+        >
+          <card.icon
+            className={cn("h-3.5 w-3.5", !isDestructive && tone.iconColor)}
+            style={isDestructive ? { color: "var(--destructive)" } : undefined}
+          />
+        </div>
+        <div className="min-w-0 text-[13px] font-semibold leading-snug text-foreground">
+          {card.headline}
+        </div>
       </div>
       {card.body && (
         <div className="mt-1 line-clamp-4 text-[11.5px] leading-relaxed text-muted-foreground">
