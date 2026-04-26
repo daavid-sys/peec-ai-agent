@@ -104,7 +104,15 @@ export function QfosTable({
           </p>
           <p className="mt-2 text-muted-foreground">
             We show the top 6 fanouts captured for this prompt. The full set is
-            available on the prompt detail page.
+            available on the{" "}
+            <span
+              role="link"
+              tabIndex={0}
+              className="cursor-pointer text-foreground underline decoration-dotted underline-offset-2 hover:text-primary hover:decoration-solid"
+            >
+              prompt detail page
+            </span>
+            .
           </p>
         </InfoPopover>
       </div>
@@ -164,8 +172,14 @@ export function QfosTable({
             </ul>
             {hiddenCount > 0 && (
               <div className="border-t border-border bg-secondary/20 px-4 py-2 text-[11px] text-muted-foreground">
-                +{hiddenCount} more fanout{hiddenCount === 1 ? "" : "s"} on the
-                prompt detail page
+                +{hiddenCount} more fanout{hiddenCount === 1 ? "" : "s"} on the{" "}
+                <span
+                  role="link"
+                  tabIndex={0}
+                  className="cursor-pointer text-foreground underline decoration-dotted underline-offset-2 hover:text-primary hover:decoration-solid"
+                >
+                  prompt detail page
+                </span>
               </div>
             )}
           </>
