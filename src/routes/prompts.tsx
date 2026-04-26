@@ -43,7 +43,7 @@ function PromptsPage() {
   const project = useAppStore((s) => s.project);
   const selectedId = useAppStore((s) => s.selectedPromptId);
   const navigate = useNavigate();
-  
+  const leftColumnRef = useRef<HTMLDivElement>(null);
 
   if (!project || prompts.length === 0) {
     return (
