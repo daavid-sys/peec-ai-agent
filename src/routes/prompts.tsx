@@ -313,8 +313,9 @@ function PromptsPage() {
               Sneak peek · openings for this prompt
             </h2>
             <p className="text-xs text-muted-foreground">
-              The first {previewOpenings.length} of {cardCounts?.openings ?? "—"}{" "}
-              openings already drafted by the agent.
+              {recommendationLoading
+                ? "Loading openings…"
+                : `The first ${previewOpenings.length} of ${cardCounts?.openings ?? "—"} openings already drafted by the agent.`}
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={startFlow}>
@@ -323,9 +324,13 @@ function PromptsPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          {previewOpenings.map((o) => (
-            <OpeningPreviewCard key={o.id} opening={o} onOpen={startFlow} />
-          ))}
+          {recommendationLoading
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <OpeningPreviewSkeleton key={i} />
+              ))
+            : previewOpenings.map((o) => (
+                <OpeningPreviewCard key={o.id} opening={o} onOpen={startFlow} />
+              ))}
         </div>
       </div>
 
