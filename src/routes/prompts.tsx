@@ -348,54 +348,79 @@ function PromptsPage() {
       <div id="prompt-switcher" className="mt-12">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
-            <h2 className="text-base font-semibold tracking-tight text-foreground">
-              Select a prompt
-            </h2>
-            <div className="relative w-72">
-              <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={tableQuery}
-                onChange={(e) => setTableQuery(e.target.value)}
-                placeholder="Search a prompt"
-                className="h-8 pl-8 text-[13px]"
+            <button
+              type="button"
+              onClick={() => setTableOpen((v) => !v)}
+              className="group inline-flex items-center gap-2 text-base font-semibold tracking-tight text-foreground transition-colors hover:text-foreground/80"
+              aria-expanded={tableOpen}
+              aria-controls="prompts-table-region"
+            >
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 text-muted-foreground transition-transform",
+                  tableOpen ? "rotate-0" : "-rotate-90",
+                )}
               />
+              Select a prompt
+              {!tableOpen && tableRows && (
+                <span className="text-xs font-normal text-muted-foreground">
+                  ({tableRows.length})
+                </span>
+              )}
+            </button>
+            {tableOpen && (
+              <div className="relative w-72">
+                <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={tableQuery}
+                  onChange={(e) => setTableQuery(e.target.value)}
+                  placeholder="Search a prompt"
+                  className="h-8 pl-8 text-[13px]"
+                />
+              </div>
+            )}
+          </div>
+          {tableOpen && (
+            <div className="flex items-center gap-4 text-[12px] text-muted-foreground">
+              <span>
+                Visibility{" "}
+                <span className="font-semibold text-foreground tabular-nums">
+                  {tableAgg.visibility}%
+                </span>
+              </span>
+              <span className="text-border">|</span>
+              <span className="inline-flex items-center gap-1.5">
+                Sentiment{" "}
+                <span className="inline-flex items-center gap-1 font-semibold text-foreground tabular-nums">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success" />
+                  {tableAgg.sentiment}
+                </span>
+              </span>
+              <span className="text-border">|</span>
+              <span>
+                Position{" "}
+                <span className="font-semibold text-foreground tabular-nums">
+                  # {tableAgg.position.toFixed(1)}
+                </span>
+              </span>
             </div>
-          </div>
-          <div className="flex items-center gap-4 text-[12px] text-muted-foreground">
-            <span>
-              Visibility{" "}
-              <span className="font-semibold text-foreground tabular-nums">
-                {tableAgg.visibility}%
-              </span>
-            </span>
-            <span className="text-border">|</span>
-            <span className="inline-flex items-center gap-1.5">
-              Sentiment{" "}
-              <span className="inline-flex items-center gap-1 font-semibold text-foreground tabular-nums">
-                <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                {tableAgg.sentiment}
-              </span>
-            </span>
-            <span className="text-border">|</span>
-            <span>
-              Position{" "}
-              <span className="font-semibold text-foreground tabular-nums">
-                # {tableAgg.position.toFixed(1)}
-              </span>
-            </span>
-          </div>
+          )}
         </div>
 
-        <PromptsTable
-          rows={tableRows}
-          loading={tableLoading}
-          selectedId={selected.id}
-          query={tableQuery}
-          onSelect={(id) => {
-            store.selectPrompt(id);
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
-        />
+        {tableOpen && (
+          <div id="prompts-table-region">
+            <PromptsTable
+              rows={tableRows}
+              loading={tableLoading}
+              selectedId={selected.id}
+              query={tableQuery}
+              onSelect={(id) => {
+                store.selectPrompt(id);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
