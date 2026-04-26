@@ -214,35 +214,51 @@ function PromptsPage() {
                 label="Your visibility"
                 value={formatMetric(cardMetrics.ownVisibility)}
                 tone="destructive"
+                loading={recommendationLoading}
               />
               <Stat
                 label={`${cardMetrics.topCompetitor ?? "Top competitor"} visibility`}
                 value={formatMetric(cardMetrics.topCompetitorVisibility)}
+                loading={recommendationLoading}
               />
               <Stat
                 label="Visibility gap"
                 value={formatMetric(cardMetrics.visibilityGap)}
                 tone="destructive"
                 icon={TrendingDown}
+                loading={recommendationLoading}
               />
               <Stat
                 label="Opportunity score"
                 value={formatMetric(cardMetrics.opportunityScore, "/100")}
                 tone="primary"
+                loading={recommendationLoading}
               />
             </div>
 
             <div className="mt-6 grid grid-cols-3 gap-3 text-xs">
-              <Mini label="Sources found" value={recommendationLoading ? "…" : (cardCounts?.sources ?? "—")} />
-              <Mini label="Query fanouts" value={recommendationLoading ? "…" : (cardCounts?.qfos ?? "—")} />
-              <Mini label="Openings found" value={recommendationLoading ? "…" : (cardCounts?.openings ?? "—")} />
+              <Mini label="Sources found" value={cardCounts?.sources ?? "—"} loading={recommendationLoading} />
+              <Mini label="Query fanouts" value={cardCounts?.qfos ?? "—"} loading={recommendationLoading} />
+              <Mini label="Openings found" value={cardCounts?.openings ?? "—"} loading={recommendationLoading} />
             </div>
 
-            {cardReasons.length > 0 && (
-              <div className="mt-6 space-y-2">
-                <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Why this prompt
-                </div>
+            <div className="mt-6 space-y-2">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Why this prompt
+              </div>
+              {recommendationLoading ? (
+                <ul className="space-y-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <Skeleton className="mt-1 h-3 w-3 flex-shrink-0 rounded-full" />
+                      <div className="flex-1 space-y-1.5">
+                        <Skeleton className="h-3 w-full" />
+                        <Skeleton className="h-3 w-4/5" />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : cardReasons.length > 0 ? (
                 <ul className="space-y-1.5">
                   {cardReasons.map((r) => (
                     <li
@@ -250,12 +266,12 @@ function PromptsPage() {
                       className="flex items-start gap-2 text-sm text-foreground"
                     >
                       <Check className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
-                      {r}
+                      <span>{renderInlineMarkdown(r)}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
-            )}
+              ) : null}
+            </div>
 
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Button size="lg" onClick={startFlow}>
@@ -391,11 +407,13 @@ function Stat({
   value,
   tone,
   icon: Icon,
+  loading,
 }: {
   label: string;
   value: string;
   tone?: "destructive" | "primary";
   icon?: React.ComponentType<{ className?: string }>;
+  loading?: boolean;
 }) {
   const color =
     tone === "destructive"
@@ -406,26 +424,66 @@ function Stat({
   return (
     <div>
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div
-        className={cn(
-          "mt-1 flex items-center gap-1 text-2xl font-semibold tabular-nums",
-          color,
-        )}
-      >
-        {Icon && <Icon className="h-4 w-4" />}
-        {value}
-      </div>
+      {loading ? (
+        <Skeleton className="mt-2 h-7 w-20" />
+      ) : (
+        <div
+          className={cn(
+            "mt-1 flex items-center gap-1 text-2xl font-semibold tabular-nums",
+            color,
+          )}
+        >
+          {Icon && <Icon className="h-4 w-4" />}
+          {value}
+        </div>
+      )}
     </div>
   );
 }
 
-function Mini({ label, value }: { label: string; value: number | string }) {
+function Mini({
+  label,
+  value,
+  loading,
+}: {
+  label: string;
+  value: number | string;
+  loading?: boolean;
+}) {
   return (
     <div className="rounded-md border border-border bg-background px-3 py-2">
       <div className="text-[11px] text-muted-foreground">{label}</div>
-      <div className="font-mono text-base font-medium">{value}</div>
+      {loading ? (
+        <Skeleton className="mt-1 h-5 w-10" />
+      ) : (
+        <div className="font-mono text-base font-medium">{value}</div>
+      )}
     </div>
   );
+}
+
+function renderInlineMarkdown(text: string): React.ReactNode {
+  // Tokenize **bold** and *italic* (and _italic_)
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*([^*]+)\*\*|\*([^*]+)\*|_([^_]+)_)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    if (match[2] !== undefined) {
+      parts.push(<strong key={key++} className="font-semibold">{match[2]}</strong>);
+    } else if (match[3] !== undefined) {
+      parts.push(<em key={key++}>{match[3]}</em>);
+    } else if (match[4] !== undefined) {
+      parts.push(<em key={key++}>{match[4]}</em>);
+    }
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return parts;
 }
 
 function BrandsTable({
