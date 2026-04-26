@@ -310,76 +310,81 @@ function DraftPage() {
         </div>
       </Card>
 
-      {/* Export actions */}
-      <Card className="mt-5 border-border bg-card p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <Download className="h-4 w-4 text-muted-foreground" />
-              <h2 className="text-sm font-semibold">Export draft</h2>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Attach one of these to the email so {host} can publish as-is.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => {
-                downloadFile(`${slug}.md`, markdown, "text/markdown");
-                toast.success("Markdown exported");
-              }}
-            >
-              <FileText className="h-3 w-3" /> Markdown
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => {
-                const html = `<!doctype html><meta charset="utf-8"><title>${engagement.title}</title><article><h1>${engagement.title}</h1>${engagement.draft
-                  .split(/\n\n+/)
-                  .map((p) => `<p>${p.replace(/</g, "&lt;")}</p>`)
-                  .join("")}</article>`;
-                downloadFile(`${slug}.html`, html, "text/html");
-                toast.success("HTML exported");
-              }}
-            >
-              <FileText className="h-3 w-3" /> HTML
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => {
-                downloadFile(`${slug}.txt`, `${engagement.title}\n\n${engagement.draft}\n`, "text/plain");
-                toast.success("Text exported");
-              }}
-            >
-              <FileText className="h-3 w-3" /> Plain text
-            </Button>
-          </div>
-        </div>
-      </Card>
-
       {/* Platform-native preview */}
       <Card className="mt-5 overflow-hidden border-border bg-card">
-        <div className="flex items-center justify-between border-b border-border bg-muted/30 px-5 py-3">
-          <div>
-            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-              Preview as it would appear on {host}
-            </div>
-            <h2 className="mt-0.5 text-sm font-semibold">{engagement.title}</h2>
-          </div>
+        <div className="flex items-center justify-between gap-3 border-b border-border bg-muted/30 px-5 py-3">
           <Button
             size="sm"
-            variant="ghost"
+            variant="secondary"
             onClick={() => {
               navigator.clipboard.writeText(engagement.draft);
               toast.success("Draft copied");
             }}
           >
-            <Copy className="h-3 w-3" /> Copy draft
+            <Copy className="h-3 w-3" /> Copy
           </Button>
+
+          <div className="hidden flex-1 text-center sm:block">
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Preview as it would appear on {host}
+            </div>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm">
+                <Download className="h-3 w-3" /> Export
+                <ChevronDown className="h-3 w-3 opacity-70" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem
+                onClick={() => {
+                  downloadText(`${slug}.md`, markdown, "text/markdown");
+                  toast.success("Exported as Markdown");
+                }}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Markdown (.md)
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  downloadText(
+                    `${slug}.txt`,
+                    `${engagement.title}\n\n${engagement.draft}\n`,
+                    "text/plain",
+                  );
+                  toast.success("Exported as Text");
+                }}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Plain text (.txt)
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  downloadDoc(`${slug}.doc`, engagement.title, engagement.draft);
+                  toast.success("Exported as Word");
+                }}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Word (.doc)
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  try {
+                    downloadPdf(`${slug}.pdf`, engagement.title, engagement.draft);
+                    toast.success("Exported as PDF");
+                  } catch (err) {
+                    console.error(err);
+                    toast.error("PDF export failed");
+                  }
+                }}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                PDF (.pdf)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <article className="mx-auto max-w-prose px-8 py-10">
           <h1 className="font-serif text-3xl leading-tight text-foreground">
