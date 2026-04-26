@@ -52,6 +52,8 @@ type MetricRow = {
 type RationaleEvidence = {
   promptText: string;
   ownBrandName: string;
+  ownBrandDomain: string | null;
+  competitors: { name: string; domain: string | null }[];
   ownVisibility: number;
   topCompetitor: string | null;
   topCompetitorVisibility: number;
