@@ -432,8 +432,10 @@ function PromptsPage() {
                       key={i}
                       className="flex h-full flex-col rounded-lg border border-border bg-background p-3"
                     >
-                      <Skeleton className="h-8 w-8 rounded-md" />
-                      <Skeleton className="mt-2.5 h-3.5 w-3/4" />
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-7 w-7 shrink-0 rounded-md" />
+                        <Skeleton className="h-3.5 w-3/4" />
+                      </div>
                       <Skeleton className="mt-2 h-2.5 w-full" />
                       <Skeleton className="mt-1.5 h-2.5 w-5/6" />
                     </div>
