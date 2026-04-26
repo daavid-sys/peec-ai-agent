@@ -22,6 +22,8 @@ import {
   type PromptRecommendation,
 } from "@/lib/server/get-prompt-recommendation";
 import { enqueueOpeningDrafts } from "@/lib/server/enqueue-opening-drafts";
+import { getOpeningsOverview } from "@/lib/server/get-openings-overview";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/prompts")({
   head: () => ({ meta: [{ title: "Your openings — Peec AI" }] }),
@@ -145,6 +147,56 @@ function PromptsPage() {
     [visitedPromptIds, prompts],
   );
 
+  type VisitedStatus = {
+    loading: boolean;
+    ready: number;
+    inProgress: number;
+    total: number;
+  };
+  const [visitedStatus, setVisitedStatus] = useState<
+    Record<string, VisitedStatus>
+  >({});
+
+  useEffect(() => {
+    let cancelled = false;
+    const ownDomain = project.ownBrand.domain ?? null;
+    setVisitedStatus((prev) => {
+      const next = { ...prev };
+      for (const p of visitedPrompts) {
+        if (!next[p.id]) {
+          next[p.id] = { loading: true, ready: 0, inProgress: 0, total: 0 };
+        }
+      }
+      return next;
+    });
+    visitedPrompts.forEach((p) => {
+      getOpeningsOverview({ data: { promptId: p.id, ownDomain } })
+        .then((res) => {
+          if (cancelled) return;
+          const all = res.groups.flatMap((g) => g.openings);
+          const ready = all.filter((o) => o.draft.status === "ready").length;
+          const inProgress = all.filter(
+            (o) =>
+              o.draft.status === "drafting" || o.draft.status === "pending",
+          ).length;
+          setVisitedStatus((prev) => ({
+            ...prev,
+            [p.id]: { loading: false, ready, inProgress, total: all.length },
+          }));
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setVisitedStatus((prev) => ({
+            ...prev,
+            [p.id]: { loading: false, ready: 0, inProgress: 0, total: 0 },
+          }));
+        });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [visitedPrompts, project.ownBrand.domain]);
+
   const startFlow = (id: string) => {
     store.selectPrompt(id);
     store.markPromptVisited(id);
@@ -246,18 +298,42 @@ function PromptsPage() {
             </div>
           ) : (
             <div className="flex flex-col gap-2.5">
-              {visitedPrompts.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => startFlow(p.id)}
-                  className="group flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-3 text-left transition-colors hover:border-foreground/30 hover:bg-card"
-                >
-                  <span className="line-clamp-1 text-sm font-medium text-foreground">
-                    &ldquo;{p.text}&rdquo;
-                  </span>
-                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
-                </button>
-              ))}
+              {visitedPrompts.map((p) => {
+                const st = visitedStatus[p.id];
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => startFlow(p.id)}
+                    className="group flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-3 text-left transition-colors hover:border-foreground/30 hover:bg-card"
+                  >
+                    <div className="flex min-w-0 flex-1 flex-col gap-1">
+                      <span className="line-clamp-1 text-sm font-medium text-foreground">
+                        &ldquo;{p.text}&rdquo;
+                      </span>
+                      {!st || st.loading ? (
+                        <Skeleton className="h-3 w-32" />
+                      ) : st.total === 0 ? (
+                        <span className="text-[11px] text-muted-foreground">
+                          No openings yet
+                        </span>
+                      ) : st.inProgress > 0 ? (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          {st.ready} ready · {st.inProgress} drafting
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground">
+                          <span className="font-medium text-foreground tabular-nums">
+                            {st.ready}
+                          </span>{" "}
+                          / {st.total} drafts ready
+                        </span>
+                      )}
+                    </div>
+                    <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+                  </button>
+                );
+              })}
             </div>
           )}
         </Card>
