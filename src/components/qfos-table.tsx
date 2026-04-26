@@ -1,4 +1,3 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InfoPopover } from "@/components/info-popover";
 import type { PromptQfo } from "@/lib/server/get-prompt-qfos";
@@ -75,70 +74,19 @@ function modelLabel(modelId: string | null): string {
 export function QfosTable({
   qfos,
   loading,
-  matchHeightRef,
+  maxRows,
 }: {
   qfos: PromptQfo[] | null;
   loading: boolean;
-  /** Optional element whose height this table tries to match by limiting rows. */
-  matchHeightRef?: React.RefObject<HTMLElement | null>;
+  /** Hard cap on how many rows to render. */
+  maxRows?: number;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const rowRef = useRef<HTMLLIElement>(null);
-  const [maxRows, setMaxRows] = useState<number | null>(null);
-
-  useLayoutEffect(() => {
-    if (!matchHeightRef?.current || !containerRef.current) return;
-    const compute = () => {
-      const target = matchHeightRef.current;
-      const container = containerRef.current;
-      if (!target || !container) return;
-      // Available height = sibling column height − space above the table inside our column
-      const containerTop = container.getBoundingClientRect().top;
-      const parent = container.parentElement;
-      if (!parent) return;
-      const parentTop = parent.getBoundingClientRect().top;
-      const offsetWithinColumn = containerTop - parentTop;
-      const available = target.getBoundingClientRect().height - offsetWithinColumn;
-      const headerH = headerRef.current?.getBoundingClientRect().height ?? 36;
-      const rowH = rowRef.current?.getBoundingClientRect().height ?? 44;
-      if (rowH <= 0) return;
-      const fit = Math.floor((available - headerH) / rowH);
-      setMaxRows(Math.max(1, fit));
-    };
-    compute();
-    const ro = new ResizeObserver(compute);
-    ro.observe(matchHeightRef.current);
-    ro.observe(containerRef.current);
-    window.addEventListener("resize", compute);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", compute);
-    };
-  }, [matchHeightRef, qfos, loading]);
-
-  // Recompute again once data renders (row height becomes accurate)
-  useEffect(() => {
-    if (!matchHeightRef?.current || !rowRef.current) return;
-    const rowH = rowRef.current.getBoundingClientRect().height;
-    const headerH = headerRef.current?.getBoundingClientRect().height ?? 36;
-    const container = containerRef.current;
-    const parent = container?.parentElement;
-    const target = matchHeightRef.current;
-    if (!container || !parent || !target || rowH <= 0) return;
-    const offsetWithinColumn =
-      container.getBoundingClientRect().top - parent.getBoundingClientRect().top;
-    const available = target.getBoundingClientRect().height - offsetWithinColumn;
-    const fit = Math.floor((available - headerH) / rowH);
-    setMaxRows(Math.max(1, fit));
-  }, [qfos, matchHeightRef]);
-
   const visibleQfos =
-    qfos && maxRows !== null ? qfos.slice(0, maxRows) : qfos ?? [];
+    qfos && typeof maxRows === "number" ? qfos.slice(0, maxRows) : qfos ?? [];
   const hiddenCount = qfos ? Math.max(0, qfos.length - visibleQfos.length) : 0;
 
   return (
-    <div ref={containerRef}>
+    <div>
       <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
         Query fanouts
         <InfoPopover ariaLabel="What are query fanouts?">
@@ -155,18 +103,14 @@ export function QfosTable({
             tells you the real searches you need to win.
           </p>
           <p className="mt-2 text-muted-foreground">
-            We list the top fanouts captured for this prompt — the list is
-            trimmed to keep this card aligned with &ldquo;Why this prompt&rdquo;
-            on the left. The full set is available on the prompt detail page.
+            We show the top 6 fanouts captured for this prompt. The full set is
+            available on the prompt detail page.
           </p>
         </InfoPopover>
       </div>
 
       <div className="mt-3 overflow-hidden rounded-lg border border-border bg-background">
-        <div
-          ref={headerRef}
-          className="grid grid-cols-[110px_minmax(0,1fr)_48px] items-center gap-2 bg-secondary/40 px-4 py-2.5 text-[11px] font-medium text-muted-foreground"
-        >
+        <div className="grid grid-cols-[110px_minmax(0,1fr)_48px] items-center gap-2 bg-secondary/40 px-4 py-2.5 text-[11px] font-medium text-muted-foreground">
           <div>Engine</div>
           <div>Query</div>
           <div className="text-right">Runs</div>
@@ -195,10 +139,9 @@ export function QfosTable({
         ) : (
           <>
             <ul className="divide-y divide-border">
-              {visibleQfos.map((q, idx) => (
+              {visibleQfos.map((q) => (
                 <li
                   key={q.id}
-                  ref={idx === 0 ? rowRef : undefined}
                   className="grid grid-cols-[110px_minmax(0,1fr)_48px] items-center gap-2 px-4 py-3 text-sm"
                 >
                   <div className="flex items-center gap-2 text-muted-foreground">

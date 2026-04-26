@@ -201,7 +201,7 @@ function PromptsPage() {
       {/* Hero recommended-prompt card */}
       <Card className="mt-8 overflow-hidden border-border p-0">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-          <div ref={leftColumnRef} className="border-b border-border p-7 lg:border-b-0 lg:border-r">
+          <div ref={leftColumnRef} className="flex flex-col border-b border-border p-7 lg:border-b-0 lg:border-r">
             <div className="flex items-center gap-2 text-xs font-medium text-primary">
               <Sparkles className="h-3.5 w-3.5" /> Recommended prompt
             </div>
@@ -273,7 +273,7 @@ function PromptsPage() {
               ) : null}
             </div>
 
-            <div className="mt-7 flex flex-wrap items-center gap-3">
+            <div className="mt-auto pt-7 flex flex-wrap items-center gap-3">
               <Button size="lg" onClick={startFlow}>
                 Start flow with this prompt{" "}
                 <ArrowRight className="h-4 w-4" />
@@ -299,11 +299,7 @@ function PromptsPage() {
             />
 
             <div className="mt-7">
-              <QfosTable
-                qfos={qfos}
-                loading={qfosLoading}
-                matchHeightRef={leftColumnRef}
-              />
+              <QfosTable qfos={qfos} loading={qfosLoading} maxRows={6} />
             </div>
           </div>
         </div>
