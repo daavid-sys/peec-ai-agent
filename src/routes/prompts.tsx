@@ -214,6 +214,7 @@ function PromptsPage() {
               label="Query fanouts"
               value={counts?.qfos ?? "—"}
               loading={recommendationLoading}
+              modelIds={recommendation?.qfoModels}
             />
             <Mini
               label="Openings found"
