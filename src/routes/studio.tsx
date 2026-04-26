@@ -400,12 +400,11 @@ function SideContext({
       <Card className="border-border p-4">
         <div className="flex items-center gap-2">
           <span
-            className="h-6 w-6 rounded-md text-center text-[10px] font-bold leading-6 text-white"
+            aria-hidden
+            className="h-2 w-2 shrink-0 rounded-full"
             style={{ backgroundColor: meta.accent }}
-          >
-            {meta.label.slice(0, 1)}
-          </span>
-          <div className="text-sm font-semibold">{meta.label}</div>
+          />
+          <div className="text-sm font-medium text-foreground">{meta.label}</div>
           <Badge variant="outline" className="ml-auto font-mono tabular-nums">
             impact {draft.impactScore}
           </Badge>
