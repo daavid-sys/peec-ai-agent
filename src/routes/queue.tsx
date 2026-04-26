@@ -246,19 +246,23 @@ function QueuePage() {
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-6 py-8 2xl:px-10">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-6">
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Review &amp; publish
-        </h1>
-        <Button
-          size="lg"
-          className="h-14 shrink-0 px-8 text-base"
-          onClick={handlePrimary}
+      {/* Top nav */}
+      <div className="flex items-center justify-between gap-4">
+        <Link
+          to="/studio"
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          {primaryLabel} <ArrowRight className="h-5 w-5" />
+          ← Back to Agent Working
+        </Link>
+        <Button size="lg" onClick={handlePrimary}>
+          {primaryLabel} <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
+
+      {/* Header */}
+      <h1 className="mt-6 text-3xl font-semibold tracking-tight">
+        Step 3: Review and publish
+      </h1>
 
       {/* Progress strip */}
       <div className="mt-6 flex items-center gap-4">
