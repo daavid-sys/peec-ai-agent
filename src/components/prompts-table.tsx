@@ -68,6 +68,27 @@ function SentimentDot({ value }: { value: number | null }) {
   );
 }
 
+export function computePromptAggregates(rows: PromptTableRow[] | null) {
+  if (!rows || rows.length === 0)
+    return { visibility: 0, sentiment: 0, position: 0 };
+  const vis = rows.reduce((s, r) => s + (r.visibility ?? 0), 0) / rows.length;
+  const sentRows = rows.filter((r) => r.sentiment !== null);
+  const sent =
+    sentRows.length === 0
+      ? 0
+      : sentRows.reduce((s, r) => s + (r.sentiment ?? 0), 0) / sentRows.length;
+  const posRows = rows.filter((r) => r.position !== null);
+  const pos =
+    posRows.length === 0
+      ? 0
+      : posRows.reduce((s, r) => s + (r.position ?? 0), 0) / posRows.length;
+  return {
+    visibility: Math.round(vis),
+    sentiment: Math.round(sent),
+    position: Math.round(pos * 10) / 10,
+  };
+}
+
 export function PromptsTable({
   rows,
   loading,
