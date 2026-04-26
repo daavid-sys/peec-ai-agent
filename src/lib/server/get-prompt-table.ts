@@ -42,18 +42,34 @@ export const getPromptTable = createServerFn({ method: "GET" }).handler(
       position: number | null;
       share_of_voice: number | null;
     }>();
+    const competitorsByPrompt = new Map<
+      string,
+      { name: string; mention_count: number }[]
+    >();
     for (const m of metrics ?? []) {
-      if (!m.is_own) continue;
-      ownByPrompt.set(m.prompt_id, {
-        visibility:
-          m.visibility === null ? null : Math.round(Number(m.visibility) * 100),
-        sentiment: m.sentiment === null ? null : Math.round(Number(m.sentiment)),
-        position: m.position === null ? null : Number(m.position),
-        share_of_voice:
-          m.share_of_voice === null
-            ? null
-            : Math.round(Number(m.share_of_voice) * 100),
-      });
+      if (m.is_own) {
+        ownByPrompt.set(m.prompt_id, {
+          visibility:
+            m.visibility === null
+              ? null
+              : Math.round(Number(m.visibility) * 100),
+          sentiment:
+            m.sentiment === null ? null : Math.round(Number(m.sentiment)),
+          position: m.position === null ? null : Number(m.position),
+          share_of_voice:
+            m.share_of_voice === null
+              ? null
+              : Math.round(Number(m.share_of_voice) * 100),
+        });
+      } else if ((m.mention_count ?? 0) > 0) {
+        const arr = competitorsByPrompt.get(m.prompt_id) ?? [];
+        arr.push({ name: m.brand_name, mention_count: m.mention_count ?? 0 });
+        competitorsByPrompt.set(m.prompt_id, arr);
+      }
+    }
+    // Sort each prompt's competitor list by mention_count desc
+    for (const arr of competitorsByPrompt.values()) {
+      arr.sort((a, b) => b.mention_count - a.mention_count);
     }
 
     const modelsByPrompt = new Map<string, Set<string>>();
@@ -76,6 +92,7 @@ export const getPromptTable = createServerFn({ method: "GET" }).handler(
         position: own?.position ?? null,
         share_of_voice: own?.share_of_voice ?? 0,
         model_ids: Array.from(modelsByPrompt.get(p.id) ?? []),
+        mentioned_competitors: competitorsByPrompt.get(p.id) ?? [],
       };
     });
   },
