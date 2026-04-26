@@ -127,7 +127,9 @@ function OpeningsPage() {
   const competitorCounts = useMemo(() => {
     const map = new Map<string, number>();
     for (const o of allOpenings) {
-      if (o.competitor) map.set(o.competitor, (map.get(o.competitor) ?? 0) + 1);
+      for (const c of o.competitors) {
+        map.set(c, (map.get(c) ?? 0) + 1);
+      }
     }
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [allOpenings]);
@@ -142,7 +144,11 @@ function OpeningsPage() {
     () =>
       allOpenings.filter((o) => {
         if (channelFilter !== "all" && o._channel !== channelFilter) return false;
-        if (competitorFilter !== "all" && o.competitor !== competitorFilter) return false;
+        if (
+          competitorFilter !== "all" &&
+          !o.competitors.includes(competitorFilter)
+        )
+          return false;
         return true;
       }),
     [allOpenings, channelFilter, competitorFilter],
