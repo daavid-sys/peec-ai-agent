@@ -96,16 +96,10 @@ function QueuePage() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
-      <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Operate, don&rsquo;t just report
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Approve before publishing. No content spam — only source-specific
-            actions.
-          </p>
-        </div>
+      <div className="flex items-center justify-between gap-6">
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Review &amp; publish
+        </h1>
         <Button size="lg" onClick={() => navigate({ to: "/results" })}>
           See results <ArrowRight className="h-4 w-4" />
         </Button>
