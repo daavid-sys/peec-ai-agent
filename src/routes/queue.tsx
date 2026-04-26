@@ -220,6 +220,30 @@ function QueuePage() {
   const dynamicTitle = getTaskTitle(current, currentType, ownBrand.domain);
   const TypeIcon = TASK_META[currentType].icon;
 
+  const isLast = index >= drafts.length - 1;
+  const allDone = total > 0 && completed.size >= total;
+  const showResults = allDone || (isLast && completed.has(current.id));
+  const primaryLabel = showResults ? "See results" : "Next task";
+
+  function handlePrimary() {
+    if (showResults) {
+      navigate({ to: "/results" });
+      return;
+    }
+    // Mark current as done (if not already), then advance.
+    if (!completed.has(current!.id)) {
+      setCompleted((s) => {
+        const n = new Set(s);
+        n.add(current!.id);
+        return n;
+      });
+    }
+    if (!isLast) {
+      setDirection(1);
+      setIndex((i) => Math.min(i + 1, drafts.length - 1));
+    }
+  }
+
   return (
     <div className="mx-auto w-full max-w-[1500px] px-6 py-8 2xl:px-10">
       {/* Header */}
@@ -230,9 +254,9 @@ function QueuePage() {
         <Button
           size="lg"
           className="h-14 shrink-0 px-8 text-base"
-          onClick={() => navigate({ to: "/results" })}
+          onClick={handlePrimary}
         >
-          See results <ArrowRight className="h-5 w-5" />
+          {primaryLabel} <ArrowRight className="h-5 w-5" />
         </Button>
       </div>
 

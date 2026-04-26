@@ -8,10 +8,12 @@ export function PlatformPostCard({
   draft,
   ownBrand,
   onDone,
+  hideMarkButton = false,
 }: {
   draft: StudioDraft;
   ownBrand: { name: string; domain: string };
   onDone: () => void;
+  hideMarkButton?: boolean;
 }) {
   function copyDraft() {
     navigator.clipboard.writeText(draft.fullDraft);
@@ -32,9 +34,11 @@ export function PlatformPostCard({
         <Button variant="secondary" onClick={copyDraft} className="gap-1.5">
           <Copy className="h-4 w-4" /> Copy draft
         </Button>
-        <Button onClick={onDone} className="ml-auto gap-1.5">
-          <Check className="h-4 w-4" /> Mark as posted
-        </Button>
+        {!hideMarkButton && (
+          <Button onClick={onDone} className="ml-auto gap-1.5">
+            <Check className="h-4 w-4" /> Mark as posted
+          </Button>
+        )}
       </div>
     </div>
   );

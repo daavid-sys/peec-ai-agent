@@ -51,10 +51,12 @@ export function EmailPitchCard({
   draft,
   ownBrand,
   onDone,
+  hideMarkButton = false,
 }: {
   draft: StudioDraft;
   ownBrand: { name: string; domain: string };
   onDone: () => void;
+  hideMarkButton?: boolean;
 }) {
   const email = useMemo(() => buildEmail(draft, ownBrand.name), [draft, ownBrand.name]);
 
@@ -178,9 +180,11 @@ export function EmailPitchCard({
         <Button variant="secondary" onClick={copyEmail} className="gap-1.5">
           <Paperclip className="h-4 w-4" /> Copy email
         </Button>
-        <Button variant="outline" onClick={onDone} className="ml-auto gap-1.5">
-          <Send className="h-4 w-4" /> Mark as sent
-        </Button>
+        {!hideMarkButton && (
+          <Button variant="outline" onClick={onDone} className="ml-auto gap-1.5">
+            <Send className="h-4 w-4" /> Mark as sent
+          </Button>
+        )}
       </div>
     </div>
   );

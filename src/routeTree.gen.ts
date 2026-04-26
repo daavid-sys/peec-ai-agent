@@ -15,6 +15,7 @@ import { Route as QueueRouteImport } from './routes/queue'
 import { Route as PromptsRouteImport } from './routes/prompts'
 import { Route as OpeningsRouteImport } from './routes/openings'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TaskIdRouteImport } from './routes/task.$id'
 import { Route as QueueDraftIdRouteImport } from './routes/queue.draft.$id'
 import { Route as ApiTavilyExtractRouteImport } from './routes/api/tavily/extract'
 import { Route as ApiPublicBulkScrapeRouteImport } from './routes/api/public/bulk-scrape'
@@ -51,6 +52,11 @@ const OpeningsRoute = OpeningsRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TaskIdRoute = TaskIdRouteImport.update({
+  id: '/task/$id',
+  path: '/task/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QueueDraftIdRoute = QueueDraftIdRouteImport.update({
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/queue': typeof QueueRouteWithChildren
   '/results': typeof ResultsRoute
   '/studio': typeof StudioRoute
+  '/task/$id': typeof TaskIdRoute
   '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
   '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
   '/api/peec/$tool': typeof ApiPeecToolRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/queue': typeof QueueRouteWithChildren
   '/results': typeof ResultsRoute
   '/studio': typeof StudioRoute
+  '/task/$id': typeof TaskIdRoute
   '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
   '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
   '/api/peec/$tool': typeof ApiPeecToolRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/queue': typeof QueueRouteWithChildren
   '/results': typeof ResultsRoute
   '/studio': typeof StudioRoute
+  '/task/$id': typeof TaskIdRoute
   '/api/agents/find-openings': typeof ApiAgentsFindOpeningsRoute
   '/api/agents/generate-engagements': typeof ApiAgentsGenerateEngagementsRoute
   '/api/peec/$tool': typeof ApiPeecToolRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/queue'
     | '/results'
     | '/studio'
+    | '/task/$id'
     | '/api/agents/find-openings'
     | '/api/agents/generate-engagements'
     | '/api/peec/$tool'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/queue'
     | '/results'
     | '/studio'
+    | '/task/$id'
     | '/api/agents/find-openings'
     | '/api/agents/generate-engagements'
     | '/api/peec/$tool'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/queue'
     | '/results'
     | '/studio'
+    | '/task/$id'
     | '/api/agents/find-openings'
     | '/api/agents/generate-engagements'
     | '/api/peec/$tool'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   QueueRoute: typeof QueueRouteWithChildren
   ResultsRoute: typeof ResultsRoute
   StudioRoute: typeof StudioRoute
+  TaskIdRoute: typeof TaskIdRoute
   ApiAgentsFindOpeningsRoute: typeof ApiAgentsFindOpeningsRoute
   ApiAgentsGenerateEngagementsRoute: typeof ApiAgentsGenerateEngagementsRoute
   ApiPeecToolRoute: typeof ApiPeecToolRoute
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/task/$id': {
+      id: '/task/$id'
+      path: '/task/$id'
+      fullPath: '/task/$id'
+      preLoaderRoute: typeof TaskIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/queue/draft/$id': {
@@ -312,6 +332,7 @@ const rootRouteChildren: RootRouteChildren = {
   QueueRoute: QueueRouteWithChildren,
   ResultsRoute: ResultsRoute,
   StudioRoute: StudioRoute,
+  TaskIdRoute: TaskIdRoute,
   ApiAgentsFindOpeningsRoute: ApiAgentsFindOpeningsRoute,
   ApiAgentsGenerateEngagementsRoute: ApiAgentsGenerateEngagementsRoute,
   ApiPeecToolRoute: ApiPeecToolRoute,
