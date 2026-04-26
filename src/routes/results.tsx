@@ -16,6 +16,7 @@ import { ScoreBar } from "@/components/score-bar";
 import { Favicon } from "@/components/favicon";
 import { PromptHeaderCard } from "@/components/prompt-header-card";
 import { useAppStore } from "@/lib/store";
+import { CHANNELS } from "@/lib/channel";
 import {
   getStudioDrafts,
   type StudioDraft,
