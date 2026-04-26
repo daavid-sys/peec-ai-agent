@@ -9,6 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import { Favicon } from "@/components/favicon";
 import { useAppStore } from "@/lib/store";
 import { getActionPlan, type ActionPlan } from "@/lib/server/get-action-plan";
+import { QfosTable } from "@/components/qfos-table";
+import type { PromptQfo } from "@/lib/server/get-prompt-qfos";
 
 export const Route = createFileRoute("/openings")({
   head: () => ({ meta: [{ title: "Action Plan — Peec AI Openings" }] }),
@@ -114,7 +116,7 @@ function OpeningsPage() {
             <Target className="h-3.5 w-3.5" /> Competitors
           </TabsTrigger>
           <TabsTrigger value="qfos">
-            <MessageSquare className="h-3.5 w-3.5" /> Query Fanouts ({plan?.qfos.length ?? 0})
+            <MessageSquare className="h-3.5 w-3.5" /> Query fanouts ({plan?.qfos.length ?? 0})
           </TabsTrigger>
         </TabsList>
 
