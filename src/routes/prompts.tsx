@@ -66,7 +66,7 @@ function PromptsPage() {
   const [tableRows, setTableRows] = useState<PromptTableRow[] | null>(null);
   const [tableLoading, setTableLoading] = useState(true);
   const [tableQuery, setTableQuery] = useState("");
-  const [tableOpen, setTableOpen] = useState(true);
+  const [tableOpen, setTableOpen] = useState(false);
   const tableAgg = useMemo(() => computePromptAggregates(tableRows), [tableRows]);
 
   useEffect(() => {
