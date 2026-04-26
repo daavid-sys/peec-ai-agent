@@ -1,12 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { toast } from "sonner";
-import { useServerFn } from "@tanstack/react-start";
-import { Download, FileText, FileSpreadsheet, Loader2, Paperclip, Send } from "lucide-react";
+import { Download, FileText, FileSpreadsheet, Paperclip, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Favicon } from "@/components/favicon";
 import { GmailIcon } from "@/components/icons/gmail-icon";
-import { sendGmail } from "@/lib/server/send-gmail.functions";
 import type { StudioDraft } from "@/lib/server/get-studio-drafts";
 
 type Attachment = {
