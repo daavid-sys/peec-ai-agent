@@ -119,6 +119,13 @@ export const store = {
     };
     notify();
   },
+  markPromptVisited: (id: string) => {
+    if (!id) return;
+    const next = [id, ...state.visitedPromptIds.filter((x) => x !== id)].slice(0, 20);
+    state = { ...state, visitedPromptIds: next };
+    persistVisited(next);
+    notify();
+  },
   reset: () => {
     state = {
       connected: false,
@@ -129,7 +136,9 @@ export const store = {
       openings: [],
       selectedOpeningId: null,
       engagements: [],
+      visitedPromptIds: [],
     };
+    persistVisited([]);
     notify();
   },
 };
