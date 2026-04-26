@@ -44,7 +44,7 @@ const sources: Item[] = [
 const actions: Item[] = [
   { label: "Earned · Off-page", icon: FileText },
   { label: "Owned · On-page", icon: FileSearch },
-  { label: "Openings", icon: Search, active: true, to: "/openings" },
+  { label: "Openings", icon: Search, active: true, to: "/" },
   { label: "Impact", icon: LineChart },
 ];
 
