@@ -125,7 +125,7 @@ function OpeningsPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-6 py-10 2xl:px-10">
-      <div className="flex items-start justify-between gap-6">
+      <div className="flex items-center justify-between gap-6">
         <div className="min-w-0">
           <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Content plan for
@@ -139,16 +139,14 @@ function OpeningsPage() {
             and a short brief of the draft we&rsquo;re writing for it.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => void load()}>
-            <RefreshCw className="h-4 w-4" /> Refresh
-          </Button>
+        <div className="flex shrink-0 items-center">
           <Button
-            size="sm"
+            size="lg"
+            className="h-14 px-8 text-base"
             onClick={() => navigate({ to: "/studio" })}
             disabled={!overview || overview.totalOpenings === 0}
           >
-            Open Engagement Studio <ArrowRight className="h-4 w-4" />
+            Next <ArrowRight className="h-5 w-5" />
           </Button>
         </div>
       </div>
