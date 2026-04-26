@@ -5,20 +5,16 @@ import {
   Check,
   Sparkles,
   TrendingDown,
-  Search as SearchIcon,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { ScoreBar } from "@/components/score-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Favicon } from "@/components/favicon";
 import { store, useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { demoOpenings } from "@/lib/demo-data";
-import type { Opening, PromptOpportunity } from "@/lib/types";
+import type { Opening } from "@/lib/types";
 import {
   getPromptBrandMetrics,
   type PromptBrandMetric,
@@ -28,6 +24,11 @@ import {
   type PromptQfo,
 } from "@/lib/server/get-prompt-qfos";
 import { QfosTable } from "@/components/qfos-table";
+import { PromptsTable } from "@/components/prompts-table";
+import {
+  getPromptTable,
+  type PromptTableRow,
+} from "@/lib/server/get-prompt-table";
 
 export const Route = createFileRoute("/prompts")({
   head: () => ({ meta: [{ title: "Recommended Prompt — Peec AI Openings" }] }),
@@ -39,7 +40,7 @@ function PromptsPage() {
   const project = useAppStore((s) => s.project);
   const selectedId = useAppStore((s) => s.selectedPromptId);
   const navigate = useNavigate();
-  const [query, setQuery] = useState("");
+  
 
   if (!project || prompts.length === 0) {
     return (
@@ -67,6 +68,28 @@ function PromptsPage() {
   const [brandMetricsLoading, setBrandMetricsLoading] = useState(true);
   const [qfos, setQfos] = useState<PromptQfo[] | null>(null);
   const [qfosLoading, setQfosLoading] = useState(true);
+  const [tableRows, setTableRows] = useState<PromptTableRow[] | null>(null);
+  const [tableLoading, setTableLoading] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    setTableLoading(true);
+    getPromptTable()
+      .then((rows) => {
+        if (cancelled) return;
+        setTableRows(rows);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTableRows([]);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setTableLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   useEffect(() => {
     let cancelled = false;
     setBrandMetricsLoading(true);
@@ -104,12 +127,6 @@ function PromptsPage() {
     };
   }, [selected.id]);
 
-  const filteredPrompts = useMemo(() => {
-    if (!query) return prompts;
-    return prompts.filter((p) =>
-      p.text.toLowerCase().includes(query.toLowerCase()),
-    );
-  }, [prompts, query]);
 
   const startFlow = () => {
     store.selectPrompt(selected.id);
@@ -252,126 +269,29 @@ function PromptsPage() {
 
       {/* Prompt switcher */}
       <div id="prompt-switcher" className="mt-12">
-        <div className="mb-3 flex items-end justify-between">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">
-              Or pick a different prompt
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Selecting a prompt instantly updates the recommendation and the
-              openings preview above — no reload.
-            </p>
-          </div>
-          <div className="relative w-72">
-            <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search prompts"
-              className="h-8 pl-8 text-[13px]"
-            />
-          </div>
+        <div className="mb-3">
+          <h2 className="text-lg font-semibold tracking-tight">
+            Or pick a different prompt
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Selecting a prompt instantly updates the recommendation and the
+            openings preview above — no reload.
+          </p>
         </div>
 
-        <Card className="overflow-hidden border-border p-0">
-          <ul className="divide-y divide-border">
-            {filteredPrompts.map((p) => (
-              <PromptRow
-                key={p.id}
-                prompt={p}
-                active={p.id === selected.id}
-                isOwn={(b) => b === project.ownBrand.name}
-                onSelect={() => {
-                  store.selectPrompt(p.id);
-                  document
-                    .getElementById("prompt-switcher")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-              />
-            ))}
-            {filteredPrompts.length === 0 && (
-              <li className="px-4 py-6 text-center text-sm text-muted-foreground">
-                No prompts match &ldquo;{query}&rdquo;.
-              </li>
-            )}
-          </ul>
-        </Card>
+        <PromptsTable
+          rows={tableRows}
+          loading={tableLoading}
+          selectedId={selected.id}
+          onSelect={(id) => {
+            store.selectPrompt(id);
+            document
+              .getElementById("prompt-switcher")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+        />
       </div>
     </div>
-  );
-}
-
-function PromptRow({
-  prompt,
-  active,
-  isOwn,
-  onSelect,
-}: {
-  prompt: PromptOpportunity;
-  active: boolean;
-  isOwn: (b: string) => boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <li>
-      <button
-        onClick={onSelect}
-        className={cn(
-          "flex w-full items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-muted/40",
-          active && "bg-muted/60",
-        )}
-      >
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            {active && (
-              <Badge className="h-5 gap-1 bg-foreground px-1.5 text-[10px] text-background">
-                <Sparkles className="h-3 w-3" /> Selected
-              </Badge>
-            )}
-            <span className="truncate text-sm font-medium text-foreground">
-              {prompt.text}
-            </span>
-          </div>
-          <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <Favicon name={prompt.topCompetitor} kind="brand" size={10} />
-              top: {prompt.topCompetitor} {prompt.topCompetitorVisibility}%
-            </span>
-            <span>·</span>
-            <span>{prompt.openingsFound} openings</span>
-            <span>·</span>
-            <span>{prompt.hiddenQuestionsFound} fanouts</span>
-          </div>
-        </div>
-
-        <div className="hidden w-24 sm:block">
-          <div className="mb-1 flex items-center justify-between text-[10px] font-mono text-muted-foreground">
-            <span>your viz</span>
-            <span>{prompt.ownVisibility}%</span>
-          </div>
-          <ScoreBar
-            value={prompt.ownVisibility}
-            tone={isOwn(prompt.topCompetitor) ? "primary" : "destructive"}
-          />
-        </div>
-
-        <div className="hidden w-32 text-right sm:block">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            Opp. score
-          </div>
-          <div className="font-mono text-base font-semibold tabular-nums">
-            {prompt.opportunityScore}
-          </div>
-        </div>
-
-        <ChevronRight
-          className={cn(
-            "h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform",
-            active && "translate-x-0.5 text-foreground",
-          )}
-        />
-      </button>
-    </li>
   );
 }
 
