@@ -397,7 +397,7 @@ function QueuePage() {
             <button
               onClick={prev}
               disabled={index === 0}
-              className="absolute left-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/90 text-foreground shadow-sm backdrop-blur transition disabled:opacity-30 hover:bg-background"
+              className="absolute left-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/90 text-foreground shadow-sm backdrop-blur transition disabled:opacity-30 hover:bg-background sm:flex"
               aria-label="Previous task"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -405,7 +405,7 @@ function QueuePage() {
             <button
               onClick={next}
               disabled={index >= drafts.length - 1}
-              className="absolute right-2 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/90 text-foreground shadow-sm backdrop-blur transition disabled:opacity-30 hover:bg-background"
+              className="absolute right-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/90 text-foreground shadow-sm backdrop-blur transition disabled:opacity-30 hover:bg-background sm:flex"
               aria-label="Next task"
             >
               <ChevronRight className="h-5 w-5" />
