@@ -237,13 +237,13 @@ async function generateReasons(evidence: RationaleEvidence): Promise<ReasonCardP
             function: {
               name: "explain_prompt_opportunity",
               description:
-                "Return 3-4 hyper-personalized, action-oriented cards explaining why this prompt matters to the business owner.",
+                "Return EXACTLY 4 hyper-personalized, action-oriented cards explaining why this prompt matters to the business owner.",
               parameters: {
                 type: "object",
                 properties: {
                   reasons: {
                     type: "array",
-                    minItems: 3,
+                    minItems: 4,
                     maxItems: 4,
                     items: {
                       type: "object",
