@@ -177,15 +177,13 @@ function ResultsPage() {
         </Link>
       </div>
 
-      {metrics?.promptText ? (
-        <div className="mt-6 rounded-lg border border-border bg-card px-6 py-5 text-center">
-          <p className="text-lg font-semibold tracking-tight text-foreground">
-            &ldquo;{metrics.promptText}&rdquo;
-          </p>
-        </div>
-      ) : (
-        <Skeleton className="mt-6 h-[68px] w-full rounded-lg" />
-      )}
+      <div className="mt-6">
+        <PromptHeaderCard
+          text={metrics?.promptText ?? promptRow?.text}
+          row={promptRow}
+          loading={!metrics && !promptRow}
+        />
+      </div>
 
       <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
         {metrics && projection ? (
