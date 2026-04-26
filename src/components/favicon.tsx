@@ -53,7 +53,14 @@ const BRAND_DOMAINS: Record<string, string> = {
   Capterra: "capterra.com",
 };
 
+function looksLikeDomain(value: string) {
+  // matches things like example.com, sub.example.co.uk
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(value.trim());
+}
+
 function domainFor(name: string, kind: "model" | "brand") {
+  // If the caller already passed a domain (e.g. "articsledge.com"), use it directly
+  if (looksLikeDomain(name)) return name.trim().toLowerCase();
   const map = kind === "model" ? MODEL_DOMAINS : BRAND_DOMAINS;
   if (map[name]) return map[name];
   // try fuzzy match
