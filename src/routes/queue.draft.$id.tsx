@@ -1,11 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Copy, Download, FileText, Mail } from "lucide-react";
+import { ArrowLeft, ChevronDown, Copy, Download, FileText, Mail } from "lucide-react";
+import { jsPDF } from "jspdf";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { store, useAppStore } from "@/lib/store";
 
 export const Route = createFileRoute("/queue/draft/$id")({
@@ -15,14 +22,168 @@ export const Route = createFileRoute("/queue/draft/$id")({
   component: DraftPage,
 });
 
-function downloadFile(filename: string, contents: string, mime: string) {
-  const blob = new Blob([contents], { type: mime });
+function triggerDownload(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  // Revoke after a tick so the browser has time to start the download
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadText(filename: string, contents: string, mime: string) {
+  triggerDownload(filename, new Blob([contents], { type: `${mime};charset=utf-8` }));
+}
+
+function escapeHtml(s: string) {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function draftToHtmlBody(title: string, draft: string) {
+  // Convert markdown-ish paragraphs / headings / lists to simple HTML so Word
+  // and PDF exports preserve structure.
+  const blocks = draft.split(/\n{2,}/);
+  const html = blocks
+    .map((block) => {
+      const trimmed = block.trim();
+      if (!trimmed) return "";
+      if (/^#{1,6}\s/.test(trimmed)) {
+        const level = trimmed.match(/^#+/)![0].length;
+        const text = escapeHtml(trimmed.replace(/^#+\s*/, ""));
+        return `<h${level}>${text}</h${level}>`;
+      }
+      if (/^([-*]|\d+\.)\s/m.test(trimmed)) {
+        const ordered = /^\d+\.\s/.test(trimmed);
+        const items = trimmed
+          .split(/\n/)
+          .map((l) => l.replace(/^([-*]|\d+\.)\s+/, "").trim())
+          .filter(Boolean)
+          .map((l) => `<li>${escapeHtml(l)}</li>`)
+          .join("");
+        return ordered ? `<ol>${items}</ol>` : `<ul>${items}</ul>`;
+      }
+      return `<p>${escapeHtml(trimmed).replace(/\n/g, "<br/>")}</p>`;
+    })
+    .join("\n");
+  return `<h1>${escapeHtml(title)}</h1>\n${html}`;
+}
+
+function downloadDoc(filename: string, title: string, draft: string) {
+  // Word opens .doc files containing HTML wrapped in the MS Office namespace.
+  const body = draftToHtmlBody(title, draft);
+  const doc = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(title)}</title>
+  <style>
+    body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #111; }
+    h1 { font-size: 22pt; margin: 0 0 12pt; }
+    h2 { font-size: 16pt; margin: 18pt 0 8pt; }
+    h3 { font-size: 13pt; margin: 14pt 0 6pt; }
+    p, li { margin: 0 0 8pt; }
+    ul, ol { margin: 0 0 8pt 24pt; }
+  </style>
+</head>
+<body>${body}</body>
+</html>`;
+  triggerDownload(
+    filename,
+    new Blob(["\ufeff", doc], { type: "application/msword" }),
+  );
+}
+
+function downloadPdf(filename: string, title: string, draft: string) {
+  const pdf = new jsPDF({ unit: "pt", format: "letter" });
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 56; // ~0.78"
+  const contentWidth = pageWidth - margin * 2;
+  let y = margin;
+
+  const ensureSpace = (needed: number) => {
+    if (y + needed > pageHeight - margin) {
+      pdf.addPage();
+      y = margin;
+    }
+  };
+
+  // Title
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(20);
+  const titleLines = pdf.splitTextToSize(title, contentWidth);
+  ensureSpace(titleLines.length * 24);
+  pdf.text(titleLines, margin, y);
+  y += titleLines.length * 24 + 8;
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(11);
+
+  const blocks = draft.split(/\n{2,}/);
+  for (const raw of blocks) {
+    const block = raw.trim();
+    if (!block) continue;
+    let text = block;
+    let fontSize = 11;
+    let bold = false;
+    let bullet = "";
+    let leftPad = 0;
+
+    const headingMatch = block.match(/^(#{1,6})\s+(.*)$/);
+    if (headingMatch) {
+      const level = headingMatch[1].length;
+      text = headingMatch[2];
+      fontSize = level === 1 ? 16 : level === 2 ? 14 : 12;
+      bold = true;
+    } else if (/^[-*]\s/.test(block)) {
+      // Render as bullet list — split lines
+      const items = block.split(/\n/).map((l) => l.replace(/^[-*]\s+/, ""));
+      for (const item of items) {
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(11);
+        const lines = pdf.splitTextToSize(item, contentWidth - 14);
+        ensureSpace(lines.length * 14 + 2);
+        pdf.text("•", margin, y);
+        pdf.text(lines, margin + 14, y);
+        y += lines.length * 14 + 2;
+      }
+      y += 4;
+      continue;
+    } else if (/^\d+\.\s/.test(block)) {
+      const items = block.split(/\n/);
+      for (const item of items) {
+        const m = item.match(/^(\d+)\.\s+(.*)$/);
+        if (!m) continue;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(11);
+        const lines = pdf.splitTextToSize(m[2], contentWidth - 20);
+        ensureSpace(lines.length * 14 + 2);
+        pdf.text(`${m[1]}.`, margin, y);
+        pdf.text(lines, margin + 20, y);
+        y += lines.length * 14 + 2;
+      }
+      y += 4;
+      continue;
+    }
+
+    pdf.setFont("helvetica", bold ? "bold" : "normal");
+    pdf.setFontSize(fontSize);
+    const lineHeight = fontSize * 1.3;
+    const lines = pdf.splitTextToSize(text, contentWidth - leftPad);
+    ensureSpace(lines.length * lineHeight + 6);
+    if (bullet) pdf.text(bullet, margin, y);
+    pdf.text(lines, margin + leftPad, y);
+    y += lines.length * lineHeight + 8;
+  }
+
+  pdf.save(filename);
 }
 
 function slugify(s: string) {
