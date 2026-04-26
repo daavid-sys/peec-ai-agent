@@ -3,6 +3,7 @@ import { useAppStore } from "@/lib/store";
 import { PeecSidebar } from "@/components/peec-sidebar";
 import { StepDots } from "@/components/step-dots";
 import { Link } from "@tanstack/react-router";
+import mcpLogo from "@/assets/mcp-logo.png";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const connected = useAppStore((s) => s.connected);
@@ -31,21 +32,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 title="Live data stream — read-only"
                 className="pointer-events-none gap-1.5 text-[11px] animate-pulse select-none"
               >
-                {/* Official MCP-style mark */}
-                <svg
-                  viewBox="0 0 24 24"
-                  width="12"
-                  height="12"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden
-                >
-                  <path d="M3 12 L9 6 L15 12 L9 18 Z" />
-                  <path d="M9 12 L15 6 L21 12 L15 18 Z" />
-                </svg>
+                {/* Official MCP mark */}
+                <img
+                  src={mcpLogo}
+                  alt="MCP"
+                  width={12}
+                  height={12}
+                  className="h-3 w-3 object-contain dark:invert"
+                />
                 <span className="relative inline-flex h-1.5 w-1.5">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-70" />
                   <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
