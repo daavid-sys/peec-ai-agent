@@ -159,6 +159,43 @@ function fallbackReasons(evidence: RationaleEvidence): ReasonCardPayload[] {
     category: "win",
   });
 
+  // Pad to exactly 4 cards using whatever evidence is left so the UI is never short.
+  const usedDomains = new Set(cards.map((c) => c.platformDomain).filter(Boolean));
+  const extraSources = evidence.topSources.filter(
+    (s) => s.domain && !usedDomains.has(s.domain),
+  );
+  const extraCompetitors = evidence.competitors.filter(
+    (c) => c.name.toLowerCase() !== (evidence.topCompetitor ?? "").toLowerCase(),
+  );
+
+  while (cards.length < 4) {
+    const nextSource = extraSources.shift();
+    if (nextSource?.domain) {
+      cards.push({
+        headline: `Show up on ${nextSource.domain}`,
+        body: `**${nextSource.domain}** is another cited source for this prompt where **${brand}** isn't represented yet. Each additional source you appear on widens the set of answers that mention you.`,
+        platformDomain: nextSource.domain,
+        category: "platform",
+      });
+      continue;
+    }
+    const nextCompetitor = extraCompetitors.shift();
+    if (nextCompetitor) {
+      cards.push({
+        headline: `Stay ahead of ${nextCompetitor.name}`,
+        body: `**${nextCompetitor.name}** is competing for the same answer surface as **${brand}** on this prompt. Owning the cited sources here keeps them from compounding awareness at your expense.`,
+        competitorDomains: nextCompetitor.domain ? [nextCompetitor.domain] : [],
+        category: "competitor",
+      });
+      continue;
+    }
+    cards.push({
+      headline: `Compounding awareness for ${brand}`,
+      body: `Every answer that includes **${brand}** on this prompt builds long-term awareness with buyers actively researching this exact need. Skipping it leaves that ground to whoever shows up instead.`,
+      category: "win",
+    });
+  }
+
   return cards.slice(0, 4);
 }
 
@@ -182,6 +219,7 @@ async function generateReasons(evidence: RationaleEvidence): Promise<ReasonCardP
               `You write hyper-personalized "Why this prompt" cards for ${evidence.ownBrandName}, the business owner.`,
               `Each card explains, in business-owner language, why ${evidence.ownBrandName} should care about this specific prompt.`,
               `RULES:`,
+              `- You MUST return EXACTLY 4 cards. Never fewer. If evidence is thin, lean on competitors, brand awareness, or compounding visibility — but always produce 4 distinct, non-repeating cards.`,
               `- Headlines must be ACTION-ORIENTED and reference a specific platform, source, or competitor by name. Examples: "Get mentioned on LinkedIn", "Beat HubSpot on G2", "Own the 'best CRM' listicle on Forbes". NEVER use vague phrases like "Maximum opportunity score", "High visibility gap", or any internal Peec metric name.`,
               `- Bodies are 1-2 sentences of plain markdown explaining what's at stake for the BUSINESS (deals, awareness, trust) — not for Peec. Use **bold** around every brand name (own brand, competitors) and platform/source domain you mention.`,
               `- Use the supplied evidence only. Never invent platforms, competitors, or numbers.`,
@@ -200,13 +238,13 @@ async function generateReasons(evidence: RationaleEvidence): Promise<ReasonCardP
             function: {
               name: "explain_prompt_opportunity",
               description:
-                "Return 3-4 hyper-personalized, action-oriented cards explaining why this prompt matters to the business owner.",
+                "Return EXACTLY 4 hyper-personalized, action-oriented cards explaining why this prompt matters to the business owner.",
               parameters: {
                 type: "object",
                 properties: {
                   reasons: {
                     type: "array",
-                    minItems: 3,
+                    minItems: 4,
                     maxItems: 4,
                     items: {
                       type: "object",
@@ -283,7 +321,21 @@ async function generateReasons(evidence: RationaleEvidence): Promise<ReasonCardP
       .filter((c): c is ReasonCardPayload => c !== null)
       .slice(0, 4);
 
-    return cards.length ? cards : fallbackReasons(evidence);
+    if (!cards.length) return fallbackReasons(evidence);
+
+    // Always pad to exactly 4 cards using fallback content the LLM didn't already cover.
+    if (cards.length < 4) {
+      const usedHeadlines = new Set(cards.map((c) => c.headline.toLowerCase()));
+      for (const fb of fallbackReasons(evidence)) {
+        if (cards.length >= 4) break;
+        if (!usedHeadlines.has(fb.headline.toLowerCase())) {
+          cards.push(fb);
+          usedHeadlines.add(fb.headline.toLowerCase());
+        }
+      }
+    }
+
+    return cards.slice(0, 4);
   } catch {
     return fallbackReasons(evidence);
   }
