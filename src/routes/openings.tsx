@@ -161,20 +161,30 @@ function OpeningsPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1500px] px-6 py-10 2xl:px-10">
-      <div className="flex items-center justify-between gap-6">
-        <div className="min-w-0">
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Here are the openings we&rsquo;ll fix for you
-          </h1>
-        </div>
+      <div className="flex items-center justify-between gap-4">
+        <Link
+          to="/prompts"
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          ← Back to prompts
+        </Link>
         <Button
           size="lg"
-          className="h-14 shrink-0 px-8 text-base"
           onClick={() => navigate({ to: "/studio" })}
           disabled={!overview || overview.totalOpenings === 0}
         >
-          Next <ArrowRight className="h-5 w-5" />
+          Next <ArrowRight className="h-4 w-4" />
         </Button>
+      </div>
+
+      <h1 className="mt-6 text-3xl font-semibold tracking-tight">
+        Step 1: Action plan
+      </h1>
+
+      <div className="mt-6 rounded-lg border border-border bg-card px-6 py-5 text-center">
+        <p className="text-lg font-semibold tracking-tight text-foreground">
+          &ldquo;{promptText}&rdquo;
+        </p>
       </div>
 
       {!loading && allOpenings.length > 0 && (
@@ -229,11 +239,6 @@ function OpeningsPage() {
         )}
       </div>
 
-      <div className="mt-8">
-        <Button variant="ghost" asChild>
-          <Link to="/prompts">← Back to prompts</Link>
-        </Button>
-      </div>
     </div>
   );
 }
