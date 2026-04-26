@@ -219,6 +219,7 @@ async function generateReasons(evidence: RationaleEvidence): Promise<ReasonCardP
               `You write hyper-personalized "Why this prompt" cards for ${evidence.ownBrandName}, the business owner.`,
               `Each card explains, in business-owner language, why ${evidence.ownBrandName} should care about this specific prompt.`,
               `RULES:`,
+              `- You MUST return EXACTLY 4 cards. Never fewer. If evidence is thin, lean on competitors, brand awareness, or compounding visibility — but always produce 4 distinct, non-repeating cards.`,
               `- Headlines must be ACTION-ORIENTED and reference a specific platform, source, or competitor by name. Examples: "Get mentioned on LinkedIn", "Beat HubSpot on G2", "Own the 'best CRM' listicle on Forbes". NEVER use vague phrases like "Maximum opportunity score", "High visibility gap", or any internal Peec metric name.`,
               `- Bodies are 1-2 sentences of plain markdown explaining what's at stake for the BUSINESS (deals, awareness, trust) — not for Peec. Use **bold** around every brand name (own brand, competitors) and platform/source domain you mention.`,
               `- Use the supplied evidence only. Never invent platforms, competitors, or numbers.`,
