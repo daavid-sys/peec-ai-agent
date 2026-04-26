@@ -406,34 +406,47 @@ function PromptsPage() {
               <Mini label="Openings found" value={cardCounts?.openings ?? "—"} loading={recommendationLoading} />
             </div>
 
-            <div className="my-auto space-y-2 py-6">
+            <div className="flex flex-1 flex-col py-6">
               <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Why this prompt
               </div>
               {recommendationLoading ? (
-                <ul className="space-y-2">
+                <div className="mt-3 grid flex-1 grid-cols-2 gap-2.5 auto-rows-fr">
                   {Array.from({ length: 4 }).map((_, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <Skeleton className="mt-1 h-3 w-3 flex-shrink-0 rounded-full" />
-                      <div className="flex-1 space-y-1.5">
-                        <Skeleton className="h-3 w-full" />
-                        <Skeleton className="h-3 w-4/5" />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : cardReasons.length > 0 ? (
-                <ul className="space-y-1.5">
-                  {cardReasons.map((r) => (
-                    <li
-                      key={r}
-                      className="flex items-start gap-2 text-sm text-foreground"
+                    <div
+                      key={i}
+                      className="flex h-full flex-col rounded-lg border border-border bg-background p-3"
                     >
-                      <Check className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
-                      <span>{renderInlineMarkdown(r)}</span>
-                    </li>
+                      <Skeleton className="h-8 w-8 rounded-md" />
+                      <Skeleton className="mt-2.5 h-3.5 w-3/4" />
+                      <Skeleton className="mt-2 h-2.5 w-full" />
+                      <Skeleton className="mt-1.5 h-2.5 w-5/6" />
+                    </div>
                   ))}
-                </ul>
+                </div>
+              ) : cardReasons.length > 0 ? (
+                <div
+                  className={cn(
+                    "mt-3 grid flex-1 gap-2.5 auto-rows-fr",
+                    cardReasons.length <= 2 ? "grid-cols-2" : "grid-cols-2",
+                  )}
+                >
+                  {cardReasons.map((r, i) => {
+                    const { headline, body } = summarizeReason(r);
+                    const meta = classifyReason(r, i);
+                    return (
+                      <ReasonCardItem
+                        key={r}
+                        card={{
+                          icon: meta.icon,
+                          tone: meta.tone,
+                          headline,
+                          body,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
               ) : null}
             </div>
 
