@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { classifyChannel, type Channel } from "@/lib/channel";
+import { dedupeOpenings } from "@/lib/server/dedupe-openings";
 
 const MODEL = "google/gemini-3-flash-preview";
 const MAX_PER_CALL = 8;
@@ -14,6 +15,15 @@ type OpeningRow = {
   competitor: string | null;
   prompt_id: string;
   source_id: string | null;
+  impact_score: number | null;
+};
+
+/** A merged opening to draft for: canonical row + the full competitor list. */
+type DraftJob = {
+  opening: OpeningRow;
+  competitors: string[];
+  /** All opening_ids in the merged group (so we can mark them all done). */
+  groupIds: string[];
 };
 
 type SourceRow = {
