@@ -161,10 +161,34 @@ export const getStudioDrafts = createServerFn({ method: "GET" })
       });
     }
 
+    // Deduplicate drafts that would render as the same post on the same
+    // platform (same channel + title + source URL + competitor + draft body
+    // prefix). Multiple openings can target the same source/title with the
+    // same action template, which previously surfaced as visible duplicates.
+    const seen = new Set<string>();
+    const uniqueDrafts: StudioDraft[] = [];
+    for (const d of drafts) {
+      const bodyKey = (d.fullDraft ?? "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 200)
+        .toLowerCase();
+      const key = [
+        d.channel,
+        (d.title ?? "").trim().toLowerCase(),
+        (d.source.url ?? "").toLowerCase(),
+        (d.competitor ?? "").toLowerCase(),
+        bodyKey,
+      ].join("|");
+      if (seen.has(key)) continue;
+      seen.add(key);
+      uniqueDrafts.push(d);
+    }
+
     return {
       promptId,
       promptText: promptRes.data?.text ?? null,
-      drafts,
+      drafts: uniqueDrafts,
       pendingCount,
     };
   });
