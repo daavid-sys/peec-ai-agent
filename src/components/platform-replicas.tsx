@@ -139,6 +139,7 @@ function TypedMarkdown({
   return (
     <div className={cn("prose prose-zinc max-w-none", className)}>
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         components={{
           // Open links in new tab; render inline-style so they read naturally
           a: (props) => (
