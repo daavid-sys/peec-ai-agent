@@ -376,9 +376,8 @@ function PromptsPage() {
         Let's increase your visibility
       </h1>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        We ranked all {prompts.length} prompts by Opportunity Score. Here&rsquo;s
-        the one we&rsquo;d fix first — and a sneak peek of the openings ready
-        for you.
+        We use all the sources and query fanout&rsquo;s on a per-prompt basis to
+        identify and fill all the content gaps for your brand.
       </p>
 
       {/* Hero recommended-prompt card */}
