@@ -1,11 +1,10 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import peecLogo from "@/assets/peec-logo.png";
 
 const steps = [
-  { to: "/", label: "Connect" },
   { to: "/project", label: "Project" },
   { to: "/prompts", label: "Prompts" },
   { to: "/openings", label: "Openings" },
@@ -15,7 +14,7 @@ const steps = [
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const demoMode = useAppStore((s) => s.demoMode);
+  
   const connected = useAppStore((s) => s.connected);
   const location = useLocation();
 
@@ -23,22 +22,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-6">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Sparkles className="h-4 w-4" />
-            </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-sm font-semibold tracking-tight">
-                Peec AI Openings
-              </span>
-              <span className="text-xs text-muted-foreground">by Peec</span>
-            </div>
+          <Link to="/project" className="flex items-center gap-2">
+            <img src={peecLogo} alt="Peec AI" className="h-5 w-auto" />
+            <span className="text-sm font-medium tracking-tight text-muted-foreground">
+              / Openings
+            </span>
           </Link>
 
           <nav className="hidden flex-1 items-center gap-1 md:flex">
             {steps.map((s, i) => {
               const active = location.pathname === s.to;
-              const disabled = !connected && s.to !== "/";
+              const disabled = !connected;
               return (
                 <Link
                   key={s.to}
@@ -69,25 +63,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
-            {demoMode && (
-              <Badge
-                variant="outline"
-                className="gap-1 border-warning/40 bg-warning/10 text-[11px] font-medium text-warning"
-                style={{
-                  borderColor: "color-mix(in oklab, var(--warning) 30%, transparent)",
-                  backgroundColor:
-                    "color-mix(in oklab, var(--warning) 10%, transparent)",
-                  color: "var(--warning)",
-                }}
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                Demo mode
-              </Badge>
-            )}
             {connected && (
               <Badge variant="outline" className="gap-1 text-[11px]">
-                <span className="h-1.5 w-1.5 rounded-full bg-success" style={{ backgroundColor: "var(--success)" }} />
-                Connected
+                <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
+                Connected via MCP
               </Badge>
             )}
           </div>
