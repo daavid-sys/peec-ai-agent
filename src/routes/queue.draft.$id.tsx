@@ -271,12 +271,12 @@ function DraftPage() {
       {/* Email pitch — top of page */}
       <Card className="mt-6 border-border bg-card p-5">
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-muted-foreground" />
-              <h2 className="text-sm font-semibold">Pitch email</h2>
+              <h2 className="text-sm font-semibold leading-none">Pitch email</h2>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1.5 text-xs text-muted-foreground">
               Asks {host} to publish the piece — explains why it&rsquo;s a fit for
               their readers.
             </p>
@@ -304,8 +304,8 @@ function DraftPage() {
             Subject
           </div>
           <div className="mt-1 text-sm font-medium">{emailSubject}</div>
-          <div className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-            {emailBody}
+          <div className="prose prose-sm mt-4 max-w-none text-sm leading-relaxed text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-strong:font-semibold prose-a:text-primary prose-p:my-2 prose-ul:my-2 prose-li:my-0.5">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{emailBody}</ReactMarkdown>
           </div>
         </div>
       </Card>
