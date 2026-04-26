@@ -147,6 +147,56 @@ function PromptsPage() {
     [visitedPromptIds, prompts],
   );
 
+  type VisitedStatus = {
+    loading: boolean;
+    ready: number;
+    inProgress: number;
+    total: number;
+  };
+  const [visitedStatus, setVisitedStatus] = useState<
+    Record<string, VisitedStatus>
+  >({});
+
+  useEffect(() => {
+    let cancelled = false;
+    const ownDomain = project.ownBrand.domain ?? null;
+    setVisitedStatus((prev) => {
+      const next = { ...prev };
+      for (const p of visitedPrompts) {
+        if (!next[p.id]) {
+          next[p.id] = { loading: true, ready: 0, inProgress: 0, total: 0 };
+        }
+      }
+      return next;
+    });
+    visitedPrompts.forEach((p) => {
+      getOpeningsOverview({ data: { promptId: p.id, ownDomain } })
+        .then((res) => {
+          if (cancelled) return;
+          const all = res.groups.flatMap((g) => g.openings);
+          const ready = all.filter((o) => o.draft.status === "ready").length;
+          const inProgress = all.filter(
+            (o) =>
+              o.draft.status === "drafting" || o.draft.status === "pending",
+          ).length;
+          setVisitedStatus((prev) => ({
+            ...prev,
+            [p.id]: { loading: false, ready, inProgress, total: all.length },
+          }));
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setVisitedStatus((prev) => ({
+            ...prev,
+            [p.id]: { loading: false, ready: 0, inProgress: 0, total: 0 },
+          }));
+        });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [visitedPrompts, project.ownBrand.domain]);
+
   const startFlow = (id: string) => {
     store.selectPrompt(id);
     store.markPromptVisited(id);
