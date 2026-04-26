@@ -371,6 +371,15 @@ function ResultsPage() {
   );
 }
 
+function toTitleCase(input: string) {
+  return input
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .split(/\s+/)
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
+
 function CollapsibleSection({
   title,
   count,
